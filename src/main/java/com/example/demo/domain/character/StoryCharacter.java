@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "character_entity")
 @Getter
@@ -48,6 +51,10 @@ public class StoryCharacter extends BaseEntity {
     // 캐릭터 삭제 시 외형 정보도 삭제
     @OneToOne(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private CharacterAppearance appearance;
+
+    // 캐릭터 삭제 시 즐겨찾기 한 캐릭터도 삭제
+    @OneToMany(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserCharacterFavorite> userFavorites = new HashSet<>();
 
     // 캐릭터 삭제 시 스토리도 삭제
     @OneToOne(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
