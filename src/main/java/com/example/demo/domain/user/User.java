@@ -2,6 +2,7 @@ package com.example.demo.domain.user;
 
 import com.example.demo.domain.character.UserCharacterFavorite;
 import com.example.demo.domain.conversation.ConversationSession;
+import com.example.demo.domain.story.UserStoryFavorite;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -52,6 +53,8 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();
 
+    // 약관 1 : 스토리와 캐릭터는 운영자만 삭제 가능합니다. 삭제를 원할 시 별도 신청/문의가 필요합니다.
+    //         추후 공유 기능 개발 예정이고 다른 사용자들이 캐릭터와 유대감을 쌓을 수 있으므로 중대한 이유가 아닌 이상 삭제 불가합니다.
 
     public enum UserStatus {
         ACTIVE,   // 로그인

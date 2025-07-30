@@ -1,0 +1,61 @@
+package com.example.demo.domain.story;
+
+import com.example.demo.domain.character.StoryCharacter;
+import com.example.demo.domain.user.User;
+import com.example.demo.global.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "story_entity")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Story extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "story_id")
+    private Long id;
+
+    // 스토리 제목
+    @Column(length = 100)
+    private String title;
+
+    // 스토리 3줄 설명
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    // 스토리 상태 (기본값 IN_PROGRESS)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StoryStatus status = StoryStatus.IN_PROGRESS;
+
+    // 스토리를 생성한 사용자
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // 스토리 삭제 시 스토리 테마도 삭제
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StoryTheme> storyThemes = new HashSet<>();
+
+    // 스토리 삭제 시 스토리 배경도 삭제
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<StoryBackground> storyBackgrounds = new HashSet<>();
+
+    // 스토리 삭제 시 스토리 페이지도 삭제
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("pageNumber ASC")
+    private Set<StoryPage> storyPages = new HashSet<>();
+
+
+    public enum StoryStatus {
+        IN_PROGRESS, // 진행 중
+        COMPLETED    // 완료됨
+    }
+}
