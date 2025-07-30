@@ -1,4 +1,4 @@
-package com.example.demo.domain.character;
+package com.example.demo.domain.character.entity;
 
 import com.example.demo.domain.story.Story;
 import com.example.demo.global.entity.BaseEntity;
