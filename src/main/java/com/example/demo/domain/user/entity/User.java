@@ -1,8 +1,8 @@
-package com.example.demo.domain.user;
+package com.example.demo.domain.user.entity;
 
-import com.example.demo.domain.character.UserCharacterFavorite;
-import com.example.demo.domain.conversation.ConversationSession;
-import com.example.demo.domain.story.UserStoryFavorite;
+import com.example.demo.domain.character.entity.UserCharacterFavorite;
+import com.example.demo.domain.conversation.entity.ConversationSession;
+import com.example.demo.domain.story.entity.UserStoryFavorite;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package com.example.demo.domain.character.entity;
 
-import com.example.demo.domain.user.User;
+import com.example.demo.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
