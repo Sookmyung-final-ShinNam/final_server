@@ -1,6 +1,7 @@
 package com.example.demo.domain.story;
 
 import com.example.demo.domain.character.StoryCharacter;
+import com.example.demo.domain.conversation.ConversationSession;
 import com.example.demo.domain.user.User;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -52,6 +53,10 @@ public class Story extends BaseEntity {
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("pageNumber ASC")
     private Set<StoryPage> storyPages = new HashSet<>();
+
+    // 스토리 삭제 시 대화 세션도 삭제
+    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ConversationSession> storySessions = new HashSet<>();
 
     // 스토리 삭제 시 스토리 즐겨찾기도 삭제
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
