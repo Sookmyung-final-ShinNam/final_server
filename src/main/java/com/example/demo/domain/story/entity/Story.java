@@ -1,7 +1,7 @@
-package com.example.demo.domain.story;
+package com.example.demo.domain.story.entity;
 
-import com.example.demo.domain.character.StoryCharacter;
-import com.example.demo.domain.conversation.ConversationSession;
+import com.example.demo.domain.character.entity.StoryCharacter;
+import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.user.User;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;

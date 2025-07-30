@@ -1,4 +1,4 @@
-package com.example.demo.domain.story;
+package com.example.demo.domain.story.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
