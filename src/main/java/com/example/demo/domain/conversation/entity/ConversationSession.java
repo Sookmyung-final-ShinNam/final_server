@@ -1,4 +1,4 @@
-package com.example.demo.domain.conversation;
+package com.example.demo.domain.conversation.entity;
 
 import com.example.demo.domain.story.Story;
 import com.example.demo.domain.user.User;
