@@ -53,6 +53,9 @@ public class Story extends BaseEntity {
     @OrderBy("pageNumber ASC")
     private Set<StoryPage> storyPages = new HashSet<>();
 
+    // 스토리 삭제 시 캐릭터도 삭제
+    @OneToOne(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
+    private StoryCharacter character;
 
     public enum StoryStatus {
         IN_PROGRESS, // 진행 중
