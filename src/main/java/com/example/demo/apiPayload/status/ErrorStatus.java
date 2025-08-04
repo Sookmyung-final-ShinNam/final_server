@@ -25,6 +25,9 @@ public enum ErrorStatus implements BaseErrorCode {
     TOKEN_UNSUPPORTED(HttpStatus.UNAUTHORIZED, "TOKEN_4004", "지원하지 않는 토큰 형식입니다. 올바른 토큰을 제공하세요."),
     TOKEN_CLAIMS_EMPTY(HttpStatus.UNAUTHORIZED, "TOKEN_4005", "토큰의 클레임이 비어 있습니다. 올바른 토큰을 제공하세요."),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "TOKEN_4006", "액세스 토큰이 만료되었습니다. 리프레시 토큰을 사용하여 새 액세스 토큰을 발급받으세요."),
+    TOKEN_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN_4011", "임시 토큰 생성에 실패했습니다. 서버 관리자에게 문의하세요."),
+
+    EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "EMAIL_4001", "이메일을 찾을 수 없습니다. 올바른 이메일을 입력하세요."),
 
     // 회원 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_4004", "사용자를 찾을 수 없습니다."),

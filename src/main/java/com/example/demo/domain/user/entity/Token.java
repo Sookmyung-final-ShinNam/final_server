@@ -22,6 +22,10 @@ public class Token extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // 임시 코드
+    @Column(name = "temp_code", nullable = true, unique = true, length = 100)
+    private String tempCode;
+
     // 액세스 토큰
     @Column(name = "access_token", nullable = false, unique = true, length = 500)
     private String accessToken;
