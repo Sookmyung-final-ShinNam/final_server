@@ -84,4 +84,11 @@ public class User extends BaseEntity {
         INACTIVE, // 로그아웃
         DELETED   // 회원 탈퇴
     }
+
+    // 사용자 상태를 활성화로 변경
+    public void activate() {
+        this.status = UserStatus.ACTIVE;
+        this.deletedAt = null; // 활성화 시 삭제 일시 초기화
+    }
+
 }

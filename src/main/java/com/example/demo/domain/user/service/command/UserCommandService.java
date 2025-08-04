@@ -18,4 +18,13 @@ public interface UserCommandService {
      */
     LoginResponseDto.Oauth2Result registerOrUpdateUser(String email, String nickname);
 
+    /**
+     * 임시 코드(tempCode)를 사용하여 사용자 로그인 처리
+     * tempCode로 토큰 조회 후 사용자 활성화 및 토큰 반환
+     *
+     * @param tempCode 임시 코드
+     * @return 로그인 결과가 담긴 LoginResult
+     */
+    LoginResponseDto.LoginResult loginUser(String tempCode);
+
 }

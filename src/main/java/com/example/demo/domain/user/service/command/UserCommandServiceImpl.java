@@ -6,9 +6,11 @@ import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.TokenRepository;
 import com.example.demo.domain.user.repository.UserRepository;
+import com.example.demo.domain.user.service.query.UserQueryService;
 import com.example.demo.domain.user.web.dto.LoginResponseDto;
 import com.example.demo.global.entity.BaseEntity;
 import com.example.demo.global.security.jwt.JwtUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +19,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserCommandServiceImpl implements UserCommandService {
 
     private final JwtUtil jwtUtil;
+
+    private final UserQueryService userQueryService;
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
@@ -91,6 +96,32 @@ public class UserCommandServiceImpl implements UserCommandService {
         token.setAccessToken(accessToken);
         token.setRefreshToken(refreshToken);
         tokenRepository.save(token);
+    }
+
+    /**
+     * 임시 코드(tempCode)를 사용하여 사용자 로그인 처리
+     * tempCode로 토큰 조회 후 사용자 활성화 및 토큰 반환
+     *
+     * @param tempCode 임시 코드
+     * @return 로그인 결과가 담긴 LoginResult
+     */
+    @Override
+    public LoginResponseDto.LoginResult loginUser(String tempCode) {
+
+        // tempCode 로 토큰 조회 및 반환 정보 생성
+        LoginResponseDto.LoginResult loginResult = userQueryService.findTokenByTempCode(tempCode);
+
+        // accessToken 으로 사용자 조회
+        Token token = tokenRepository.findByAccessToken(loginResult.getAccessToken())
+                .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
+
+        User user = token.getUser();
+
+        // 사용자 활성화
+        user.activate();
+        userRepository.save(user);
+
+        return loginResult;
     }
 
 }
