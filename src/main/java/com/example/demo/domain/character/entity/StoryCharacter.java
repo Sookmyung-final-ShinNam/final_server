@@ -57,7 +57,8 @@ public class StoryCharacter extends BaseEntity {
     private Set<UserCharacterFavorite> userFavorites = new HashSet<>();
 
     // 캐릭터 삭제 시 스토리도 삭제
-    @OneToOne(mappedBy = "character", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne
+    @JoinColumn(name = "story_id", nullable = false, unique = true)
     private Story story;
 
     public enum Gender {

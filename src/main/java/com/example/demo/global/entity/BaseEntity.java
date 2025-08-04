@@ -21,6 +21,11 @@ public class BaseEntity {
 
     private static final String DEFAULT_TIMEZONE = "Asia/Seoul";
 
+    public static LocalDateTime now() {
+        ZoneId zoneId = ZoneId.of(DEFAULT_TIMEZONE);
+        return LocalDateTime.now(zoneId);
+    }
+
     @PrePersist
     public void onCreate() {
         ZoneId zoneId = ZoneId.of(DEFAULT_TIMEZONE);

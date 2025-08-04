@@ -1,0 +1,11 @@
+spring:
+
+  time-zone: Asia/Seoul
+
+  base-url: "http://192.168.34.3:8080"
+  redirect-url: "http://192.168.34.3:8080/swagger-ui/index.html"
+
+  profiles:
+    include:
+      - db
+      - security
