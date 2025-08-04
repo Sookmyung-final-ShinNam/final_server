@@ -78,11 +78,11 @@ public class CommonOAuthHandler extends OncePerRequestFilter {
             LoginResponseDto.Oauth2Result result = userCommandService.registerOrUpdateUser(userInfo.getEmail(), userInfo.getName());
 
             // 4. 리다이렉트
-            // 임시 코드와 사용자 존재 여부(신규/기존)를 쿼리 파라미터로 포함
-            String redirectUrl = String.format("%s?tempCode=%s&status=%b",
+            // 임시 코드와 사용자 신규 여부(신규/기존)를 쿼리 파라미터로 포함
+            String redirectUrl = String.format("%s?tempCode=%s&isNewUser=%b",
                     applicationUrlProperties.getRedirectUrl(), // 기본 URL
                     URLEncoder.encode(result.getTempCode(), "UTF-8"), // URL 인코딩 된 임시 코드
-                    result.isNewUser()); // 사용자 존재 여부 (true : 기존, false : 신규)
+                    result.isNewUser()); // 신규 여부 (true : 신규, false : 기존)
 
             response.setStatus(HttpServletResponse.SC_FOUND);
             response.setHeader("Location", redirectUrl);
