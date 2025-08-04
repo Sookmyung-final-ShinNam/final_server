@@ -22,8 +22,8 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-  jwt:
-    secret:
-    token-validity:
-      access-token: 7200000
-      refresh-token: 1209600000
+    jwt:
+      secret:
+      token-validity:
+        access-token: 7200000
+        refresh-token: 1209600000
