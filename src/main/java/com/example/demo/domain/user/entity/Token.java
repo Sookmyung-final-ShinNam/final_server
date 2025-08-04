@@ -23,7 +23,7 @@ public class Token extends BaseEntity {
     private User user;
 
     // 임시 코드
-    @Column(name = "temp_code", nullable = true, unique = true, length = 100)
+    @Column(name = "temp_code", nullable = false, unique = true, length = 100)
     private String tempCode;
 
     // 액세스 토큰
