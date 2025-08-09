@@ -6,8 +6,8 @@ import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -31,7 +31,7 @@ public class ConversationSession extends BaseEntity {
     // 대화 세션 삭제 시 메시지도 삭제
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC") // 메시지 순서 유지를 위해 ID 기준으로 정렬
-    private Set<ConversationMessage> messages = new HashSet<>();
+    private List<ConversationMessage> messages = new ArrayList<>();
 
     // 대화 세션이 속한 스토리
     @ManyToOne(fetch = FetchType.LAZY)
