@@ -1,15 +1,15 @@
 package com.example.demo.domain.story.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Entity
-@Table(name = "story_background_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "story_background_entity")
 public class StoryBackground {
 
     @Id

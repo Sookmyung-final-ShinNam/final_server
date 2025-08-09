@@ -2,17 +2,18 @@ package com.example.demo.domain.conversation.entity;
 
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
-@Table(name = "conversation_message_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "conversation_message_entity")
 public class ConversationMessage extends BaseEntity {
 
     @Id

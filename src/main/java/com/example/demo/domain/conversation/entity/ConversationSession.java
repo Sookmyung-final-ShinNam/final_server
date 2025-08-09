@@ -4,17 +4,18 @@ import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
-@Table(name = "conversation_session_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "conversation_session_entity")
 public class ConversationSession extends BaseEntity {
 
     @Id

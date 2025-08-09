@@ -2,15 +2,15 @@ package com.example.demo.domain.character.entity;
 
 import com.example.demo.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Entity
-@Table(name = "user_character_favorite_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "user_character_favorite_entity")
 public class UserCharacterFavorite {
 
     @Id
