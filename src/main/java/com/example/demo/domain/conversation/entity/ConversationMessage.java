@@ -21,6 +21,10 @@ public class ConversationMessage extends BaseEntity {
     @Column(name = "message_id")
     private Long id;
 
+    // 다음 스토리 내용
+    @Column(name = "next_story", columnDefinition = "TEXT")
+    private String nextStory;
+
     // LLM의 질문
     @Column(name = "llm_question", columnDefinition = "TEXT")
     private String llmQuestion;
@@ -28,10 +32,6 @@ public class ConversationMessage extends BaseEntity {
     // LLM의 답변
     @Column(name = "llm_answer", columnDefinition = "TEXT")
     private String llmAnswer;
-
-    // 다음 스토리 내용
-    @Column(name = "next_story", columnDefinition = "TEXT")
-    private String nextStory;
 
     // 메시지 삭제 시 피드백도 삭제
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
