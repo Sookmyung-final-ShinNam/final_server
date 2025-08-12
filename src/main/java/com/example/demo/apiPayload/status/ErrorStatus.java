@@ -35,7 +35,13 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_4002", "이미 삭제된 사용자입니다."),
 
     // 관리자 관련 에러
-    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4003", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요.")
+    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4003", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
+
+    // 대화 관련 에러
+    CHAT_GPT_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT_GPT_5001", "ChatGPT API 호출에 실패했습니다. 관리자에게 문의하세요."),
+    CHAT_GPT_API_JSON_ESCAPE_FAILED(HttpStatus.BAD_REQUEST, "CHAT_GPT_4001", "ChatGPT API 호출 메시지의 json 형식이 올바르지 않습니다."),
+    CHAT_GPT_API_FILE_CALL_FAILED(HttpStatus.BAD_REQUEST, "CHAT_GPT_4002", "ChatGPT API 프롬프트 파일 호출에 실패하였습니다."),
+    CHAT_GPT_API_RESPONSE_FAILED(HttpStatus.BAD_GATEWAY, "CHAT_GPT_4003", "ChatGPT API 응답을 파싱하는데 실패하였습니다.")
 
     ;
 
