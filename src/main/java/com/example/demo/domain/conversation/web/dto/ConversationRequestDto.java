@@ -1,5 +1,6 @@
 package com.example.demo.domain.conversation.web.dto;
 
+import com.example.demo.domain.character.entity.StoryCharacter;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -25,8 +26,8 @@ public class ConversationRequestDto {
         @NotNull(message = "characterAge는 필수입니다.")
         private Integer characterAge;
 
-        @NotEmpty(message = "gender는 필수입니다.")
-        private String gender;
+        @NotNull(message = "gender는 필수입니다.")
+        private StoryCharacter.Gender gender;
 
         @NotEmpty(message = "eyeColor는 필수입니다.")
         private String eyeColor;
