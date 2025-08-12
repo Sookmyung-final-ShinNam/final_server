@@ -2,6 +2,7 @@ package com.example.demo.domain.conversation.converter;
 
 import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
+import com.example.demo.domain.conversation.entity.ConversationFeedback;
 import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
@@ -75,5 +76,21 @@ public class ConversationConverter {
                 .build();
     }
 
+
+    public ConversationFeedback toConversationFeedback(
+            ConversationRequestDto.FeedbackRequestDto request,
+            String feedbackResult,
+            String feedbackText,
+            int feedbackCount,
+            ConversationMessage message
+    ) {
+        return ConversationFeedback.builder()
+                .attemptNumber(feedbackCount)
+                .userAnswer(request.getUserAnswer())
+                .isCorrect("GOOD".equalsIgnoreCase(feedbackResult))
+                .feedbackText(feedbackText)
+                .message(message)
+                .build();
+    }
 
 }

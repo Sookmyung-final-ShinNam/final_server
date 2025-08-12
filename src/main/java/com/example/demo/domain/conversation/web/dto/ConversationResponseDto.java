@@ -16,5 +16,14 @@ public class ConversationResponseDto {
         private String nextStory;
     }
 
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class FeedbackResponseDto {
+        private String feedbackResult;  // "GOOD" or "NEEDS_CORRECTION"
+        private String revisedAnswer;
+    }
+
 
 }

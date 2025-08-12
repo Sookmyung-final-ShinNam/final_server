@@ -51,4 +51,20 @@ public class ConversationController extends AuthController {
     }
 
 
+    @Operation(
+            summary = "사용자 답변 피드백",
+            description = """
+                    사용자 답변에 대한 긍정/부정 평가와 피드백 제공
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @PostMapping("/feedback")
+    public ApiResponse<ConversationResponseDto.FeedbackResponseDto> feedback(
+            @Valid @RequestBody ConversationRequestDto.FeedbackRequestDto request
+    ) {
+        return ApiResponse.of(SuccessStatus._OK, conversationFeedbackCommandService.handleFeedback(request));
+    }
+
 }
