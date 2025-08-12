@@ -40,7 +40,7 @@ public class ConversationConverter {
                 .story(story)
                 .name(request.getCharacterName())
                 .age(request.getCharacterAge())
-                .gender(StoryCharacter.Gender.valueOf(request.getGender()))
+                .gender(request.getGender())
                 .status(StoryCharacter.CharacterStatus.IN_PROGRESS)
                 .build();
     }
