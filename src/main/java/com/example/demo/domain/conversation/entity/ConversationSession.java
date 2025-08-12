@@ -29,6 +29,7 @@ public class ConversationSession extends BaseEntity {
     private ConversationStep currentStep = ConversationStep.START;
 
     // 대화 세션 삭제 시 메시지도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC") // 메시지 순서 유지를 위해 ID 기준으로 정렬
     private List<ConversationMessage> messages = new ArrayList<>();
