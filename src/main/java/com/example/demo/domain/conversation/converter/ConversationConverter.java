@@ -67,5 +67,13 @@ public class ConversationConverter {
                 .build();
     }
 
+    public ConversationMessage toConversationMessage(String nextStory, String llmQuestion, ConversationSession session) {
+        return ConversationMessage.builder()
+                .session(session)
+                .nextStory(nextStory)
+                .llmQuestion(llmQuestion)
+                .build();
+    }
+
 
 }
