@@ -119,6 +119,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         return ConversationResponseDto.ConversationStartResponseDto.builder()
                 .sessionId(session.getId())
                 .nextStory(startText)
+                .currentStep(ConversationSession.ConversationStep.START)
                 .build();
     }
 

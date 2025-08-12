@@ -87,6 +87,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         return ConversationResponseDto.FeedbackResponseDto.builder()
                 .feedbackResult(feedbackResult)
                 .feedbackText(feedbackText)
+                .currentStep(message.getSession().getCurrentStep())
                 .build();
     }
 
