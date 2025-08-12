@@ -6,6 +6,7 @@ import com.example.demo.domain.conversation.entity.ConversationFeedback;
 import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
+import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import com.example.demo.domain.story.entity.*;
 import com.example.demo.domain.user.entity.User;
 import org.springframework.stereotype.Component;
@@ -76,6 +77,13 @@ public class ConversationConverter {
                 .build();
     }
 
+    public ConversationResponseDto.NextStepResponseDto toNextStepResponseDto(ConversationMessage message) {
+        return ConversationResponseDto.NextStepResponseDto.builder()
+                .messageId(message.getId())
+                .nextStory(message.getNextStory())
+                .llmQuestion(message.getLlmQuestion())
+                .build();
+    }
 
     public ConversationFeedback toConversationFeedback(
             ConversationRequestDto.FeedbackRequestDto request,

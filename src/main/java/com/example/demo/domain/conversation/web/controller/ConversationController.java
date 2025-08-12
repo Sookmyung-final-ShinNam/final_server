@@ -50,6 +50,23 @@ public class ConversationController extends AuthController {
         return ApiResponse.of(SuccessStatus._OK, conversationStartCommandService.startConversation(request, user));
     }
 
+    @Operation(
+            summary = "다음 스텝 메시지 조회",
+            description = """
+                    다음 세션의 next-story와 llmQuestion이 있으면 응답, 없으면 상태 PENDING 반환
+                    조회하고 싶은 단계를 입력하세요. ex. currentStep 에 STEP_01 입력시 STEP_01 의 nextStory 와 llmQuestion 반환 
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @GetMapping("/next-step")
+    public ApiResponse<Object> getNextStep(
+            @RequestParam Long sessionId,
+            @RequestParam String currentStep
+    ) {
+        return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getNextStepMessage(sessionId, currentStep));
+    }
 
     @Operation(
             summary = "사용자 답변 피드백",

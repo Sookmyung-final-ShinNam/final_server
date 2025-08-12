@@ -28,5 +28,14 @@ public class ConversationResponseDto {
         private ConversationSession.ConversationStep currentStep;
     }
 
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class NextStepResponseDto {
+        private Long messageId;
+        private String nextStory;
+        private String llmQuestion;
+    }
 
 }

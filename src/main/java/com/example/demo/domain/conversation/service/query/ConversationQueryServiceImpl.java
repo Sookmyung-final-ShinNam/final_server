@@ -19,7 +19,6 @@ import java.util.Map;
 public class ConversationQueryServiceImpl implements ConversationQueryService {
 
     private final ConversationSessionRepository sessionRepo;
-    private final ConversationMessageRepository messageRepo;
 
     private final ConversationConverter converter;
 
@@ -69,5 +68,41 @@ public class ConversationQueryServiceImpl implements ConversationQueryService {
         return sb.toString();
     }
 
+    @Override
+    @Transactional
+    public Object getNextStepMessage(Long sessionId, String currentStepStr) {
+
+        // 1. 세션 조회
+        ConversationSession session = findSessionById(sessionId);
+
+        // 2. currentStepStr을 enum으로 변환
+        ConversationSession.ConversationStep clientCurrentStep;
+        try {
+            clientCurrentStep = ConversationSession.ConversationStep.valueOf(currentStepStr);
+        } catch (IllegalArgumentException e) {
+            return Map.of("status", "INVALID_STEP");
+        }
+
+        // 3. 서버의 실제 현재 단계
+        ConversationSession.ConversationStep serverCurrentStep = session.getCurrentStep();
+
+        // 4. 클라이언트가 인지하는 단계와 서버가 관리하는 현재 단계 비교
+        if (clientCurrentStep != serverCurrentStep) {
+            // 클라이언트가 아직 최신 단계를 받지 못한 상태 (다르면 PENDING)
+            return Map.of("status", "PENDING");
+        }
+
+        // 5. 최신 메시지 조회
+        List<ConversationMessage> messages = session.getMessages();
+
+        if (messages.isEmpty()) {
+            return Map.of("status", "PENDING");
+        }
+
+        ConversationMessage latestMessage = messages.get(messages.size() - 1);
+
+        // 6. DTO 변환 후 반환
+        return converter.toNextStepResponseDto(latestMessage);
+    }
 
 }
