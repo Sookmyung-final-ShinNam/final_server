@@ -22,7 +22,7 @@ public class ConversationResponseDto {
     @Builder
     public static class FeedbackResponseDto {
         private String feedbackResult;  // "GOOD" or "NEEDS_CORRECTION"
-        private String revisedAnswer;
+        private String feedbackText;
     }
 
 

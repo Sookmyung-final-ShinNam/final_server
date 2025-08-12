@@ -86,7 +86,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         // 9. 응답 DTO 생성
         return ConversationResponseDto.FeedbackResponseDto.builder()
                 .feedbackResult(feedbackResult)
-                .revisedAnswer(feedbackText)
+                .feedbackText(feedbackText)
                 .build();
     }
 
