@@ -26,6 +26,7 @@ public class ConversationResponseDto {
         private String feedbackResult;  // "GOOD" or "NEEDS_CORRECTION"
         private String feedbackText;
         private ConversationSession.ConversationStep currentStep;
+        private int tryNum;
     }
 
     @Getter
