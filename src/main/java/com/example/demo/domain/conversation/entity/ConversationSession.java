@@ -50,4 +50,10 @@ public class ConversationSession extends BaseEntity {
         STEP_03, // 3단계
         END      // 종료
     }
+
+    public void addMessage(ConversationMessage message) {
+        messages.add(message);
+        message.setSession(this);
+    }
+
 }
