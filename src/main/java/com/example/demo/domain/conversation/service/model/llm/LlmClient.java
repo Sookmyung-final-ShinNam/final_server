@@ -1,4 +1,4 @@
-package com.example.demo.domain.conversation.service.model;
+package com.example.demo.domain.conversation.service.model.llm;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
