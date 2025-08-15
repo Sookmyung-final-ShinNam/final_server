@@ -92,11 +92,10 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
     private String getPromptFile(int tryCount) {
         switch (tryCount) {
             case 1:
-                return "feedback_try01.json";
             case 2:
-                return "feedback_try02.json";
+                return "feedback_try.json";
             case 3:
-                return "feedback_try03.json";
+                return "feedback_try_success.json";
             default:
                 throw new CustomException(ErrorStatus.COMMON_BAD_REQUEST);
         }
