@@ -10,7 +10,7 @@ import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
-import com.example.demo.domain.conversation.service.model.LlmClient;
+import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import com.example.demo.domain.story.entity.*;

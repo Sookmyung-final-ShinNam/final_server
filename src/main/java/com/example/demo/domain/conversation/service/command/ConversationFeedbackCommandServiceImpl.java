@@ -9,9 +9,8 @@ import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.repository.ConversationFeedbackRepository;
 import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
-import com.example.demo.domain.conversation.service.model.LlmClient;
+import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
-import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,12 +30,10 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
 
     @Override
     @Transactional
-    public ConversationResponseDto.FeedbackResponseDto handleFeedback(
-            ConversationRequestDto.FeedbackRequestDto request
-    ) {
+    public ConversationResponseDto.FeedbackResponseDto handleFeedback(Long messageId, String userAnswer) {
 
         // 1. 메시지 조회
-        ConversationMessage message = messageRepo.findById(request.getMessageId())
+        ConversationMessage message = messageRepo.findById(messageId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
 
         // 2. 세션 context 조회
@@ -45,7 +42,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         // 3. LLM 호출 준비
         int feedbackCount = (message.getFeedbacks() == null ? 0 : message.getFeedbacks().size()) + 1;
         String promptFileName = getPromptFile(feedbackCount);
-        String variable = llmClient.jsonEscape("이전 상황: " + context + "\nllm 질문: " + message.getLlmQuestion() + "\n사용자 답변: " + request.getUserAnswer());
+        String variable = llmClient.jsonEscape("이전 상황: " + context + "\nllm 질문: " + message.getLlmQuestion() + "\n사용자 답변: " + userAnswer);
 
         // 4. LLM 호출
         String prompt = llmClient.buildPrompt(promptFileName, variable);
@@ -56,7 +53,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         String feedbackText = llmClient.extractFieldValue(llmResponse, "feedbackText");       // 피드백 설명 텍스트
 
         // 6. Feedback 엔티티 생성 및 저장
-        ConversationFeedback feedback = converter.toConversationFeedback(request, feedbackResult, feedbackText, feedbackCount, message);
+        ConversationFeedback feedback = converter.toConversationFeedback(userAnswer, feedbackResult, feedbackText, feedbackCount, message);
         feedbackRepo.save(feedback);
 
         // 7. message 엔티티 업데이트

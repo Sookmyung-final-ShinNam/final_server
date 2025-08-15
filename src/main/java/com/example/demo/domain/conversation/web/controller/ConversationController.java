@@ -79,9 +79,12 @@ public class ConversationController extends AuthController {
     })
     @PostMapping("/feedback")
     public ApiResponse<ConversationResponseDto.FeedbackResponseDto> feedback(
-            @Valid @RequestBody ConversationRequestDto.FeedbackRequestDto request
+            @RequestParam Long messageId,
+            @RequestParam String userAnswer
     ) {
-        return ApiResponse.of(SuccessStatus._OK, conversationFeedbackCommandService.handleFeedback(request));
+        return ApiResponse.of(SuccessStatus._OK, conversationFeedbackCommandService.handleFeedback(messageId, userAnswer));
+    }
+
     }
 
 }

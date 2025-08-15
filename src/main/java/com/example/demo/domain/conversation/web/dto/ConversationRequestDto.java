@@ -40,15 +40,4 @@ public class ConversationRequestDto {
 
     }
 
-    @Getter
-    @NoArgsConstructor
-    public static class FeedbackRequestDto {
-
-        @NotNull(message = "메시지 ID는 필수입니다.")
-        private Long messageId;  // 대화 ID
-
-        @NotEmpty(message = "사용자 답변은 비어 있을 수 없습니다.")
-        private String userAnswer; // 사용자 답변
-    }
-
 }

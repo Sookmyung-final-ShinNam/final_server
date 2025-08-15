@@ -86,7 +86,7 @@ public class ConversationConverter {
     }
 
     public ConversationFeedback toConversationFeedback(
-            ConversationRequestDto.FeedbackRequestDto request,
+            String userAnswer,
             String feedbackResult,
             String feedbackText,
             int feedbackCount,
@@ -94,7 +94,7 @@ public class ConversationConverter {
     ) {
         return ConversationFeedback.builder()
                 .attemptNumber(feedbackCount)
-                .userAnswer(request.getUserAnswer())
+                .userAnswer(userAnswer)
                 .isCorrect("GOOD".equalsIgnoreCase(feedbackResult))
                 .feedbackText(feedbackText)
                 .message(message)
