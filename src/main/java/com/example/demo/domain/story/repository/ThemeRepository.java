@@ -4,7 +4,9 @@ import com.example.demo.domain.story.entity.Theme;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ThemeRepository extends JpaRepository<Theme, Long> {
 
     /**
