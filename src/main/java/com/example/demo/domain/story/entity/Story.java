@@ -5,17 +5,18 @@ import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
-@Table(name = "story_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "story_entity")
 public class Story extends BaseEntity {
 
     @Id
@@ -42,23 +43,28 @@ public class Story extends BaseEntity {
     private User user;
 
     // 스토리 삭제 시 스토리 테마도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StoryTheme> storyThemes = new HashSet<>();
 
     // 스토리 삭제 시 스토리 배경도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StoryBackground> storyBackgrounds = new HashSet<>();
 
     // 스토리 삭제 시 스토리 페이지도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("pageNumber ASC")
     private Set<StoryPage> storyPages = new HashSet<>();
 
     // 스토리 삭제 시 대화 세션도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ConversationSession> storySessions = new HashSet<>();
 
     // 스토리 삭제 시 스토리 즐겨찾기도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserStoryFavorite> userStoryFavorites = new HashSet<>();
 

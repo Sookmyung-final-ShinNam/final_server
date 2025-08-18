@@ -47,6 +47,9 @@ dependencies {
 	// OAuth 2.0
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+	// Mustache 템플릿 엔진
+	implementation 'com.github.spullara.mustache.java:compiler:0.9.10'
+
 	// lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

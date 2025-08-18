@@ -9,3 +9,6 @@ spring:
     include:
       - db
       - security
+
+chatgpt:
+  api-key: ""

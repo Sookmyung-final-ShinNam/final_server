@@ -5,18 +5,19 @@ import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.story.entity.UserStoryFavorite;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity
-@Table(name = "user_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "user_entity")
 public class User extends BaseEntity {
 
     @Id

@@ -2,15 +2,15 @@ package com.example.demo.domain.conversation.entity;
 
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Entity
-@Table(name = "conversation_feedback_entity")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "conversation_feedback_entity")
 public class ConversationFeedback extends BaseEntity {
 
     @Id

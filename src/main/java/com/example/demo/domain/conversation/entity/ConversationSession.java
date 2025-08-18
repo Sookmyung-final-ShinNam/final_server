@@ -4,17 +4,18 @@ import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import java.util.HashSet;
-import java.util.Set;
+import lombok.*;
 
-@Entity
-@Table(name = "conversation_session_entity")
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "conversation_session_entity")
 public class ConversationSession extends BaseEntity {
 
     @Id
@@ -28,9 +29,10 @@ public class ConversationSession extends BaseEntity {
     private ConversationStep currentStep = ConversationStep.START;
 
     // 대화 세션 삭제 시 메시지도 삭제
+    @Builder.Default
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC") // 메시지 순서 유지를 위해 ID 기준으로 정렬
-    private Set<ConversationMessage> messages = new HashSet<>();
+    private List<ConversationMessage> messages = new ArrayList<>();
 
     // 대화 세션이 속한 스토리
     @ManyToOne(fetch = FetchType.LAZY)
@@ -49,4 +51,10 @@ public class ConversationSession extends BaseEntity {
         STEP_03, // 3단계
         END      // 종료
     }
+
+    public void addMessage(ConversationMessage message) {
+        messages.add(message);
+        message.setSession(this);
+    }
+
 }
