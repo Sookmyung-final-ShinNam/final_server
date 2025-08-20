@@ -25,6 +25,10 @@ public class StoryPage {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    // 페이지 내용 - 영어 버전
+    @Column(name = "content_en", columnDefinition = "TEXT")
+    private String contentEn;
+
     // 페이지 이미지 URL
     @Column(name = "image_url", length = 500)
     private String imageUrl;

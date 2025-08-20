@@ -74,6 +74,7 @@ public class Story extends BaseEntity {
 
     public enum StoryStatus {
         IN_PROGRESS, // 진행 중
+        MAKING,      // complete 수행 중
         COMPLETED    // 완료됨
     }
 }
