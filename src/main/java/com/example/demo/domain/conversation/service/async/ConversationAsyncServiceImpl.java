@@ -119,6 +119,8 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         // 6. LLM 호출 및 Story/Character/StoryPage 업데이트
         conversationCompleteCommandService.completeStoryFromLlm(story, context);
 
+        // 7. 캐릭터 및 StoryPage 이미지/비디오 생성
+        conversationCompleteCommandService.generateStoryMedia(story, imageType);
 
         // 8. 최종 상태 업데이트
         story.setStatus(Story.StoryStatus.COMPLETED);

@@ -1,9 +1,13 @@
 package com.example.demo.domain.conversation.service.command;
 
+import com.example.demo.apiPayload.code.exception.CustomException;
+import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.CharacterAppearance;
+import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
+import com.example.demo.domain.conversation.service.model.image.FluxResponse;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.service.model.video.RunwayService;
 import com.example.demo.domain.story.entity.Story;
@@ -15,6 +19,13 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,6 +35,10 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
     private final CharacterAppearanceRepository characterAppearanceRepo;
 
     private final LlmClient llmClient;
+    private final S3Uploader s3Uploader;
+
+    private final AvatarGeneratorService avatarGeneratorService;
+    private final RunwayService runwayService;
 
     @Override
     @Transactional
@@ -100,6 +115,74 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         appearance.setCharacterPromptEn(characterPromptEn);
         appearance.setCharacterImagePromptEn(characterImagePromptEn);
         characterAppearanceRepo.save(appearance);
+    }
+
+    @Override
+    @Transactional
+    public void generateStoryMedia(Story story, String imageType) {
+
+        log.info("[Media] generateStoryMedia 시작, storyId={}, imageType={}", story.getId(), imageType);
+
+        // 1. imageType 유효성 검사
+        validateImageType(imageType);
+
+        StoryCharacter character = story.getCharacter();
+
+        // 2. 캐릭터 기본 이미지 생성 - (S3 업로드 포함)
+        generateCharacterBaseImage(character);
+
+        // 3. 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
+        if (isImage(imageType)) {
+            generateStoryImages(story, character);
+        } else {
+            generateStoryVideos(story, character);
+        }
+
+        log.info("[Media] generateStoryMedia 완료, storyId={}", story.getId());
+    }
+
+    private void validateImageType(String imageType) {
+        if (!isImage(imageType) && !isVideo(imageType)) {
+            log.warn("[Media] 잘못된 imageType={}", imageType);
+            throw new CustomException(ErrorStatus.MEDIA_INVALID_INPUT_VALUE);
+        }
+    }
+
+    private boolean isImage(String type) {
+        return "image".equalsIgnoreCase(type);
+    }
+
+    private boolean isVideo(String type) {
+        return "video".equalsIgnoreCase(type);
+    }
+
+    /**
+     * 캐릭터 기본 이미지 생성 및 S3 업로드
+     * - 프롬프트 기반 아바타 생성
+     * - seed 저장 (추후 일관된 이미지 생성을 위해 사용)
+     * - 캐릭터 대표 이미지 URL 저장
+     */
+    private void generateCharacterBaseImage(StoryCharacter character) {
+
+        String prompt = character.getAppearance().getCharacterImagePromptEn();
+
+        try {
+            FluxResponse.FluxEndResponse result = avatarGeneratorService
+                    .generateAvatarWithReference(prompt, null, null, true)
+                    .block();
+
+            if (result == null) throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
+
+            handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
+                String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
+                        "character_" + character.getId() + ".png");
+                character.getAppearance().setCharacterSeed(result.getSeed());
+                character.setImageUrl(s3Url);
+            });
+
+        } catch (Exception e) {
+            throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
+        }
     }
 
 }

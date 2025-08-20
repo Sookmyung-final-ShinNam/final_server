@@ -11,5 +11,10 @@ public interface ConversationCompleteCommandService {
      */
     void completeStoryFromLlm(Story story, String context);
 
+    /**
+     * 캐릭터 정보 업데이트(기본 이미지)
+     * 동화 페이지 업데이트(각 페이지별 이미지 or 비디오)
+     */
+    void generateStoryMedia(Story story, String imageType);
 
 }
