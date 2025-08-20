@@ -12,3 +12,11 @@ spring:
 
 chatgpt:
   api-key: ""
+flux:
+  api:
+    url: https://api.us1.bfl.ai
+    key: 
+
+runway:
+  api:
+    key:

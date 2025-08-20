@@ -25,5 +25,5 @@ spring:
     jwt:
       secret:
       token-validity:
-        access-token: 7200000
-        refresh-token: 1209600000
+        access-token: 86400       # 1 day
+        refresh-token: 604800     # 7 days
