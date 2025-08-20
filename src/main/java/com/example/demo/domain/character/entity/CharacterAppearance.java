@@ -33,7 +33,7 @@ public class CharacterAppearance {
     @Column(name = "character_prompt_en", columnDefinition = "TEXT")
     private String characterPromptEn;
 
-    // 캐릭터 기본 이미지 - 영어 프롬프트
+    // 캐릭터 기본 이미지 (외형 총정리 + 기본 포즈) - 영어 프롬프트
     @Column(name = "character_image_prompt_en", columnDefinition = "TEXT")
     private String characterImagePromptEn;
 
