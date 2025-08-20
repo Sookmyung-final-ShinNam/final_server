@@ -60,7 +60,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                         ", characterEyeColor: " + story.getCharacter().getAppearance().getEyeColor() +
                         ", characterHairColor:" + story.getCharacter().getAppearance().getHairColor() +
                         ", characterHairStyle:" + story.getCharacter().getAppearance().getHairStyle() +
-                        ", characterPersonality:" + characterPersonality  +
+                        ", characterPersonality:" + characterPersonality +
                         ", storyTheme: " + story.getStoryThemes() +
                         ", storyBackground: " + story.getStoryBackgrounds() +
                         ", firstPage:" + firstPage +
@@ -72,12 +72,12 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         String imageResponse = llmClient.callChatGpt(prompt);
 
         // 6. LLM 응답 파싱
-        String firstPageEn = llmClient.extractFieldValue(imageResponse , "firstPageEn");
-        String secondPageEn = llmClient.extractFieldValue(imageResponse , "secondPageEn");
-        String thirdPageEn = llmClient.extractFieldValue(imageResponse , "thirdPageEn");
-        String fourthPageEn = llmClient.extractFieldValue(imageResponse , "fourthPageEn");
-        String characterPromptEn = llmClient.extractFieldValue(imageResponse , "characterPromptEn");
-        String characterImagePromptEn = llmClient.extractFieldValue(imageResponse , "characterImagePromptEn");
+        String firstPageEn = llmClient.extractFieldValue(imageResponse, "firstPageEn");
+        String secondPageEn = llmClient.extractFieldValue(imageResponse, "secondPageEn");
+        String thirdPageEn = llmClient.extractFieldValue(imageResponse, "thirdPageEn");
+        String fourthPageEn = llmClient.extractFieldValue(imageResponse, "fourthPageEn");
+        String characterPromptEn = llmClient.extractFieldValue(imageResponse, "characterPromptEn");
+        String characterImagePromptEn = llmClient.extractFieldValue(imageResponse, "characterImagePromptEn");
 
         // 7. StoryPage 저장
         String[] pages = {firstPage, secondPage, thirdPage, fourthPage};
