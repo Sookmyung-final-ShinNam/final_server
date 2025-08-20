@@ -185,4 +185,128 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         }
     }
 
+    /**
+     * 스토리 각 페이지별 이미지 생성
+     * - 캐릭터 seed 사용 → 일관된 스타일 유지
+     * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     */
+    private void generateStoryImages(Story story, StoryCharacter character) {
+
+        String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
+
+        for (StoryPage page : story.getStoryPages()) {
+
+            FluxResponse.FluxEndResponse result = avatarGeneratorService
+                    .generateAvatarWithReference(basePrompt, page.getContentEn(), character.getAppearance().getCharacterSeed(), false)
+                    .block();
+
+            if (result != null) {
+                handleFileWithTemp(result.getImgUrl(), story.getId(), page.getPageNumber(), tempFile -> {
+                    String s3Url = s3Uploader.uploadFileFromFile(tempFile,
+                            "stories/" + story.getId(),
+                            "page_" + page.getPageNumber() + ".png");
+                    page.setImageUrl(s3Url);
+                });
+            }
+        }
+    }
+
+    /**
+     * 스토리 각 페이지별 영상 생성
+     * - 캐릭터 이미지 → Runway API 기반 영상 변환
+     * - 최대 3번 재시도 (네트워크 오류 등 대응)
+     * - 성공 시 S3 업로드
+     */
+    private void generateStoryVideos(Story story, StoryCharacter character) {
+
+        String characterImageUrl = character.getImageUrl();
+
+        for (StoryPage page : story.getStoryPages()) {
+
+            int maxAttempts = 3;
+
+            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+
+                    // Runway API로 영상 생성 (캐릭터 이미지 + 페이지 prompt)
+                    String videoUrl = createVideo(characterImageUrl, story, page, attempt);
+
+                    // 영상 다운로드 후 S3 업로드
+                    handleFileWithTemp(videoUrl, story.getId(), page.getPageNumber(), videoFile -> {
+                        String s3Url = s3Uploader.uploadFileFromFile(videoFile,
+                                "stories/" + story.getId() + "/videos",
+                                "page_" + page.getPageNumber() + ".mp4");
+                        page.setImageUrl(s3Url);
+                    });
+                    break; // 성공 시 반복 종료
+
+                } catch (Exception e) {
+
+                    log.warn("[Media] Attempt {} failed for storyId={}, page={}, error={}", attempt, story.getId(), page.getPageNumber(), e.getMessage());
+
+                    if (attempt == maxAttempts) {
+                        throw new RuntimeException("❌ Video generation failed after " + maxAttempts + " attempts", e);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Runway API 호출을 통해 영상 생성
+     * - 캐릭터 이미지 파일 다운로드 → API 호출
+     * - 프롬프트가 비어있으면 실패 처리
+     */
+    private String createVideo(String characterImageUrl, Story story, StoryPage page, int attempt) throws IOException, InterruptedException {
+
+        if (page.getContentEn() == null || page.getContentEn().isEmpty()) {
+            throw new IOException("Page prompt is empty");
+        }
+
+        File tempFile = downloadTempFile(characterImageUrl, story.getId(), page.getPageNumber());
+        if (!tempFile.exists() || tempFile.length() == 0) {
+            throw new IOException("Downloaded character image is empty");
+        }
+
+        log.info("[Media] Attempt {}: Creating video, storyId={}, page={}, file={}, prompt={}",
+                attempt, story.getId(), page.getPageNumber(), tempFile.getAbsolutePath(), page.getContentEn());
+
+        return runwayService.createImageToVideoAndWait(tempFile, page.getContentEn());
+    }
+
+    /**
+     * 파일 다운로드/업로드/삭제 공통 처리
+     */
+    private void handleFileWithTemp(String url, Long storyId, int pageNumber, FileHandler handler) {
+
+        File tempFile = null;
+        try {
+            tempFile = downloadTempFile(url, storyId, pageNumber);
+            handler.handle(tempFile);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (tempFile != null && tempFile.exists()) tempFile.delete();
+        }
+    }
+
+    @FunctionalInterface
+    private interface FileHandler {
+        void handle(File file) throws Exception;
+    }
+
+    /**
+     * 임시 파일 다운로드
+     * URL 기반 파일 다운로드 후 임시 저장 (이후 삭제까지 구현 완료)
+     */
+    private File downloadTempFile(String url, Long storyId, int pageNumber) throws IOException {
+
+        File tempFile = File.createTempFile("story_" + storyId + "_page_" + pageNumber, ".png");
+        tempFile.deleteOnExit();
+        try (InputStream in = new URL(url).openStream()) {
+            Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+        return tempFile;
+    }
+
 }
