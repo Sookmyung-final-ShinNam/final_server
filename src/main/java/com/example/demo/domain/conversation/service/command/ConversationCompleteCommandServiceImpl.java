@@ -238,6 +238,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                                 "stories/" + story.getId() + "/videos",
                                 "page_" + page.getPageNumber() + ".mp4");
                         page.setImageUrl(s3Url);
+                        storyPageRepo.save(page); // DB 저장
                     });
 
                     break; // 성공 시 attempt 루프 종료
