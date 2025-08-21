@@ -29,19 +29,27 @@ jobs:
       # 3. secrets 내용을 읽어 yml 파일 생성
       - name: Create application.yml and decrypt keystore.p12
         run: |
-          # application.yml 파일에서 시크릿 값 바꾸기
+          # application.yml
           sed -i "s|\${DOMAIN}|${{ secrets.DOMAIN }}|g" ./src/main/resources/application.yml
           sed -i "s|\${REDIRECT_URL}|${{ secrets.REDIRECT_URL }}|g" ./src/main/resources/application.yml
           sed -i "s|\${KEY_STORE}|${{ secrets.KEY_STORE }}|g" ./src/main/resources/application.yml
           sed -i "s|\${KEY_STORE_TYPE}|${{ secrets.KEY_STORE_TYPE }}|g" ./src/main/resources/application.yml
           sed -i "s|\${KEY_STORE_PASS}|${{ secrets.KEY_STORE_PASS }}|g" ./src/main/resources/application.yml
-          sed -i "s|\${DB_USERNAME}|${{ secrets.DB_USERNAME }}|g" ./src/main/resources/application.yml
-          sed -i "s|\${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g" ./src/main/resources/application.yml
-          sed -i "s|\${JWT_SECRET}|${{ secrets.JWT_SECRET }}|g" ./src/main/resources/application.yml
-          
-          # Kakao
-          sed -i "s|\${KAKAO_CLIENT_ID}|${{ secrets.KAKAO_CLIENT_ID }}|g" ./src/main/resources/application.yml
-          sed -i "s|\${KAKAO_CLIENT_SECRET}|${{ secrets.KAKAO_CLIENT_SECRET }}|g" ./src/main/resources/application.yml
+          sed -i "s|\${CHAT_GPT_KEY}|${{ secrets.CHAT_GPT_KEY }}|g" ./src/main/resources/application.yml
+          sed -i "s|\${FLUX_KEY}|${{ secrets.FLUX_KEY }}|g" ./src/main/resources/application.yml
+          sed -i "s|\${RUNWAY_KEY}|${{ secrets.RUNWAY_KEY }}|g" ./src/main/resources/application.yml
+
+          # application-db.yml
+          sed -i "s|\${DB_USERNAME}|${{ secrets.DB_USERNAME }}|g" ./src/main/resources/application-db.yml
+          sed -i "s|\${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g" ./src/main/resources/application-db.yml
+          sed -i "s|\${S3_BUCKET}|${{ secrets.S3_BUCKET }}|g" ./src/main/resources/application-db.yml
+          sed -i "s|\${S3_BUCKET_KEY}|${{ secrets.S3_BUCKET_KEY }}|g" ./src/main/resources/application-db.yml
+          sed -i "s|\${S3_BUCKET_SECRET}|${{ secrets.S3_BUCKET_SECRET }}|g" ./src/main/resources/application-db.yml
+
+          # application-security.yml
+          sed -i "s|\${JWT_SECRET}|${{ secrets.JWT_SECRET }}|g" ./src/main/resources/application-security.yml
+          sed -i "s|\${KAKAO_CLIENT_ID}|${{ secrets.KAKAO_CLIENT_ID }}|g" ./src/main/resources/application-security.yml
+          sed -i "s|\${KAKAO_CLIENT_SECRET}|${{ secrets.KAKAO_CLIENT_SECRET }}|g" ./src/main/resources/application-security.yml
           
           # Base64로 인코딩된 키스토어를 디코딩하여 application.yml이 있는 위치에 keystore.p12 파일 생성
           echo "디버깅 : keystore.p12 파일 생성 중..."
