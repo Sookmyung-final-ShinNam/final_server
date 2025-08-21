@@ -6,8 +6,8 @@ spring:
 
         registration:
           kakao:
-            client-id:
-            client-secret:
+            client-id: "${KAKAO_CLIENT_ID}"
+            client-secret: "${KAKAO_CLIENT_SECRET}"
             authorization-grant-type: authorization_code
             redirect-uri: "/authorization/oauth2/code/kakao"
             scope:
@@ -23,7 +23,7 @@ spring:
             user-name-attribute: id
 
     jwt:
-      secret:
+      secret: "${JWT_SECRET}"
       token-validity:
-        access-token: 7200000
-        refresh-token: 1209600000
+        access-token: 86400       # 1 day
+        refresh-token: 604800     # 7 days

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url:
-    username:
-    password:
+    url: jdbc:mysql://yoondb.cf2gswe6oye0.ap-northeast-2.rds.amazonaws.com/yoondb
+    username: "${DB_USERNAME}"
+    password: "${DB_PASSWORD}"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -13,3 +13,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
+
+# s3
+cloud:
+  aws:
+    s3:
+      bucket: "${S3_BUCKET}"
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
+    credentials:
+      accessKey: "${S3_BUCKET_KEY}"
+      secretKey: "${S3_BUCKET_SECRET}"

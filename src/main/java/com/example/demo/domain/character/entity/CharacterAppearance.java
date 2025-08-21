@@ -29,6 +29,18 @@ public class CharacterAppearance {
     @Column(name = "hair_style", length = 100)
     private String hairStyle;
 
+    // 캐릭터 외형 총정리 - 영어 프롬프트
+    @Column(name = "character_prompt_en", columnDefinition = "TEXT")
+    private String characterPromptEn;
+
+    // 캐릭터 기본 이미지 (외형 총정리 + 기본 포즈) - 영어 프롬프트
+    @Column(name = "character_image_prompt_en", columnDefinition = "TEXT")
+    private String characterImagePromptEn;
+
+    // 캐릭터 기본 seed (아바타 생성 시 동일 외형 유지)
+    @Column(name = "character_seed")
+    private Long characterSeed;
+
     // 캐릭터 외형 정보는 캐릭터와 1:1 관계
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "character_id", nullable = false, unique = true)

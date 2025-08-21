@@ -2,13 +2,29 @@ spring:
 
   time-zone: Asia/Seoul
 
-  base-url: "http://192.168.34.3:8080"
-  redirect-url: "http://192.168.34.3:8080/swagger-ui/index.html"
+  base-url: "https://${DOMAIN}"
+  redirect-url: "${REDIRECT_URL}"
 
   profiles:
     include:
       - db
       - security
 
+server:
+  ssl:
+    key-store: "${KEY_STORE}"
+    key-store-type: "${KEY_STORE_TYPE}"
+    key-store-password: "${KEY_STORE_PASS}"
+  port: 443
+
 chatgpt:
-  api-key: ""
+  api-key: "${CHAT_GPT_KEY}"
+
+flux:
+  api:
+    url: https://api.us1.bfl.ai
+    key: "${FLUX_KEY}"
+
+runway:
+  api:
+    key: "${RUNWAY_KEY}"

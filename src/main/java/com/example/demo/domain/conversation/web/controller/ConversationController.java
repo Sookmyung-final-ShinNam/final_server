@@ -2,6 +2,7 @@ package com.example.demo.domain.conversation.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
 import com.example.demo.domain.conversation.service.command.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.ConversationStartCommandService;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
@@ -27,6 +28,7 @@ public class ConversationController extends AuthController {
     private final ConversationQueryService conversationQueryService;
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
+    private final ConversationAsyncService conversationAsyncService;
 
     @Operation(
             summary = "대화 세션 시작",
@@ -85,6 +87,27 @@ public class ConversationController extends AuthController {
         return ApiResponse.of(SuccessStatus._OK, conversationFeedbackCommandService.handleFeedback(messageId, userAnswer));
     }
 
+    @Operation(
+            summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
+            description = """
+                    동기 - 바로 응답을 줍니다.
+                    비동기 - 내용 기반으로 아래 정보들을 업데이트/생성합니다.
+                            - 동화 정보 업데이트(제목, 3줄 요약)
+                            - 캐릭터 정보 업데이트(성격, 기본 이미지)
+                            - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지 or 비디오)
+                    imageType 에는 <image, video> 중 하나만 입력 가능합니다!
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @PostMapping("/complete")
+    public ApiResponse<Void> storyComplete(
+            @RequestParam Long sessionId,
+            @RequestParam String imageType
+    ) {
+        conversationAsyncService.storyComplete(sessionId, imageType);
+        return ApiResponse.of(SuccessStatus._OK);
     }
 
 }

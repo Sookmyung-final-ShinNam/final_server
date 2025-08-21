@@ -45,6 +45,16 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 세션 관련 에러
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
+    SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "아직 진행 중인 세션입니다."),
+
+    // 동화 관련 에러
+    STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),
+
+    // 이미지, 동영상 API 관련 에러
+    MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType 은 image 또는 video 여야 합니다."),
+
+    // 파일 관련 에러
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_4001", "파일 업로드에 실패했습니다."),
 
     ;
 

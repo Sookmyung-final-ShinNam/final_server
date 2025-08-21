@@ -25,6 +25,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, code.getReason().getCode(), code.getReason().getMessage(), result);
     }
 
+    public static ApiResponse<Void> of(BaseCode code) {
+        return new ApiResponse<>(true, code.getReason().getCode(), code.getReason().getMessage(), null);
+    }
+
     // 실패한 경우 응답 생성
     public static <T> ApiResponse<T> onFailure(BaseErrorCode code, T result) {
         return new ApiResponse<>(false, code.getReason().getCode(), code.getReason().getMessage(), result);

@@ -60,13 +60,31 @@ public class LlmClient {
     }
 
     // LLM 응답 파싱 메서드
-    public String extractFieldValue(String llmResponse, String fieldName) {
+    public String extractFieldValue(Object llmResponse, String fieldName) {
         try {
-            JsonNode root = objectMapper.readTree(llmResponse);
+            JsonNode root;
+
+            if (llmResponse instanceof String) {
+                // 문자열인 경우 -> JSON 파싱
+                String cleaned = cleanJsonResponse((String) llmResponse);
+                root = objectMapper.readTree(cleaned);
+            } else {
+                // 이미 Map/JsonNode 인 경우 -> 바로 변환
+                root = objectMapper.valueToTree(llmResponse);
+            }
+
             return root.path(fieldName).asText(null);
         } catch (Exception e) {
             throw new CustomException(ErrorStatus.CHAT_GPT_API_RESPONSE_FAILED);
         }
+    }
+
+    private String cleanJsonResponse(String rawResponse) {
+        if (rawResponse == null) return null;
+        return rawResponse
+                .replaceAll("(?s)```json", "")
+                .replaceAll("(?s)```", "")
+                .trim();
     }
 
     /**

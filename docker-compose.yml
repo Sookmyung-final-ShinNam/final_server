@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: spring_app
+    image: jiyoon0221/my-spring-app:latest
+    restart: always
+    ports:
+      - "443:443"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
