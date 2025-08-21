@@ -218,32 +218,32 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
      * - 성공 시 S3 업로드
      */
     private void generateStoryVideos(Story story, StoryCharacter character) {
-
         String characterImageUrl = character.getImageUrl();
 
         for (StoryPage page : story.getStoryPages()) {
 
-            int maxAttempts = 3;
+            // 이미 영상이 생성된 경우 스킵
+            if (page.getImageUrl() != null && page.getImageUrl().endsWith(".mp4")) {
+                log.info("[Media] Skip video generation, already exists. storyId={}, page={}", story.getId(), page.getPageNumber());
+                continue;
+            }
 
+            int maxAttempts = 3;
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
-
-                    // Runway API로 영상 생성 (캐릭터 이미지 + 페이지 prompt)
                     String videoUrl = createVideo(characterImageUrl, story, page, attempt);
 
-                    // 영상 다운로드 후 S3 업로드
                     handleFileWithTemp(videoUrl, story.getId(), page.getPageNumber(), videoFile -> {
                         String s3Url = s3Uploader.uploadFileFromFile(videoFile,
                                 "stories/" + story.getId() + "/videos",
                                 "page_" + page.getPageNumber() + ".mp4");
                         page.setImageUrl(s3Url);
                     });
-                    break; // 성공 시 반복 종료
+
+                    break; // 성공 시 attempt 루프 종료
 
                 } catch (Exception e) {
-
                     log.warn("[Media] Attempt {} failed for storyId={}, page={}, error={}", attempt, story.getId(), page.getPageNumber(), e.getMessage());
-
                     if (attempt == maxAttempts) {
                         throw new RuntimeException("❌ Video generation failed after " + maxAttempts + " attempts", e);
                     }
