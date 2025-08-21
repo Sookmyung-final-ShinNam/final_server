@@ -18,12 +18,13 @@ server:
   port: 443
 
 chatgpt:
-  api-key: ""
+  api-key: "${CHAT_GPT_KEY}"
+
 flux:
   api:
     url: https://api.us1.bfl.ai
-    key: 
+    key: "${FLUX_KEY}"
 
 runway:
   api:
-    key:
+    key: "${RUNWAY_KEY}"
