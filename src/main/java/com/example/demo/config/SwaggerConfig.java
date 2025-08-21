@@ -16,7 +16,7 @@ public class SwaggerConfig {
     public OpenAPI createOpenAPI() {
 
         Info apiInfo = new Info()
-                .title("장신남 졸프 API")
+                .title("장신남 졸프 API - 리펙토링 중")
                 .description("장신남 졸프 API 명세서")
                 .version("1.0.0");
 
