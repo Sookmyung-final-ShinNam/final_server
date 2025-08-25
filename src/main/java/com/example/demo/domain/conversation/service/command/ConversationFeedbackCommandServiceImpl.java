@@ -61,14 +61,14 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         ConversationFeedback feedback = converter.toConversationFeedback(userAnswer, feedbackResult, feedbackText, feedbackCount, message);
         feedbackRepo.save(feedback);
 
-        // 7. message 엔티티 업데이트
-        message.getFeedbacks().add(feedback);
-        message.setLlmAnswer(feedbackText);
-        messageRepo.save(message);
-
-        // 8. Good 피드백인 경우
+        // 7. Good 피드백인 경우
         if (feedback.isCorrect()) {
             ConversationSession.ConversationStep currentStep = message.getSession().getCurrentStep();
+
+            // message 엔티티 업데이트
+            message.getFeedbacks().add(feedback);
+            message.setLlmAnswer(feedbackText);
+            messageRepo.save(message);
 
             if (currentStep == ConversationSession.ConversationStep.END) {
                 // END 단계인 경우 비동기 호출 없음
@@ -85,7 +85,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
 
         }
 
-        // 9. 응답 DTO 생성
+        // 8. 응답 DTO 생성
         return ConversationResponseDto.FeedbackResponseDto.builder()
                 .feedbackResult(feedbackResult)
                 .feedbackText(feedbackText)
