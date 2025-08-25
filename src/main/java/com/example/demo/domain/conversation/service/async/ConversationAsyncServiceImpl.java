@@ -13,10 +13,11 @@ import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -106,7 +107,7 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         }
 
         // 4. 상태 변경 -> MAKING 에서는 이어하기 불가
-        story.setStatus(Story.StoryStatus.MAKING);
+        markStoryMaking(story); // 중간 트랜젝션 처리
 
         // 5. 이전 대화 조회
         String context = "";
@@ -127,6 +128,11 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED);
 
         System.out.println("비동기 작업 완료: storyStatus=" + story.getStatus());
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void markStoryMaking(Story story) {
+        story.setStatus(Story.StoryStatus.MAKING);
     }
 
 }
