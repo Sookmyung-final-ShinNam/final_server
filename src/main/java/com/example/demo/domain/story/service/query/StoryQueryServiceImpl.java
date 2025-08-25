@@ -1,9 +1,14 @@
 package com.example.demo.domain.story.service.query;
 
+import com.example.demo.apiPayload.code.exception.CustomException;
+import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.story.converter.StoryConverter;
 import com.example.demo.domain.story.entity.Story;
+import com.example.demo.domain.story.entity.StoryPage;
+import com.example.demo.domain.story.repository.StoryPageRepository;
 import com.example.demo.domain.story.repository.StoryRepository;
+import com.example.demo.domain.story.web.dto.StoryPageResponseDto;
 import com.example.demo.domain.story.web.dto.StoryResponseDto;
 import com.example.demo.domain.user.entity.User;
 import jakarta.transaction.Transactional;
@@ -20,6 +25,7 @@ import java.util.List;
 public class StoryQueryServiceImpl implements  StoryQueryService {
 
     private final StoryRepository storyRepository;
+    private final StoryPageRepository storyPageRepository;
 
     @Override
     @Transactional
@@ -42,6 +48,14 @@ public class StoryQueryServiceImpl implements  StoryQueryService {
                 .toList();
 
         return StoryConverter.toStoryResponseDto(storyPage, storyItems);
+    }
+
+    @Override
+    @Transactional
+    public StoryPageResponseDto getStoryPage(Long storyId, int pageNumber) {
+        StoryPage page = storyPageRepository.findByStory_IdAndPageNumber(storyId, pageNumber)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
+        return StoryConverter.toStoryPageResponseDto(page);
     }
 
 }

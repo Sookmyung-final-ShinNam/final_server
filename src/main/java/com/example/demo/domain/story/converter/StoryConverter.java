@@ -2,6 +2,8 @@ package com.example.demo.domain.story.converter;
 
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.story.entity.Story;
+import com.example.demo.domain.story.entity.StoryPage;
+import com.example.demo.domain.story.web.dto.StoryPageResponseDto;
 import com.example.demo.domain.story.web.dto.StoryResponseDto;
 import org.springframework.data.domain.Page;
 
@@ -33,6 +35,15 @@ public class StoryConverter {
                 .totalPages(storyPage.getTotalPages())
                 .totalElements(storyPage.getTotalElements())
                 .hasNext(storyPage.hasNext())
+                .build();
+    }
+
+    // StoryPage → StoryPageResponseDto 변환
+    public static StoryPageResponseDto toStoryPageResponseDto(StoryPage storyPage) {
+        return StoryPageResponseDto.builder()
+                .pageNumber(storyPage.getPageNumber())
+                .content(storyPage.getContent())
+                .imageUrl(storyPage.getImageUrl())
                 .build();
     }
 
