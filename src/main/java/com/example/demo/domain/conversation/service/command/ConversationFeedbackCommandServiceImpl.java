@@ -14,6 +14,7 @@ import com.example.demo.domain.conversation.service.query.ConversationQueryServi
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -70,19 +71,8 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
             message.setLlmAnswer(feedbackText);
             messageRepo.save(message);
 
-            if (currentStep == ConversationSession.ConversationStep.END) {
-                // END 단계인 경우 비동기 호출 없음
-            } else {
-
-                // 다음 단계 계산
-                ConversationSession.ConversationStep[] steps = ConversationSession.ConversationStep.values();
-                int nextStepIndex = currentStep.ordinal() + 1;
-
-                // 비동기로 next step을 진행
-                ConversationSession.ConversationStep nextStep = steps[nextStepIndex];
-                asyncService.prepareNextStep(message.getSession().getId(), nextStep);
-            }
-
+            // 별도 트랜잭션에서 다음 단계 준비
+            processNextStepAsync(message.getSession().getId(), message.getSession().getCurrentStep());
         }
 
         // 8. 응답 DTO 생성
@@ -92,6 +82,20 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
                 .currentStep(message.getSession().getCurrentStep())
                 .tryNum(feedbackCount)
                 .build();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void processNextStepAsync(Long sessionId, ConversationSession.ConversationStep currentStep) {
+        if (currentStep != ConversationSession.ConversationStep.END) {
+
+            // 다음 단계 계산
+            ConversationSession.ConversationStep[] steps = ConversationSession.ConversationStep.values();
+            int nextStepIndex = currentStep.ordinal() + 1;
+            ConversationSession.ConversationStep nextStep = steps[nextStepIndex];
+
+            // 비동기로 next step을 진행
+            asyncService.prepareNextStep(sessionId, nextStep);
+        }
     }
 
     private String getPromptFile(int tryCount) {
