@@ -4,11 +4,13 @@ on:
     branches:
       - main
       - release  # PR을 main 또는 release 브랜치로 할 때만 CI가 실행되도록 설정
+      - feat/7/StoryQueryService # 임시 설정 
 
   push:
     branches:
       - main
       - release  # main 혹은 release 브랜치에 푸시될 때만 배포가 실행되도록 설정
+      - feat/7/StoryQueryService # 임시 설정 
 
 jobs:
   build:
