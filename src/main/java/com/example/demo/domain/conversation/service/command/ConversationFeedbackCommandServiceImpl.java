@@ -36,6 +36,11 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         ConversationMessage message = messageRepo.findById(messageId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
 
+        // 이미 GOOD 처리된 메시지라면 더 이상 피드백 불가
+        if (message.getLlmAnswer() != null) {
+            throw new CustomException(ErrorStatus.FEEDBACK_ALREADY_COMPLETED);
+        }
+
         // 2. 세션 context 조회
         String context = conversationQueryService.findSessionContextById(message.getSession().getId());
 

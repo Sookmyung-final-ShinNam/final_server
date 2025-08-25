@@ -43,6 +43,9 @@ public enum ErrorStatus implements BaseErrorCode {
     CHAT_GPT_API_FILE_CALL_FAILED(HttpStatus.BAD_REQUEST, "CHAT_GPT_4002", "ChatGPT API 프롬프트 파일 호출에 실패하였습니다."),
     CHAT_GPT_API_RESPONSE_FAILED(HttpStatus.BAD_GATEWAY, "CHAT_GPT_4003", "ChatGPT API 응답을 파싱하는데 실패하였습니다."),
 
+    // 피드백 관련 에러
+    FEEDBACK_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "FEEDBACK_4001", "이미 GOOD 피드백이 완료된 메시지입니다. 더 이상 피드백을 보낼 수 없습니다."),
+
     // 세션 관련 에러
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
     SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "아직 진행 중인 세션입니다."),
