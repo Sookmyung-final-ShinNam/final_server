@@ -52,6 +52,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 동화 관련 에러
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),
+    STORY_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STORY_4006", "완성된 동화만 접근할 수 있습니다."),
     STORY_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4005", "해당 동화 페이지를 찾을 수 없습니다."),
 
     // 이미지, 동영상 API 관련 에러
