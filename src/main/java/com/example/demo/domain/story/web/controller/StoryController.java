@@ -21,14 +21,12 @@ public class StoryController extends AuthController {
     private final StoryQueryService storyQueryService;
 
     @Operation(
-            summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
+            summary = "동화 전체 조회",
             description = """
-                    동기 - 바로 응답을 줍니다.
-                    비동기 - 내용 기반으로 아래 정보들을 업데이트/생성합니다.
-                            - 동화 정보 업데이트(제목, 3줄 요약)
-                            - 캐릭터 정보 업데이트(성격, 기본 이미지)
-                            - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지 or 비디오)
-                    imageType 에는 <image, video> 중 하나만 입력 가능합니다!
+                    - 12개씩 페이징
+                    - 페이징 기준 : 미완성 / important / createTime
+                    - 완성/미완성 여부를 반환
+                    - 미완성이면 이어하기 가능한 형태로!!
                     """
     )
     @ApiResponses({
