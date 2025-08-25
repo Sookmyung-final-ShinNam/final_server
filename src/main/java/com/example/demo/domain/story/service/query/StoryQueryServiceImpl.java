@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,24 +24,17 @@ public class StoryQueryServiceImpl implements  StoryQueryService {
     @Override
     @Transactional
     public List<StoryResponseDto> getPagedStories(int page, int size, User user) {
-        Sort sort = Sort.by(
-                Sort.Order.asc("status"),        // IN_PROGRESS 먼저
-                Sort.Order.desc("important"),    // 중요도
-                Sort.Order.desc("createdAt")     // 생성시간 최신순
-        );
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Story> storyPage = storyRepository.findAllByUser(user, pageable);
+        Pageable pageable = PageRequest.of(page, size); // 정렬은 Repository에서 처리
+        Page<Story> storyPage = storyRepository.findAllByUserWithFavoriteOrderByStatusAndFavorite(user, pageable);
 
         return storyPage.stream()
                 .map(story -> {
                     ConversationSession.ConversationStep currentStep = null;
                     if (story.getStatus() != Story.StoryStatus.COMPLETED) {
-                        // 이어하기 가능한 경우, 가장 최근 ConversationSession의 currentStep를 가져오기
                         currentStep = story.getStorySessions().stream()
                                 .max((s1, s2) -> s1.getCreatedAt().compareTo(s2.getCreatedAt()))
-                                .map(s -> s.getCurrentStep())
-                                .orElse(ConversationSession.ConversationStep.START); // 시작 단계
+                                .map(ConversationSession::getCurrentStep)
+                                .orElse(ConversationSession.ConversationStep.START);
                     }
                     return StoryResponseDto.fromEntity(story, currentStep);
                 })
