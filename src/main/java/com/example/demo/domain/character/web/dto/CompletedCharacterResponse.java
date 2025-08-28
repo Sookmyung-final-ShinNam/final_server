@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -13,13 +14,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CompletedCharacterResponse {
 
-    // 전체 조회용
+    // 전체 조회용 캐릭터 정보
     private Long characterId;
     private String name;
     private String gender;
     private String imageUrl;
     private boolean important;   // 관심 캐릭터 여부
     private LocalDateTime createTime;
+
+    // 전체 조회용 DTO
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CharacterListResponse {
+        private List<CompletedCharacterResponse> characters;
+        private int currentPage;
+        private int totalPages;
+        private long totalElements;
+        private boolean hasNext;
+    }
 
     // 상세 조회용 내부 DTO
     @Data

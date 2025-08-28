@@ -26,13 +26,13 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
     private final UserRepository userRepository;
 
     @Override
-    public Page<CompletedCharacterResponse> getCompletedCharacters(User user, int page, int size) {
+    public CompletedCharacterResponse.CharacterListResponse getCompletedCharacters(User user, int page, int size) {
 
         // 1. User와 favorites 한 번에 조회
         User fullUser = userRepository.findByIdWithFavorites(user.getId())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
-        // 2. 페이징 (DB 기준은 createdAt desc)
+        // 2. 페이징 (DB 기준 createdAt desc)
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<StoryCharacter> characters = storyCharacterRepository.findByStatus(
                 StoryCharacter.CharacterStatus.COMPLETED, pageRequest);
@@ -42,24 +42,8 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
                 .map(fav -> fav.getCharacter().getId())
                 .collect(Collectors.toSet());
 
-        // 4. Entity → DTO 변환
-        Page<CompletedCharacterResponse> dtoPage = characters.map(ch ->
-                characterConverter.toCompletedCharacterResponse(ch, favoriteIds.contains(ch.getId()))
-        );
-
-        // 5. 중요도(important) true 먼저 정렬 → 최신순
-        return new PageImpl<>(
-                dtoPage.getContent().stream()
-                        .sorted((a, b) -> {
-                            if (a.isImportant() == b.isImportant()) {
-                                return b.getCreateTime().compareTo(a.getCreateTime());
-                            }
-                            return a.isImportant() ? -1 : 1;
-                        })
-                        .toList(),
-                pageRequest,
-                dtoPage.getTotalElements()
-        );
+        // 4. 컨버터를 통해 CharacterListResponse 반환
+        return characterConverter.toCharacterListResponse(characters, favoriteIds);
     }
 
     @Override
