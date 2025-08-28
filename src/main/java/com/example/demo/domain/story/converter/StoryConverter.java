@@ -12,7 +12,7 @@ import java.util.List;
 public class StoryConverter {
 
     // Story → StoryItem 변환
-    public static StoryResponseDto.StoryItem toStoryItem(Story story, ConversationSession.ConversationStep currentStep) {
+    public static StoryResponseDto.StoryItem toStoryItem(Story story, ConversationSession.ConversationStep currentStep, boolean favorite, String imageUrl) {
         boolean isCompleted = story.getStatus() == Story.StoryStatus.COMPLETED;
         return StoryResponseDto.StoryItem.builder()
                 .storyId(story.getId())
@@ -24,6 +24,8 @@ public class StoryConverter {
                         ? story.getStorySessions().stream().findFirst().get().getId()
                         : null)
                 .currentStep(!isCompleted ? currentStep : null)
+                .favorite(favorite)
+                .imageUrl(imageUrl)
                 .build();
     }
 
