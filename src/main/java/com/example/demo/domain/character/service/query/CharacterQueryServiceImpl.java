@@ -7,6 +7,7 @@ import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
 import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -22,27 +23,31 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
 
     private final StoryCharacterRepository storyCharacterRepository;
     private final CharacterConverter characterConverter;
+    private final UserRepository userRepository;
 
     @Override
     public Page<CompletedCharacterResponse> getCompletedCharacters(User user, int page, int size) {
 
-        // 페이징 (DB 기준은 createdAt desc)
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        // 1. User와 favorites 한 번에 조회
+        User fullUser = userRepository.findByIdWithFavorites(user.getId())
+                .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
+        // 2. 페이징 (DB 기준은 createdAt desc)
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<StoryCharacter> characters = storyCharacterRepository.findByStatus(
                 StoryCharacter.CharacterStatus.COMPLETED, pageRequest);
 
-        // 유저의 관심 캐릭터 ID set
-        Set<Long> favoriteIds = user.getFavorites().stream()
+        // 3. 관심 캐릭터 ID set
+        Set<Long> favoriteIds = fullUser.getFavorites().stream()
                 .map(fav -> fav.getCharacter().getId())
                 .collect(Collectors.toSet());
 
-        // Entity → DTO 변환
+        // 4. Entity → DTO 변환
         Page<CompletedCharacterResponse> dtoPage = characters.map(ch ->
                 characterConverter.toCompletedCharacterResponse(ch, favoriteIds.contains(ch.getId()))
         );
 
-        // 중요도(important) true 먼저 정렬 → 최신순
+        // 5. 중요도(important) true 먼저 정렬 → 최신순
         return new PageImpl<>(
                 dtoPage.getContent().stream()
                         .sorted((a, b) -> {
