@@ -49,16 +49,20 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
     @Override
     public CompletedCharacterResponse.Detail getCharacterDetail(User user, Long characterId) {
 
-        // 1. 캐릭터 조회 (완료된 캐릭터만 조회 가능)
+        // 1. User + favorites 한 번에 조회
+        User fullUser = userRepository.findByIdWithFavorites(user.getId())
+                .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
+
+        // 2. 캐릭터 조회 (완료된 캐릭터만)
         StoryCharacter character = storyCharacterRepository.findByIdAndStatus(
                 characterId, StoryCharacter.CharacterStatus.COMPLETED
         ).orElseThrow(() -> new CustomException(ErrorStatus.CHARACTER_NOT_FOUND));
 
-        // 2. 관심 캐릭터 여부 확인
-        boolean isFavorite = user.getFavorites().stream()
+        // 3. 관심 캐릭터 여부 확인
+        boolean isFavorite = fullUser.getFavorites().stream()
                 .anyMatch(fav -> fav.getCharacter().getId().equals(characterId));
 
-        // 3. Entity → 상세 DTO 변환
+        // 4. Entity → 상세 DTO 변환
         return characterConverter.toDetailCharacterResponse(character, isFavorite);
     }
 
