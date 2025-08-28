@@ -7,7 +7,6 @@ import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,7 +28,7 @@ public class CharacterController extends AuthController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
     @GetMapping
-    public Page<CompletedCharacterResponse> getCompletedCharacters(
+    public CompletedCharacterResponse.CharacterListResponse getCompletedCharacters(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size
     ) {
