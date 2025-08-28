@@ -14,4 +14,12 @@ public interface CharacterQueryService {
      * @return Page<CompletedCharacterResponse> - 페이징된 완성된 캐릭터 목록
      */
     Page<CompletedCharacterResponse> getCompletedCharacters(User user, int page, int size);
+
+    /**
+     * 단일 캐릭터 상세 조회
+     * @param user 현재 로그인한 사용자
+     * @param characterId 조회할 캐릭터의 ID
+     * @return CompletedCharacterResponse.Detail - 캐릭터 상세 정보
+     */
+    CompletedCharacterResponse.Detail getCharacterDetail(User user, Long characterId);
 }

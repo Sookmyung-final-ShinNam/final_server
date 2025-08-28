@@ -37,4 +37,23 @@ public class CharacterController extends AuthController {
         return characterQueryService.getCompletedCharacters(user, page, size);
     }
 
+    @Operation(
+            summary = "캐릭터 상세 조회",
+            description = """
+                - 단일 캐릭터 상세 정보 조회
+                - 완료된 캐릭터만 조회 가능
+                - 관련된 동화 정보 포함
+                """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @GetMapping("/{characterId}")
+    public CompletedCharacterResponse.Detail getCharacterDetail(
+            @PathVariable Long characterId
+    ) {
+        User user = getCurrentUser();
+        return characterQueryService.getCharacterDetail(user, characterId);
+    }
+
 }

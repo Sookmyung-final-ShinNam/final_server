@@ -61,6 +61,9 @@ public enum ErrorStatus implements BaseErrorCode {
     // 파일 관련 에러
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_4001", "파일 업로드에 실패했습니다."),
 
+    // 캐릭터 관련 에러
+    CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER_4004", "해당 캐릭터를 찾을 수 없습니다."),
+
     ;
 
     private final HttpStatus httpStatus;
