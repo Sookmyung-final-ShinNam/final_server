@@ -2,6 +2,7 @@ package com.example.demo.domain.user.service.command;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
+import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.TokenRepository;
@@ -29,6 +30,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final ConversationSessionRepository conversationSessionRepository;
 
     @Override
     public LoginResponseDto.Oauth2Result registerOrUpdateUser(String email, String nickname) {
@@ -123,6 +125,22 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.setDeletedAt(LocalDateTime.now());
         userRepository.save(user);
         return "회원 탈퇴 요청이 완료되었습니다. 오늘 자정에 계정이 삭제됩니다.";
+    }
+
+    @Override
+    public String deleteUser(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
+
+        // 관련 엔티티 삭제 (대화, 토큰)
+        tokenRepository.deleteAllByUser(user);
+        conversationSessionRepository.deleteAllByUser(user);
+
+        // 사용자 삭제
+        userRepository.delete(user);
+
+        return "사용자 삭제 완료: " + userId;
     }
 
 }

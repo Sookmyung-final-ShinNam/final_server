@@ -2,6 +2,7 @@ package com.example.demo.domain.user.scheduler;
 
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
+import com.example.demo.domain.user.service.command.UserCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,6 +21,7 @@ import java.util.List;
 public class UserCleanupScheduler {
 
     private final UserRepository userRepository;
+    private final UserCommandService userCommandService;
 
     @Scheduled(fixedRate = 60_000) // 테스트용: 1분마다 실행
     // 매일 자정 0시에 실행
@@ -41,10 +43,15 @@ public class UserCleanupScheduler {
 
         if (!usersToDelete.isEmpty()) {
             log.info("삭제 예정 사용자 수: {}", usersToDelete.size());
-            userRepository.deleteAll(usersToDelete);
-            log.info("삭제 완료");
-        } else {
-            log.info("삭제할 사용자 없음");
+
+            for (User user : usersToDelete) {
+                try {
+                    userCommandService.deleteUser(user.getId());
+                    log.info("사용자 {} 삭제 완료", user.getId());
+                } catch (Exception e) {
+                    log.error("사용자 {} 삭제 실패: {}", user.getId(), e.getMessage());
+                }
+            }
         }
     }
 
