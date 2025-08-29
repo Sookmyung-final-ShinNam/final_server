@@ -20,14 +20,13 @@ public class UserCleanupScheduler {
 
     private final UserRepository userRepository;
 
-    @Scheduled(cron = "0 0 0 * * *")  // 매일 00:00 실행
+    @Scheduled(fixedRate = 60_000) // 테스트용 1분마다 실행
+    // @Scheduled(cron = "0 0 0 * * *")  // 매일 00:00 실행
     public void deleteScheduledUsers() {
 
         LocalDate today = LocalDate.now();
-
-        // 오늘 날짜 0시 ~ 23:59:59 사이에 탈퇴 요청된 사용자만 삭제
-        LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay();
-        LocalDateTime endOfYesterday = today.atStartOfDay();
+        LocalDateTime startOfYesterday = today.minusDays(1).atStartOfDay(); // 전날 0시
+        LocalDateTime endOfYesterday = today.atStartOfDay();                 // 오늘 0시
 
         List<User> usersToDelete = userRepository.findByStatusAndDeletedAtBetween(
                 User.UserStatus.DELETED,
