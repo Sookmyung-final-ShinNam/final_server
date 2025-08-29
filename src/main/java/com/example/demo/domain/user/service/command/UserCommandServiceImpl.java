@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,14 +30,6 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
 
-    /**
-     * 사용자 정보를 등록 or 업데이트
-     * 신규 사용자인 경우 등록하고, 기존 사용자인 경우 업데이트
-     *
-     * @param email 사용자 이메일
-     * @param nickname 사용자 닉네임
-     * @return 신규 회원 여부와 tempCode
-     */
     @Override
     public LoginResponseDto.Oauth2Result registerOrUpdateUser(String email, String nickname) {
 
@@ -98,13 +91,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         tokenRepository.save(token);
     }
 
-    /**
-     * 임시 코드(tempCode)를 사용하여 사용자 로그인 처리
-     * tempCode로 토큰 조회 후 사용자 활성화 및 토큰 반환
-     *
-     * @param tempCode 임시 코드
-     * @return 로그인 결과가 담긴 LoginResult
-     */
     @Override
     public LoginResponseDto.LoginResult loginUser(String tempCode) {
 
@@ -122,6 +108,21 @@ public class UserCommandServiceImpl implements UserCommandService {
         userRepository.save(user);
 
         return loginResult;
+    }
+
+    @Override
+    public String deactivateUser(User user) {
+        user.setStatus(User.UserStatus.INACTIVE);
+        userRepository.save(user);
+        return "로그아웃 성공";
+    }
+
+    @Override
+    public String withdrawUser(User user) {
+        user.setStatus(User.UserStatus.DELETED);
+        user.setDeletedAt(LocalDateTime.now());
+        userRepository.save(user);
+        return "회원 탈퇴 요청이 완료되었습니다. 오늘 자정에 계정이 삭제됩니다.";
     }
 
 }

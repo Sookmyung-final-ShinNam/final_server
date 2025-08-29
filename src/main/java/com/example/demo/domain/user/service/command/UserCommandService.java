@@ -1,5 +1,6 @@
 package com.example.demo.domain.user.service.command;
 
+import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.web.dto.LoginResponseDto;
 
 /**
@@ -26,5 +27,21 @@ public interface UserCommandService {
      * @return 로그인 결과가 담긴 LoginResult
      */
     LoginResponseDto.LoginResult loginUser(String tempCode);
+
+    /**
+     * 사용자 비활성화 (로그아웃)
+     *
+     * @param user 현재 사용자
+     * @return 결과 메시지
+     */
+    String deactivateUser(User user);
+
+    /**
+     * 사용자 탈퇴 (매일 자정에 실제 삭제)
+     *
+     * @param user 현재 사용자
+     * @return 결과 메시지
+     */
+    String withdrawUser(User user);
 
 }
