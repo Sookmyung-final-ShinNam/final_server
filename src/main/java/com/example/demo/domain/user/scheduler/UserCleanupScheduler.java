@@ -28,12 +28,14 @@ public class UserCleanupScheduler {
 
         // 서울 기준 오늘 날짜
         ZonedDateTime nowSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-        LocalDateTime startOfToday = nowSeoul.toLocalDate().atStartOfDay(); // 오늘 0시
-        LocalDateTime endOfToday = nowSeoul.toLocalDate().plusDays(1).atStartOfDay(); // 내일 0시 (오늘 23:59:59)
+
+        // 과거부터 오늘 자정까지
+        LocalDateTime startOfAll = LocalDateTime.of(1970, 1, 1, 0, 0); // DB에 존재하는 모든 사용자 포함
+        LocalDateTime endOfToday = nowSeoul.toLocalDate().plusDays(1).atStartOfDay(); // 오늘 밤 12시 (내일 0시)
 
         List<User> usersToDelete = userRepository.findByStatusAndDeletedAtBetween(
                 User.UserStatus.DELETED,
-                startOfToday,
+                startOfAll,
                 endOfToday
         );
 
