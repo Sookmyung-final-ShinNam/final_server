@@ -22,23 +22,27 @@ public class UserCleanupScheduler {
     private final UserRepository userRepository;
 
     @Scheduled(fixedRate = 60_000) // 테스트용: 1분마다 실행
+    // 매일 자정 0시에 실행
     // @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     public void deleteScheduledUsers() {
 
+        // 서울 기준 오늘 날짜
         ZonedDateTime nowSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
-        LocalDateTime startOfYesterday = nowSeoul.minusDays(1).toLocalDate().atStartOfDay();
-        LocalDateTime endOfYesterday = nowSeoul.toLocalDate().atStartOfDay();
+        LocalDateTime startOfToday = nowSeoul.toLocalDate().atStartOfDay(); // 오늘 0시
+        LocalDateTime endOfToday = nowSeoul.toLocalDate().plusDays(1).atStartOfDay(); // 내일 0시 (오늘 23:59:59)
 
         List<User> usersToDelete = userRepository.findByStatusAndDeletedAtBetween(
                 User.UserStatus.DELETED,
-                startOfYesterday,
-                endOfYesterday
+                startOfToday,
+                endOfToday
         );
 
         if (!usersToDelete.isEmpty()) {
             log.info("삭제 예정 사용자 수: {}", usersToDelete.size());
             userRepository.deleteAll(usersToDelete);
             log.info("삭제 완료");
+        } else {
+            log.info("삭제할 사용자 없음");
         }
     }
 
