@@ -21,8 +21,8 @@ public class UserCleanupScheduler {
 
     private final UserRepository userRepository;
 
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul") // 테스트용 1분마다 실행
-    // @Scheduled(cron = "0 0 0 * * *")  // 매일 00:00 실행
+    @Scheduled(fixedRate = 60_000) // 테스트용: 1분마다 실행
+    // @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     public void deleteScheduledUsers() {
 
         ZonedDateTime nowSeoul = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
