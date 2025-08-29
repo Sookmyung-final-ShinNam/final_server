@@ -48,6 +48,6 @@ public interface UserCommandService {
      * Scheduler에서 호출하는 실제 삭제 메서드
      * 연관 엔티티(대화, 토큰)만 삭제
      */
-    String deleteUser(Long userId);
+    void deleteUser(Long userId);
 
 }

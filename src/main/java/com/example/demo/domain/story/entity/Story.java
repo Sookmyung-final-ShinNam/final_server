@@ -39,7 +39,7 @@ public class Story extends BaseEntity {
 
     // 스토리를 생성한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     // 스토리 삭제 시 스토리 테마도 삭제

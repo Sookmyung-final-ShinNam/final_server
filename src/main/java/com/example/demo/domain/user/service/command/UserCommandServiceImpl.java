@@ -2,7 +2,9 @@ package com.example.demo.domain.user.service.command;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
+import com.example.demo.domain.character.repository.UserCharacterFavoriteRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
+import com.example.demo.domain.story.repository.UserStoryFavoriteRepository;
 import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.TokenRepository;
@@ -31,6 +33,8 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
     private final ConversationSessionRepository conversationSessionRepository;
+    private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
+    private final UserStoryFavoriteRepository userStoryFavoriteRepository;
 
     @Override
     public LoginResponseDto.Oauth2Result registerOrUpdateUser(String email, String nickname) {
@@ -128,19 +132,20 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public String deleteUser(Long userId) {
+    public void deleteUser(Long userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
-        // 관련 엔티티 삭제 (대화, 토큰)
+        // 관련 엔티티 삭제 (대화, 토큰, 즐겨찾기)
         tokenRepository.deleteAllByUser(user);
         conversationSessionRepository.deleteAllByUser(user);
+        userCharacterFavoriteRepository.deleteAllByUser(user);
+        userStoryFavoriteRepository.deleteAllByUser(user);
 
         // 사용자 삭제
         userRepository.delete(user);
 
-        return "사용자 삭제 완료: " + userId;
     }
 
 }
