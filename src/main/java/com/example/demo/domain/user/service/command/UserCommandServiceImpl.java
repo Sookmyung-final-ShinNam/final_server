@@ -4,6 +4,8 @@ import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.repository.UserCharacterFavoriteRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
+import com.example.demo.domain.story.entity.Story;
+import com.example.demo.domain.story.repository.StoryRepository;
 import com.example.demo.domain.story.repository.UserStoryFavoriteRepository;
 import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,6 +38,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final ConversationSessionRepository conversationSessionRepository;
     private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
     private final UserStoryFavoriteRepository userStoryFavoriteRepository;
+    private final StoryRepository storyRepository;
 
     @Override
     public LoginResponseDto.Oauth2Result registerOrUpdateUser(String email, String nickname) {
@@ -142,6 +146,13 @@ public class UserCommandServiceImpl implements UserCommandService {
         conversationSessionRepository.deleteAllByUser(user);
         userCharacterFavoriteRepository.deleteAllByUser(user);
         userStoryFavoriteRepository.deleteAllByUser(user);
+
+        // 스토리의 user를 null로 세팅
+        List<Story> stories = storyRepository.findByUser(user);
+        for (Story story : stories) {
+            story.setUser(null);
+        }
+        storyRepository.saveAll(stories);
 
         // 사용자 삭제
         userRepository.delete(user);
