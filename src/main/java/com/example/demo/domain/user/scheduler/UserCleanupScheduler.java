@@ -23,9 +23,9 @@ public class UserCleanupScheduler {
     private final UserRepository userRepository;
     private final UserCommandService userCommandService;
 
-    @Scheduled(fixedRate = 60_000) // 테스트용: 1분마다 실행
+    // @Scheduled(fixedRate = 60_000) // 테스트용: 1분마다 실행
     // 매일 자정 0시에 실행
-    // @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     public void deleteScheduledUsers() {
 
         // 서울 기준 오늘 날짜
