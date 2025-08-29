@@ -35,4 +35,13 @@ public interface UserCommandService {
      * @return 결과 메시지
      */
     String deactivateUser(User user);
+
+    /**
+     * 사용자 탈퇴 (매일 자정에 실제 삭제)
+     *
+     * @param user 현재 사용자
+     * @return 결과 메시지
+     */
+    String withdrawUser(User user);
+
 }

@@ -14,6 +14,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -115,4 +116,13 @@ public class UserCommandServiceImpl implements UserCommandService {
         userRepository.save(user);
         return "로그아웃 성공";
     }
+
+    @Override
+    public String withdrawUser(User user) {
+        user.setStatus(User.UserStatus.DELETED);
+        user.setDeletedAt(LocalDateTime.now());
+        userRepository.save(user);
+        return "회원 탈퇴 요청이 완료되었습니다. 오늘 자정에 계정이 삭제됩니다.";
+    }
+
 }
