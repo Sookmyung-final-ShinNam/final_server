@@ -2,6 +2,7 @@ package com.example.demo.domain.story.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.domain.story.service.command.StoryCommandService;
 import com.example.demo.domain.story.service.query.StoryQueryService;
 import com.example.demo.domain.story.web.dto.StoryResponseDto;
 import com.example.demo.domain.story.web.dto.StoryPageResponseDto;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class StoryController extends AuthController {
 
     private final StoryQueryService storyQueryService;
+    private final StoryCommandService storyCommandService;
 
     @Operation(
             summary = "동화 전체 조회",
@@ -59,6 +61,26 @@ public class StoryController extends AuthController {
             @PathVariable int pageNumber
     ) {
         return ApiResponse.of(SuccessStatus._OK, storyQueryService.getStoryPage(storyId, pageNumber));
+    }
+
+    @Operation(summary = "관심 동화 등록")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @PostMapping("/{storyId}/favorite")
+    public ApiResponse<String> addFavorite(@PathVariable Long storyId) {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, storyCommandService.addFavorite(user, storyId));
+    }
+
+    @Operation(summary = "관심 동화 취소")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @DeleteMapping("/{storyId}/favorite")
+    public ApiResponse<String> removeFavorite(@PathVariable Long storyId) {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, storyCommandService.removeFavorite(user, storyId));
     }
 
 }
