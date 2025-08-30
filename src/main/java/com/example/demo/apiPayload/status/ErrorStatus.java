@@ -54,6 +54,8 @@ public enum ErrorStatus implements BaseErrorCode {
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),
     STORY_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STORY_4006", "완성된 동화만 접근할 수 있습니다."),
     STORY_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4005", "해당 동화 페이지를 찾을 수 없습니다."),
+    STORY_ALREADY_FAVORITE(HttpStatus.BAD_REQUEST, "STORY_4007", "이미 관심 동화로 등록된 동화입니다."),
+    STORY_NOT_FAVORITE(HttpStatus.BAD_REQUEST, "STORY_4008", "관심 동화로 등록되지 않은 동화입니다."),
 
     // 이미지, 동영상 API 관련 에러
     MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType 은 image 또는 video 여야 합니다."),
