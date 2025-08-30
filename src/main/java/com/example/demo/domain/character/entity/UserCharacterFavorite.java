@@ -1,6 +1,7 @@
 package com.example.demo.domain.character.entity;
 
 import com.example.demo.domain.user.entity.User;
+import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "user_character_favorite_entity")
-public class UserCharacterFavorite {
+public class UserCharacterFavorite extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
