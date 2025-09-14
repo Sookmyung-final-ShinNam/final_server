@@ -13,6 +13,7 @@ public class StoryConverter {
                 .pageNumber(storyPage.getPageNumber())
                 .content(storyPage.getContent())
                 .imageUrl(storyPage.getImageUrl())
+                .videoUrl(storyPage.getVideoUrl())
                 .characterId(includeCharacter ? story.getCharacter().getId() : null)
                 .build();
     }
