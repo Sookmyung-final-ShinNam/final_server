@@ -83,7 +83,7 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
     @Async
     @Override
     @Transactional
-    public void storyComplete(Long sessionId, String imageType) {
+    public void storyComplete(Long sessionId) {
 
         // 1. Story 조회
         Story story = storyRepo.findByStorySessions_Id(sessionId)
@@ -120,8 +120,8 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         // 6. LLM 호출 및 Story/Character/StoryPage 업데이트
         conversationCompleteCommandService.completeStoryFromLlm(story, context);
 
-        // 7. 캐릭터 및 StoryPage 이미지/비디오 생성
-        conversationCompleteCommandService.generateStoryMedia(story, imageType);
+        // 7. 캐릭터 및 StoryPage 이미지 생성
+        conversationCompleteCommandService.generateStoryMedia(story.getId(), "image");
 
         // 8. 최종 상태 업데이트
         story.setStatus(Story.StoryStatus.COMPLETED);

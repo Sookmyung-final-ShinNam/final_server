@@ -33,6 +33,10 @@ public class StoryPage {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    // 페이지 동영상 URL
+    @Column(name = "video_url", length = 500)
+    private String videoUrl;
+
     // 스토리 페이지는 반드시 하나의 스토리에 속함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "story_id", nullable = false)
