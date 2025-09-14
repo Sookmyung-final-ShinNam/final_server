@@ -22,4 +22,10 @@ public interface ConversationAsyncService {
      */
     void storyComplete(Long sessionId);
 
+    /**
+     * 동영상 동화 생성
+     * - StoryCharacter 기본 이미지로 동영상 생성
+     */
+    void generateStoryVideo(Long storyId);
+
 }

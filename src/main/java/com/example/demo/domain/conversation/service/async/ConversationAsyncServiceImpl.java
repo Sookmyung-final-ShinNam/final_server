@@ -135,4 +135,12 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         story.setStatus(Story.StoryStatus.MAKING);
     }
 
+    @Async
+    @Override
+    @Transactional
+    public void generateStoryVideo(Long storyId) {
+        conversationCompleteCommandService.generateStoryMedia(storyId, "video");
+        System.out.println("비동기 작업 완료: storyId=" + storyId + " 동영상 생성 완료");
+    }
+
 }

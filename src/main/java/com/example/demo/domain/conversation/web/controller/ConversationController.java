@@ -3,7 +3,6 @@ package com.example.demo.domain.conversation.web.controller;
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
-import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
 import com.example.demo.domain.conversation.service.command.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.ConversationStartCommandService;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
@@ -30,7 +29,6 @@ public class ConversationController extends AuthController {
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationAsyncService conversationAsyncService;
-    private final ConversationCompleteCommandService conversationCompleteCommandService;
 
     @Operation(
             summary = "대화 세션 시작",
@@ -123,7 +121,7 @@ public class ConversationController extends AuthController {
     public ApiResponse<Void> storyToVideo(
             @RequestParam Long storyId
     ) {
-        conversationCompleteCommandService.generateStoryMedia(storyId, "video");
+        conversationAsyncService.generateStoryVideo(storyId);
         return ApiResponse.of(SuccessStatus._OK);
     }
 
