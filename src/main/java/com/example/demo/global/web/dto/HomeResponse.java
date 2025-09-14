@@ -14,7 +14,6 @@ public class HomeResponse {
 
     private Long userId;
     private String username;
-    private int currentPoints;
     private String profileImageUrl;
     private List<CharacterDto> favorites;
 
@@ -22,7 +21,6 @@ public class HomeResponse {
         return HomeResponse.builder()
                 .userId(user.getId())
                 .username(user.getNickname())
-                .currentPoints(user.getCurrentPoints())
                 .profileImageUrl(user.getProfileImageUrl())
                 .favorites(favorites.stream()
                         .map(CharacterDto::from)

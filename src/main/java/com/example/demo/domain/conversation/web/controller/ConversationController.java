@@ -3,6 +3,7 @@ package com.example.demo.domain.conversation.web.controller;
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
+import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
 import com.example.demo.domain.conversation.service.command.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.ConversationStartCommandService;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
@@ -29,6 +30,7 @@ public class ConversationController extends AuthController {
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationAsyncService conversationAsyncService;
+    private final ConversationCompleteCommandService conversationCompleteCommandService;
 
     @Operation(
             summary = "대화 세션 시작",
@@ -94,8 +96,7 @@ public class ConversationController extends AuthController {
                     비동기 - 내용 기반으로 아래 정보들을 업데이트/생성합니다.
                             - 동화 정보 업데이트(제목, 3줄 요약)
                             - 캐릭터 정보 업데이트(성격, 기본 이미지)
-                            - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지 or 비디오)
-                    imageType 에는 <image, video> 중 하나만 입력 가능합니다!
+                            - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지)
                     """
     )
     @ApiResponses({
@@ -103,10 +104,26 @@ public class ConversationController extends AuthController {
     })
     @PostMapping("/complete")
     public ApiResponse<Void> storyComplete(
-            @RequestParam Long sessionId,
-            @RequestParam String imageType
+            @RequestParam Long sessionId
     ) {
-        conversationAsyncService.storyComplete(sessionId, imageType);
+        conversationAsyncService.storyComplete(sessionId);
+        return ApiResponse.of(SuccessStatus._OK);
+    }
+
+    @Operation(
+            summary = "페이지별 동영상 생성",
+            description = """
+                    각 페이지에 맞는 동영상을 생성합니다. 
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @PostMapping("/video")
+    public ApiResponse<Void> storyToVideo(
+            @RequestParam Long storyId
+    ) {
+        conversationCompleteCommandService.generateStoryMedia(storyId, "video");
         return ApiResponse.of(SuccessStatus._OK);
     }
 

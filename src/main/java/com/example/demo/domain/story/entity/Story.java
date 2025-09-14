@@ -63,11 +63,6 @@ public class Story extends BaseEntity {
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ConversationSession> storySessions = new HashSet<>();
 
-    // 스토리 삭제 시 스토리 즐겨찾기도 삭제
-    @Builder.Default
-    @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserStoryFavorite> userStoryFavorites = new HashSet<>();
-
     // 스토리 삭제 시 캐릭터도 삭제
     @OneToOne(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private StoryCharacter character;

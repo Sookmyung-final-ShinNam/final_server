@@ -13,6 +13,7 @@ import com.example.demo.domain.conversation.service.model.video.RunwayService;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.entity.StoryPage;
 import com.example.demo.domain.story.repository.StoryPageRepository;
+import com.example.demo.domain.story.repository.StoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ import java.nio.file.StandardCopyOption;
 public class ConversationCompleteCommandServiceImpl implements ConversationCompleteCommandService {
 
     private final StoryPageRepository storyPageRepo;
+    private final StoryRepository storyRepository;
     private final CharacterAppearanceRepository characterAppearanceRepo;
 
     private final LlmClient llmClient;
@@ -119,22 +121,25 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
     @Override
     @Transactional
-    public void generateStoryMedia(Story story, String imageType) {
+    public void generateStoryMedia(Long storyId, String imageType) {
 
-        log.info("[Media] generateStoryMedia 시작, storyId={}, imageType={}", story.getId(), imageType);
+        log.info("[Media] generateStoryMedia 시작, storyId={}, imageType={}", storyId, imageType);
 
         // 1. imageType 유효성 검사
         validateImageType(imageType);
 
+        Story story = storyRepository.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         StoryCharacter character = story.getCharacter();
 
-        // 2. 캐릭터 기본 이미지 생성 - (S3 업로드 포함)
-        generateCharacterBaseImage(character);
-
-        // 3. 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
+        // 2. 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
         if (isImage(imageType)) {
+            // 캐릭터 기본 이미지 생성
+            generateCharacterBaseImage(character);
+            // 스토리 페이지별 이미지 생성
             generateStoryImages(story, character);
         } else {
+            // 스토리 페이지별 동영상 생성
             generateStoryVideos(story, character);
         }
 
@@ -223,7 +228,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         for (StoryPage page : story.getStoryPages()) {
 
             // 이미 영상이 생성된 경우 스킵
-            if (page.getImageUrl() != null && page.getImageUrl().endsWith(".mp4")) {
+            if (page.getVideoUrl() != null && page.getVideoUrl().endsWith(".mp4")) {
                 log.info("[Media] Skip video generation, already exists. storyId={}, page={}", story.getId(), page.getPageNumber());
                 continue;
             }
@@ -237,7 +242,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                         String s3Url = s3Uploader.uploadFileFromFile(videoFile,
                                 "stories/" + story.getId() + "/videos",
                                 "page_" + page.getPageNumber() + ".mp4");
-                        page.setImageUrl(s3Url);
+                        page.setVideoUrl(s3Url);
                         storyPageRepo.save(page); // DB 저장
                     });
 
