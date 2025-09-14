@@ -6,7 +6,6 @@ import com.example.demo.domain.character.repository.UserCharacterFavoriteReposit
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
-import com.example.demo.domain.story.repository.UserStoryFavoriteRepository;
 import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.TokenRepository;
@@ -37,7 +36,6 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final TokenRepository tokenRepository;
     private final ConversationSessionRepository conversationSessionRepository;
     private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
-    private final UserStoryFavoriteRepository userStoryFavoriteRepository;
     private final StoryRepository storyRepository;
 
     @Override
@@ -145,7 +143,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         tokenRepository.deleteAllByUser(user);
         conversationSessionRepository.deleteAllByUser(user);
         userCharacterFavoriteRepository.deleteAllByUser(user);
-        userStoryFavoriteRepository.deleteAllByUser(user);
 
         // 스토리의 user를 null로 세팅
         List<Story> stories = storyRepository.findByUser(user);
