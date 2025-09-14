@@ -36,10 +36,6 @@ public class User extends BaseEntity {
     @Column(name = "profile_image_url", length = 500)
     private String profileImageUrl;
 
-    // 현재 보유 포인트 (기본값 500)
-    @Column(name = "current_points", nullable = false)
-    private int currentPoints = 500;
-
     // 사용자 등급 (기본값 BASIC)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -82,7 +82,6 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.setEmail(email);
         user.setNickname(nickname);
         user.setProfileImageUrl("https://avatars.githubusercontent.com/u/201584629?s=400&u=a82befb373a5969512867ca357157ba4a33bd279&v=4");
-        user.setCurrentPoints(500);
         user.setGrade(User.UserGrade.BASIC);
         user.setStatus(User.UserStatus.DELETED);
         user.setDeletedAt(BaseEntity.now());
