@@ -20,10 +20,8 @@ public class StoryController extends AuthController {
     @Operation(
             summary = "동화 페이지별 내용 조회",
             description = """
-            - storyId와 pageNumber로 특정 동화 페이지 조회
+            - storyId와 pageNumber로 특정 동화 페이지 조회 (0~4)
             - 단, '완성된 동화'만 상세 조회 가능
-            - 반환: pageNumber, content, imageUrl
-            - 첫 장/마지막 장 → 캐릭터 정보 포함
             """
     )
     @ApiResponses({
