@@ -4,6 +4,8 @@ import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.entity.StoryPage;
 import com.example.demo.domain.story.web.dto.StoryPageResponseDto;
 
+import java.util.stream.Collectors;
+
 public class StoryConverter {
 
     // StoryPage → StoryPageResponseDto 변환
@@ -27,8 +29,12 @@ public class StoryConverter {
                     .storyId(story.getId())
                     .pageNumber(0)
                     .title(story.getTitle())
-                    .storyThemes(story.getStoryThemes())
-                    .storyBackgrounds(story.getStoryBackgrounds())
+                    .storyThemes(story.getStoryThemes().stream()
+                            .map(storyTheme -> storyTheme.getTheme().getName())
+                            .collect(Collectors.toSet()))
+                    .storyBackgrounds(story.getStoryBackgrounds().stream()
+                            .map(storyBackground -> storyBackground.getBackground().getName())
+                            .collect(Collectors.toSet()))
                     .description(story.getDescription())
                     .storyContent(storyContent)
                     .build();

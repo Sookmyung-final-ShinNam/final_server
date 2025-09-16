@@ -1,7 +1,5 @@
 package com.example.demo.domain.story.web.dto;
 
-import com.example.demo.domain.story.entity.StoryBackground;
-import com.example.demo.domain.story.entity.StoryTheme;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,8 +14,8 @@ public class StoryPageResponseDto {
     private Integer pageNumber;            // 모든 페이지 공통
 
     private String title;                  // 0 페이지
-    private Set<StoryTheme> storyThemes;   // 0 페이지
-    private Set<StoryBackground> storyBackgrounds; // 0 페이지
+    private Set<String> storyThemes;       // 0 페이지 - name만
+    private Set<String> storyBackgrounds;  // 0 페이지 - name만
     private String description;            // 0 페이지
 
     private StoryContent storyContent;     // 모든 페이지 공통
