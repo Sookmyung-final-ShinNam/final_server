@@ -24,4 +24,6 @@ public interface UserCharacterFavoriteRepository extends JpaRepository<UserChara
     // 유저별 최근 즐겨찾기 캐릭터 5개 조회
     List<UserCharacterFavorite> findTop5ByUserOrderByCreatedAtDesc(User user);
 
+    // 특정 사용자의 모든 즐겨찾기 조회
+    List<UserCharacterFavorite> findByUser(User user);
 }

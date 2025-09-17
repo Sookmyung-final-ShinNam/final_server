@@ -2,6 +2,7 @@ package com.example.demo.domain.character.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.service.command.CharacterCommandService;
 import com.example.demo.domain.character.service.query.CharacterQueryService;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
@@ -23,21 +24,20 @@ public class CharacterController extends AuthController {
     @Operation(
             summary = "캐릭터 전체 조회",
             description = """
-                    - 12개씩 페이징
-                    - 페이징 기준 : 관심동화 / createTime 빠른 순서 
-                    - 완성된 캐릭터만 반환
-                    """
+            - 캐릭터 전체 반환
+            - 정렬 기준 : 미완성 -> 관심 캐릭터 -> createTime 내림차순
+            - 옵션 : gender=FEMALE(여자만), gender=MALE(남자만), 기본은 전체
+            """
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
     @GetMapping
     public ApiResponse<CompletedCharacterResponse.CharacterListResponse> getCompletedCharacters(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size
+            @RequestParam(value = "gender", required = false) StoryCharacter.Gender gender   // null이면 전체
     ) {
         User user = getCurrentUser();
-        return ApiResponse.of(SuccessStatus._OK, characterQueryService.getCompletedCharacters(user, page, size));
+        return ApiResponse.of(SuccessStatus._OK, characterQueryService.getCompletedCharacters(user, gender));
     }
 
     @Operation(
