@@ -5,14 +5,16 @@ import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.converter.CharacterConverter;
 import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
+import com.example.demo.domain.character.repository.UserCharacterFavoriteRepository;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,28 +24,42 @@ import java.util.stream.Collectors;
 public class CharacterQueryServiceImpl implements CharacterQueryService {
 
     private final StoryCharacterRepository storyCharacterRepository;
+    private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
+
     private final CharacterConverter characterConverter;
     private final UserRepository userRepository;
 
     @Override
-    public CompletedCharacterResponse.CharacterListResponse getCompletedCharacters(User user, int page, int size) {
+    public CompletedCharacterResponse.CharacterListResponse getCompletedCharacters(User user, StoryCharacter.Gender gender) {
 
-        // 1. User와 favorites 한 번에 조회
-        User fullUser = userRepository.findByIdWithFavorites(user.getId())
-                .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
+        // 1. 유저의 모든 캐릭터 가져오기
+        List<StoryCharacter> characters = storyCharacterRepository.findByUser(user);
 
-        // 2. 페이징 (DB 기준 createdAt desc)
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<StoryCharacter> characters = storyCharacterRepository.findByStatus(
-                StoryCharacter.CharacterStatus.COMPLETED, pageRequest);
+        // 2. 성별 필터링 (null 이면 전체)
+        if (gender != null) {
+            characters = characters.stream()
+                    .filter(c -> c.getGender() == gender)
+                    .toList();
+        }
 
         // 3. 관심 캐릭터 ID set
-        Set<Long> favoriteIds = fullUser.getFavorites().stream()
+        Set<Long> favoriteIds = userCharacterFavoriteRepository.findByUser(user).stream()
                 .map(fav -> fav.getCharacter().getId())
                 .collect(Collectors.toSet());
 
-        // 4. 컨버터를 통해 CharacterListResponse 반환
-        return characterConverter.toCharacterListResponse(characters, favoriteIds);
+        // 4. 정렬 (미완성 → 관심 → 최신순)
+        List<StoryCharacter> sorted = characters.stream()
+                .sorted(Comparator
+                        // 미완성(true) → 완성(false) → true < false 이므로 "미완성 먼저"
+                        .comparing((StoryCharacter c) -> c.getStatus() != StoryCharacter.CharacterStatus.COMPLETED)
+                        // 관심(true) → 비관심(false) → false < true 이므로 "관심 먼저"
+                        .thenComparing(c -> !favoriteIds.contains(c.getId()))
+                        // 최신순
+                        .thenComparing(StoryCharacter::getCreatedAt, Comparator.reverseOrder()))
+                .toList();
+
+        // 5. DTO 변환
+        return characterConverter.toCharacterListResponse(sorted, favoriteIds);
     }
 
     @Override

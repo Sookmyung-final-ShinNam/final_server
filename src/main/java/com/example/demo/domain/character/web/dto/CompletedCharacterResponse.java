@@ -29,10 +29,6 @@ public class CompletedCharacterResponse {
     @AllArgsConstructor
     public static class CharacterListResponse {
         private List<CompletedCharacterResponse> characters;
-        private int currentPage;
-        private int totalPages;
-        private long totalElements;
-        private boolean hasNext;
     }
 
     // 상세 조회용 내부 DTO
