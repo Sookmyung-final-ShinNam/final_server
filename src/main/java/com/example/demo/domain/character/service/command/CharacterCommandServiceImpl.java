@@ -26,6 +26,11 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
         StoryCharacter character = storyCharacterRepository.findById(characterId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.CHARACTER_NOT_FOUND));
 
+        // 캐릭터가 완성되었는지 확인
+        if (!character.getStatus().equals(StoryCharacter.CharacterStatus.COMPLETED)) {
+            throw new CustomException(ErrorStatus.CHARACTER_NOT_COMPLETED);
+        }
+
         // 이미 관심 캐릭터로 등록되어 있는지 확인
         if (userCharacterFavoriteRepository.existsByUserAndCharacter(user, character)) {
             throw new CustomException(ErrorStatus.CHARACTER_ALREADY_FAVORITE);

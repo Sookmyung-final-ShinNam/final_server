@@ -67,7 +67,8 @@ public enum ErrorStatus implements BaseErrorCode {
     CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER_4004", "해당 캐릭터를 찾을 수 없습니다."),
     CHARACTER_ALREADY_FAVORITE(HttpStatus.BAD_REQUEST, "CHARACTER_4006", "이미 관심 캐릭터로 등록된 캐릭터입니다."),
     CHARACTER_NOT_FAVORITE(HttpStatus.BAD_REQUEST, "CHARACTER_4007", "관심 캐릭터로 등록되지 않은 캐릭터입니다."),
-    CHARACTER_FAVORITE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CHARACTER_4008", "관심 캐릭터는 최대 5개까지 등록할 수 있습니다.")
+    CHARACTER_FAVORITE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CHARACTER_4008", "관심 캐릭터는 최대 5개까지 등록할 수 있습니다."),
+    CHARACTER_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "CHARACTER_4009", "완성된 캐릭터만 관심 캐릭터로 등록할 수 있습니다."),
 
     ;
 
