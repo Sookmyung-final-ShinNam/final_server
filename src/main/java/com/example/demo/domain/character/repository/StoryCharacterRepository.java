@@ -10,7 +10,7 @@ import java.util.List;
 public interface StoryCharacterRepository extends JpaRepository<StoryCharacter, Long> {
 
     // 특정 유저의 모든 캐릭터 조회
-    List<StoryCharacter> findByUser(User user);
+    List<StoryCharacter> findByStory_User(User user);
 
     // 완료된 캐릭터만 조회
     Optional<StoryCharacter> findByIdAndStatus(Long id, StoryCharacter.CharacterStatus status);

@@ -33,7 +33,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
     public CompletedCharacterResponse.CharacterListResponse getCompletedCharacters(User user, StoryCharacter.Gender gender) {
 
         // 1. 유저의 모든 캐릭터 가져오기
-        List<StoryCharacter> characters = storyCharacterRepository.findByUser(user);
+        List<StoryCharacter> characters = storyCharacterRepository.findByStory_User(user);
 
         // 2. 성별 필터링 (null 이면 전체)
         if (gender != null) {
