@@ -31,6 +31,12 @@ public class CharacterCommandServiceImpl implements CharacterCommandService {
             throw new CustomException(ErrorStatus.CHARACTER_ALREADY_FAVORITE);
         }
 
+        // 현재 사용자가 등록한 관심 캐릭터 수 확인
+        long favoriteCount = userCharacterFavoriteRepository.countByUser(user);
+        if (favoriteCount >= 5) {
+            throw new CustomException(ErrorStatus.CHARACTER_FAVORITE_LIMIT_EXCEEDED);
+        }
+
         // 관심 캐릭터로 등록
         UserCharacterFavorite favorite = UserCharacterFavorite.builder()
                 .user(user)
