@@ -50,12 +50,13 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
         // 4. 정렬 (미완성 → 관심 → 최신순)
         List<StoryCharacter> sorted = characters.stream()
                 .sorted(Comparator
-                        // 미완성(true) → 완성(false) → true < false 이므로 "미완성 먼저"
-                        .comparing((StoryCharacter c) -> c.getStatus() != StoryCharacter.CharacterStatus.COMPLETED)
-                        // 관심(true) → 비관심(false) → false < true 이므로 "관심 먼저"
-                        .thenComparing(c -> !favoriteIds.contains(c.getId()))
-                        // 최신순
-                        .thenComparing(StoryCharacter::getCreatedAt, Comparator.reverseOrder()))
+                        .comparingInt((StoryCharacter c) -> {
+                            if (c.getStatus() != StoryCharacter.CharacterStatus.COMPLETED) return 0;  // 미완성
+                            if (favoriteIds.contains(c.getId())) return 1;                              // 완성 & 관심
+                            return 2;                                                                  // 완성 & 비관심
+                        })
+                        .thenComparing(StoryCharacter::getCreatedAt, Comparator.reverseOrder())        // 최신순
+                )
                 .toList();
 
         // 5. DTO 변환
