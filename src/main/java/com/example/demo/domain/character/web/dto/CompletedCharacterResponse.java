@@ -49,6 +49,9 @@ public class CompletedCharacterResponse {
 
         private Long storyId;               // 연관 스토리 ID
         private String storyTitle;          // 연관 스토리 제목
+
+        private String imageStoryUrl;     // 이미지 스토리 URL
+        private String videoStoryUrl;     // 비디오 스토리 URL
     }
 
 }
