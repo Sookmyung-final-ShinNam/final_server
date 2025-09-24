@@ -7,9 +7,9 @@ import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
+import com.example.demo.domain.conversation.event.ConversationStartedEvent;
 import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
-import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
@@ -17,6 +17,7 @@ import com.example.demo.domain.story.entity.*;
 import com.example.demo.domain.story.repository.*;
 import com.example.demo.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +39,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
     private final ConversationMessageRepository conversationMessageRepository;
 
     private final LlmClient llmClient;
-    private final ConversationAsyncService asyncService;
+    private final ApplicationEventPublisher eventPublisher;
     private final ConversationConverter converter;
 
 
@@ -112,8 +113,10 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         ConversationMessage message = conversationMessageRepository.save(converter.toConversationMessage(session, startText));
         session.addMessage(message);
 
-        // 비동기로 다음 단계 사전 생성 작업 실행
-        asyncService.prepareNextStep(session.getId(), ConversationSession.ConversationStep.STEP_01);
+        // === EVENT: 비동기로 다음 단계 사전 생성 작업 실행 ===
+        eventPublisher.publishEvent(
+                new ConversationStartedEvent(session.getId(), ConversationSession.ConversationStep.STEP_01)
+        );
 
         // 세션 ID와 생성된 첫 스토리를 포함하는 응답 DTO 반환
         return ConversationResponseDto.ConversationStartResponseDto.builder()
