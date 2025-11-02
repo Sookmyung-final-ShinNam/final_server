@@ -44,6 +44,7 @@ public class CharacterConverter {
                 .storyId(ch.getStory().getId())
                 .storyTitle(ch.getStory().getTitle())
                 .imageStoryUrl(lastPage != null ? lastPage.getImageUrl() : null) // 4p 이미지 URL
+                .videoStatus(ch.getStory().getVideoStatus()) // 비디오 생성 상태
                 .videoStoryUrl(lastPage != null ? lastPage.getVideoUrl() : null) // 4p 비디오 URL
                 .build();
     }

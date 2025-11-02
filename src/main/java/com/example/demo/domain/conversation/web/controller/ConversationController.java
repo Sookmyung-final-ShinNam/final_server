@@ -8,6 +8,7 @@ import com.example.demo.domain.conversation.service.command.ConversationStartCom
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
+import com.example.demo.domain.story.service.command.StoryCommandService;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ public class ConversationController extends AuthController {
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationAsyncService conversationAsyncService;
+    private final StoryCommandService storyCommandService;
 
     @Operation(
             summary = "대화 세션 시작",
@@ -121,6 +123,9 @@ public class ConversationController extends AuthController {
     public ApiResponse<Void> storyToVideo(
             @RequestParam Long storyId
     ) {
+        // 상태 변경
+        storyCommandService.markStoryVideoAsMaking(storyId);
+        // 비동기 호출
         conversationAsyncService.generateStoryVideo(storyId);
         return ApiResponse.of(SuccessStatus._OK);
     }

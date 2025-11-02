@@ -33,6 +33,17 @@ public class StoryPage {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    // 동영상 생성 상태
+    @Enumerated(EnumType.STRING)
+    @Column(name = "video_status", nullable = false)
+    private VideoStatus videoStatus = VideoStatus.NONE;
+
+    public enum VideoStatus {
+        NONE,        // 아직 생성 안됨
+        MAKING,      // 생성 중
+        COMPLETED    // 생성 완료
+    }
+
     // 페이지 동영상 URL
     @Column(name = "video_url", length = 500)
     private String videoUrl;
