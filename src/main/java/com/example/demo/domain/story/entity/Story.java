@@ -77,4 +77,11 @@ public class Story extends BaseEntity {
         MAKING,      // complete 수행 중
         COMPLETED    // 완료됨
     }
+
+    // 상태 변경 메서드
+    public void markVideoAsMaking() {
+        if (this.videoStatus == StoryPage.VideoStatus.NONE) {
+            this.videoStatus = StoryPage.VideoStatus.MAKING;
+        }
+    }
 }

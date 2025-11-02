@@ -141,6 +141,14 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         } else {
             // 스토리 페이지별 동영상 생성
             generateStoryVideos(story, character);
+            // 동영상 생성 여부 업데이트
+            for (StoryPage page : story.getStoryPages()) {
+                if (page.getVideoUrl() != null && page.getVideoUrl().endsWith(".mp4")) {
+                    page.setVideoStatus(StoryPage.VideoStatus.COMPLETED);
+                }
+            }
+            // 스토리 전체 상태 업데이트
+            story.setVideoStatus(StoryPage.VideoStatus.COMPLETED);
         }
 
         log.info("[Media] generateStoryMedia 완료, storyId={}", story.getId());
@@ -227,11 +235,16 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
         for (StoryPage page : story.getStoryPages()) {
 
-            // 이미 영상이 생성된 경우 스킵
-            if (page.getVideoUrl() != null && page.getVideoUrl().endsWith(".mp4")) {
-                log.info("[Media] Skip video generation, already exists. storyId={}, page={}", story.getId(), page.getPageNumber());
+            // 이미 생성 진행 중이거나 완료된 경우 스킵
+            if (page.getVideoStatus() != StoryPage.VideoStatus.NONE) {
+                log.info("[Media] Skip video generation (status={}), storyId={}, page={}",
+                        page.getVideoStatus(), story.getId(), page.getPageNumber());
                 continue;
             }
+
+            // 생성 시작
+            page.setVideoStatus(StoryPage.VideoStatus.MAKING);
+            storyPageRepo.save(page);
 
             int maxAttempts = 3;
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
