@@ -73,12 +73,13 @@ public class UserCommandServiceImpl implements UserCommandService {
         String refreshToken = jwtUtil.generateRefreshToken(email);
         saveTokenForUser(user, tempCode, accessToken, refreshToken);
 
-        return new LoginResponseDto.Oauth2Result(isNewUser.get(), tempCode);
+        return new LoginResponseDto.Oauth2Result(isNewUser.get(), user.isAgreedToTerms(), tempCode);
     }
 
     // 신규 유저 생성
     private User createNewUser(String email, String nickname) {
         User user = new User();
+        user.setAgreedToTerms(false);
         user.setEmail(email);
         user.setNickname(nickname);
         user.setProfileImageUrl("https://avatars.githubusercontent.com/u/201584629?s=400&u=a82befb373a5969512867ca357157ba4a33bd279&v=4");

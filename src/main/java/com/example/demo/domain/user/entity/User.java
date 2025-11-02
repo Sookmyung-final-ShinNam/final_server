@@ -24,6 +24,10 @@ public class User extends BaseEntity {
     @Column(name = "user_id")
     private Long id;
 
+    // 약관 동의 여부
+    @Column(name = "agreed_to_terms", nullable = false)
+    private boolean agreedToTerms;
+
     // 사용자 이메일
     @Column(nullable = false, unique = true, length = 255)
     private String email;
@@ -80,6 +84,7 @@ public class User extends BaseEntity {
     // 사용자 상태를 활성화로 변경
     public void activate() {
         this.status = UserStatus.ACTIVE;
+        this.setAgreedToTerms(true); // 활성화 시 약관 동의로 설정
         this.deletedAt = null; // 활성화 시 삭제 일시 초기화
     }
 
