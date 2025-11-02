@@ -105,6 +105,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     .pageNumber(i + 1)
                     .content(pages[i])
                     .contentEn(pagesEn[i])
+                    .videoStatus(StoryPage.VideoStatus.NONE)
                     .story(story)
                     .build();
 
