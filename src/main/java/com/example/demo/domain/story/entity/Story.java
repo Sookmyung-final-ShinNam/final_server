@@ -37,6 +37,11 @@ public class Story extends BaseEntity {
     @Column(nullable = false)
     private StoryStatus status = StoryStatus.IN_PROGRESS;
 
+    // 스토리 비디오 상태
+    @Enumerated(EnumType.STRING)
+    @Column(name = "video_status", nullable = false)
+    private StoryPage.VideoStatus videoStatus = StoryPage.VideoStatus.NONE;
+
     // 스토리를 생성한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = true)
