@@ -11,6 +11,7 @@ public class LoginResponseDto {
     @AllArgsConstructor
     public static class Oauth2Result {
         private final boolean isNewUser;
+        private final boolean isAgreedToTerms;
         private final String tempCode;
     }
 
