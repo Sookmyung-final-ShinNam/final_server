@@ -18,6 +18,7 @@ public class ConversationConverter {
         return Story.builder()
                 .user(user)
                 .status(Story.StoryStatus.IN_PROGRESS)
+                .videoStatus(StoryPage.VideoStatus.NONE)
                 .build();
     }
 
