@@ -16,21 +16,25 @@ public class StoryAdminCommandServiceImpl implements StoryAdminCommandService {
     private final StoryRepository storyRepository;
 
     @Transactional
-    public Story uploadImageYoutube(Long id, String youtubeLink) {
+    public String uploadImageYoutube(Long id, String youtubeLink) {
         Story story = storyRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
         story.setImageYoutubeLink(youtubeLink);
-        return storyRepository.save(story);
+        storyRepository.save(story);
+
+        return  "성공적으로 동영상 유튜브 링크가 업로드되었습니다. : " + youtubeLink;
     }
 
     @Transactional
-    public Story uploadVideoYoutube(Long id, String youtubeLink) {
+    public String uploadVideoYoutube(Long id, String youtubeLink) {
         Story story = storyRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
         story.setVideoYoutubeLink(youtubeLink);
-        return storyRepository.save(story);
+        storyRepository.save(story);
+
+        return "성공적으로 동영상 유튜브 링크가 업로드되었습니다. : " + youtubeLink;
     }
 
 }

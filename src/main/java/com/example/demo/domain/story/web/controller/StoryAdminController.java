@@ -2,7 +2,6 @@ package com.example.demo.domain.story.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
-import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.service.command.StoryAdminCommandService;
 import com.example.demo.domain.story.service.query.StoryAdminQueryService;
 import com.example.demo.domain.story.web.dto.StoryAdminResponseDto;
@@ -28,7 +27,7 @@ public class StoryAdminController {
 
     @Operation(summary = "이미지용 유튜브 링크 업로드")
     @PostMapping("/{id}/youtube/image")
-    public ApiResponse<Story> uploadImageYoutube(
+    public ApiResponse<String> uploadImageYoutube(
             @PathVariable Long id,
             @RequestParam String youtubeLink
     ) {
@@ -37,7 +36,7 @@ public class StoryAdminController {
 
     @Operation(summary = "동영상용 유튜브 링크 업로드")
     @PostMapping("/{id}/youtube/video")
-    public ApiResponse<Story> uploadVideoYoutube(
+    public ApiResponse<String> uploadVideoYoutube(
             @PathVariable Long id,
             @RequestParam String youtubeLink
     ) {
