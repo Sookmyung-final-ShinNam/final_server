@@ -42,6 +42,14 @@ public class Story extends BaseEntity {
     @Column(name = "video_status", nullable = false)
     private StoryPage.VideoStatus videoStatus = StoryPage.VideoStatus.NONE;
 
+    // 이미지용 유튜브 링크
+    @Column(name = "image_youtube_link", length = 500)
+    private String imageYoutubeLink;
+
+    // 동영상용 유튜브 링크
+    @Column(name = "video_youtube_link", length = 500)
+    private String videoYoutubeLink;
+
     // 스토리를 생성한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = true)
