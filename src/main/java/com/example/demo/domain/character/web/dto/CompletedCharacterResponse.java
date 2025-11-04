@@ -55,6 +55,9 @@ public class CompletedCharacterResponse {
 
         private StoryPage.VideoStatus videoStatus; // 비디오 스토리 상태
         private String videoStoryUrl;     // 비디오 스토리 URL
+
+        private String imageYoutubeLink;   // 이미지 유튜브 링크
+        private String videoYoutubeLink;   // 비디오 유튜브 링크
     }
 
 }
