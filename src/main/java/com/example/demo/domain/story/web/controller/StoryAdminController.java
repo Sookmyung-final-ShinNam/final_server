@@ -26,5 +26,22 @@ public class StoryAdminController {
         return ApiResponse.of(SuccessStatus._OK, storyAdminQueryService.getIncompleteStories());
     }
 
+    @Operation(summary = "이미지용 유튜브 링크 업로드")
+    @PostMapping("/{id}/youtube/image")
+    public ApiResponse<Story> uploadImageYoutube(
+            @PathVariable Long id,
+            @RequestParam String youtubeLink
+    ) {
+        return ApiResponse.of(SuccessStatus._OK, storyAdminCommandService.uploadImageYoutube(id, youtubeLink));
+    }
+
+    @Operation(summary = "동영상용 유튜브 링크 업로드")
+    @PostMapping("/{id}/youtube/video")
+    public ApiResponse<Story> uploadVideoYoutube(
+            @PathVariable Long id,
+            @RequestParam String youtubeLink
+    ) {
+        return ApiResponse.of(SuccessStatus._OK, storyAdminCommandService.uploadVideoYoutube(id, youtubeLink));
+    }
 
 }
