@@ -70,6 +70,12 @@ public enum ErrorStatus implements BaseErrorCode {
     CHARACTER_FAVORITE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CHARACTER_4008", "관심 캐릭터는 최대 5개까지 등록할 수 있습니다."),
     CHARACTER_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "CHARACTER_4009", "완성된 캐릭터만 관심 캐릭터로 등록할 수 있습니다."),
 
+    // 출석 체크 관련 에러
+    ATTENDANCE_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다."),
+    ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4002", "이미 오늘의 출석 체크를 완료하였습니다."),
+    ATTENDANCE_NOT_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4003", "출석 체크를 완료하지 않은 날짜에 보상을 교환할 수 없습니다. 먼저 출석 체크를 완료해주세요."),
+    ATTENDANCE_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4004", "도장 수 부족으로 보상 교환에 실패하셨습니다.")
+
     ;
 
     private final HttpStatus httpStatus;
