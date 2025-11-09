@@ -35,4 +35,10 @@ public class Attendance extends BaseEntity {
     // 보상으로 교환한 날짜 (yyyy-mm-dd)
     @Column
     private LocalDate exchangedDate;
+
+    // 출석 체크 생성자
+    public Attendance(User user, LocalDate todayDate) {
+        this.user = user;
+        this.attendedDate = todayDate;
+    }
 }

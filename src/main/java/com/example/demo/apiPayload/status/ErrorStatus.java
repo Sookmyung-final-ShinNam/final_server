@@ -71,7 +71,9 @@ public enum ErrorStatus implements BaseErrorCode {
     CHARACTER_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "CHARACTER_4009", "완성된 캐릭터만 관심 캐릭터로 등록할 수 있습니다."),
 
     // 출석 체크 관련 에러
-    ATTENDANCE_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다.")
+    ATTENDANCE_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다."),
+    ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4002", "이미 오늘의 출석 체크를 완료하였습니다.")
+
     ;
 
     private final HttpStatus httpStatus;

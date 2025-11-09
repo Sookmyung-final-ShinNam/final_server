@@ -20,6 +20,7 @@ public class AttendanceQueryServiceImpl implements AttendanceQueryService {
 
     private final AttendanceRepository attendanceRepository;
 
+    // 출석 체크 조회
     @Override
     public AttendanceResponse getAttendances(User user, Integer year, Integer month) {
 
@@ -41,13 +42,12 @@ public class AttendanceQueryServiceImpl implements AttendanceQueryService {
                 .toList();
 
         // 오늘 출석 여부
-        boolean todayAttendance = attendances.stream()
-                .anyMatch(a -> a.equals(today));
+        boolean todayAttendance = attendances.stream().anyMatch(a -> a.equals(today));
 
         // 마지막 보상 교환일
         LocalDate lastExchangeDate = attendanceRepository.findTopByUserOrderByExchangedDateDesc(user)
                 .map(Attendance::getExchangedDate) // 있으면 exchangedDate 추출
-                .orElse(null); // 없으면 null
+                .orElse(null);               // 없으면 null
 
         // 총 스탬프 수
         int stamps;
@@ -58,5 +58,28 @@ public class AttendanceQueryServiceImpl implements AttendanceQueryService {
         }
 
         return new AttendanceResponse(todayAttendance, attendances, lastExchangeDate, stamps);
+    }
+
+    // 출석 체크 등록
+    @Override
+    public AttendanceResponse checkAttendance(User user) {
+
+        // 현재 날짜
+        LocalDate today = LocalDate.now();
+
+        // 이미 오늘 출석 체크했는지 확인
+        if (attendanceRepository.existsByUserAndAttendedDate(user, today))
+            throw new CustomException(ErrorStatus.ATTENDANCE_ALREADY_CHECKED);
+
+        // 출석 체크 생성
+        attendanceRepository.save(new Attendance(user, today));
+
+        // 반영된 출석 체크 다시 조회
+        return getAttendances(user, today.getYear(), today.getMonthValue());
+    }
+
+    @Override
+    public AttendanceResponse exchangeReward(User user) {
+        return null;
     }
 }

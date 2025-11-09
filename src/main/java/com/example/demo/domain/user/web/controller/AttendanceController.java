@@ -9,10 +9,7 @@ import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/attendance")
@@ -42,4 +39,30 @@ public class AttendanceController extends AuthController {
     }
 
     // 출석 체크 등록
+    @Operation(
+            summary = "출석 체크 등록",
+            description = "오늘의 출석을 등록합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @PostMapping
+    public ApiResponse<AttendanceResponse> checkAttendance() {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, attendanceQueryService.checkAttendance(user));
+    }
+
+    // 출석 체크 보상
+    @Operation(
+            summary = "출석 체크 보상 교환",
+            description = "10개의 스탬프를 1개의 보상으로 교환합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @PostMapping("/exchange")
+    public ApiResponse<AttendanceResponse> exchangeReward() {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, attendanceQueryService.exchangeReward(user));
+    }
 }

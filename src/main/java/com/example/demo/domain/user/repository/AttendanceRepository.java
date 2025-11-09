@@ -33,4 +33,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     // 특정 유저의 스탬프 수 카운트 (마지막 교환 날짜 있다면, 그 이후부터)
     long countByUserAndAttendedDateAfter(User user, LocalDate startDate);
+
+    // 특정 유저의 오늘 출석체크 조회
+    boolean existsByUserAndAttendedDate(User user, LocalDate todayDate);
 }
