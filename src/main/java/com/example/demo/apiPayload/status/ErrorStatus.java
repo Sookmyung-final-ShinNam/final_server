@@ -70,6 +70,8 @@ public enum ErrorStatus implements BaseErrorCode {
     CHARACTER_FAVORITE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CHARACTER_4008", "관심 캐릭터는 최대 5개까지 등록할 수 있습니다."),
     CHARACTER_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "CHARACTER_4009", "완성된 캐릭터만 관심 캐릭터로 등록할 수 있습니다."),
 
+    // 출석 체크 관련 에러
+    ATTENDANCE_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다.")
     ;
 
     private final HttpStatus httpStatus;
