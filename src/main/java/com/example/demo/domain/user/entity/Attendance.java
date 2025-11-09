@@ -41,4 +41,9 @@ public class Attendance extends BaseEntity {
         this.user = user;
         this.attendedDate = todayDate;
     }
+
+    // 보상으로 교환한 날짜 업데이트
+    public void updateExchangeDate(LocalDate todayDate) {
+        this.exchangedDate = todayDate;
+    }
 }

@@ -28,6 +28,9 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
      */
     Optional<Attendance> findTopByUserOrderByExchangedDateDesc(User user);
 
+    // 특정 유저의 특정 날짜의 출석 조회
+    Optional<Attendance> findByUserAndAttendedDate(User user, LocalDate attendedDate);
+
     // 특정 유저의 스탬프 수 카운트 (마지막 교환 날짜 X)
     long countByUser(User user);
 
