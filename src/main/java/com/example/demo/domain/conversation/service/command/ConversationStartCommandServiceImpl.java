@@ -61,17 +61,14 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
             ConversationRequestDto.ConversationStartRequestDto request,
             User user
     ) {
-        // 유저 포인트 확인
+        // 먼저 유저 포인트 검증 후 사용
         User currentUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
-        Integer points = currentUser.getPoints();
-        if (points < 1) throw new CustomException(ErrorStatus.USER_INVALID_POINT);
-
-        // 포인트 사용 및 업데이트
-        currentUser.setPoints(points - 1);
+        currentUser.usePoints(1);
 
         // 사용자와 연관된 새 Story 엔티티 생성 (상태는 IN_PROGRESS)
         Story story = storyRepository.save(converter.toStory(currentUser));
+
 
         // 테마 이름 리스트로부터 기존 테마 조회 또는 새로 생성
         List<Theme> themes = getOrCreateThemes(request.getThemeNames());

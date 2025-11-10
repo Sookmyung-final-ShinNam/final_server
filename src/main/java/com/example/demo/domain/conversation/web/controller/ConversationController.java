@@ -41,7 +41,7 @@ public class ConversationController extends AuthController {
                     동기 처리 : Story 생성, Character 생성, 첫 메시지 저장, 응답 반환
                     비동기 처리 : 다음 스텝(next-step=STEP_01) 사전 생성
                     
-                    - points 부족 시 예외 처리
+                    - points 부족 시 진행 불가 (사용 포인트 1)
                     """
     )
     @ApiResponses({
@@ -115,7 +115,9 @@ public class ConversationController extends AuthController {
     @Operation(
             summary = "페이지별 동영상 생성",
             description = """
-                    각 페이지에 맞는 동영상을 생성합니다. 
+                    각 페이지에 맞는 동영상을 생성합니다.
+                    
+                    - points 부족 시 진행 불가 (사용 포인트 1)
                     """
     )
     @ApiResponses({

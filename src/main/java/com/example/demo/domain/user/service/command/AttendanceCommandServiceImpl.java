@@ -70,8 +70,7 @@ public class AttendanceCommandServiceImpl implements AttendanceCommandService {
         todayAttendance.updateExchangeDate(today);
 
         // 유저 포인트 반영
-        User attendanceUser = todayAttendance.getUser();
-        attendanceUser.setPoints(attendanceUser.getPoints() + 1);
+        todayAttendance.getUser().addPoints(1);
 
         // 반영된 출석 체크 다시 조회
         return attendanceQueryService.getAttendances(user, today.getYear(), today.getMonthValue());
