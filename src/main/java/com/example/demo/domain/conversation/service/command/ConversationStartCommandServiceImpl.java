@@ -69,7 +69,6 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // 사용자와 연관된 새 Story 엔티티 생성 (상태는 IN_PROGRESS)
         Story story = storyRepository.save(converter.toStory(currentUser));
 
-
         // 테마 이름 리스트로부터 기존 테마 조회 또는 새로 생성
         List<Theme> themes = getOrCreateThemes(request.getThemeNames());
 
