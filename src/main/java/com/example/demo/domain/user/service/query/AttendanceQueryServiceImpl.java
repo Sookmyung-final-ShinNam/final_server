@@ -30,7 +30,7 @@ public class AttendanceQueryServiceImpl implements AttendanceQueryService {
         int targetMonth = (month != null) ? month : today.getMonthValue();
 
         // 유효한 월 범위 확인
-        if (targetMonth < 0 || targetMonth > 12) throw new CustomException(ErrorStatus.ATTENDANCE_INVALID_INPUT_VALUE);
+        if (targetMonth < 0 || targetMonth > 12) throw new CustomException(ErrorStatus.ATTENDANCE_INVALID_MONTH);
 
         // 조회할 월 계산 (1일 ~ 월 마지막 날짜)
         LocalDate start = LocalDate.of(targetYear, targetMonth, 1);

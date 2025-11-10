@@ -1,5 +1,7 @@
 package com.example.demo.domain.conversation.service.command;
 
+import com.example.demo.apiPayload.code.exception.CustomException;
+import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
@@ -16,6 +18,7 @@ import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import com.example.demo.domain.story.entity.*;
 import com.example.demo.domain.story.repository.*;
 import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ConversationStartCommandServiceImpl implements ConversationStartCommandService {
 
+    private final UserRepository userRepository;
     private final ThemeRepository themeRepository;
     private final BackgroundRepository backgroundRepository;
     private final StoryRepository storyRepository;
@@ -57,9 +61,17 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
             ConversationRequestDto.ConversationStartRequestDto request,
             User user
     ) {
+        // 유저 포인트 확인
+        User currentUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
+        Integer points = currentUser.getPoints();
+        if (points < 1) throw new CustomException(ErrorStatus.USER_INVALID_POINT);
+
+        // 포인트 사용 및 업데이트
+        currentUser.setPoints(points - 1);
 
         // 사용자와 연관된 새 Story 엔티티 생성 (상태는 IN_PROGRESS)
-        Story story = storyRepository.save(converter.toStory(user));
+        Story story = storyRepository.save(converter.toStory(currentUser));
 
         // 테마 이름 리스트로부터 기존 테마 조회 또는 새로 생성
         List<Theme> themes = getOrCreateThemes(request.getThemeNames());
@@ -86,7 +98,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         story.setCharacter(character);
 
         // Story와 User를 연결한 대화 세션 생성 (currentStep은 START)
-        ConversationSession session = conversationSessionRepository.save(converter.toConversationSession(story, user));
+        ConversationSession session = conversationSessionRepository.save(converter.toConversationSession(story, currentUser));
         story.getStorySessions().add(session);
 
         // LLM 호출 준비

@@ -40,6 +40,8 @@ public class ConversationController extends AuthController {
                     
                     동기 처리 : Story 생성, Character 생성, 첫 메시지 저장, 응답 반환
                     비동기 처리 : 다음 스텝(next-step=STEP_01) 사전 생성
+                    
+                    - points 부족 시 예외 처리
                     """
     )
     @ApiResponses({

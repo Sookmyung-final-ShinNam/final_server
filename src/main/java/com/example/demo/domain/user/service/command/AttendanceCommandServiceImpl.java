@@ -66,7 +66,7 @@ public class AttendanceCommandServiceImpl implements AttendanceCommandService {
 
         // 보상받은 날짜 업데이트
         Attendance todayAttendance = attendanceRepository.findByUserAndAttendedDate(user, today)
-                .orElseThrow(() -> new CustomException(ErrorStatus.ATTENDANCE_NOT_CHECKED));
+                .orElseThrow(() -> new CustomException(ErrorStatus.ATTENDANCE_INVALID_CHECKED));
         todayAttendance.updateExchangeDate(today);
 
         // 유저 포인트 반영
