@@ -54,6 +54,11 @@ public class User extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    // 포인트 (1 포인트 = 10 출첵)
+    // 기본값 0
+    @Column(nullable = false)
+    private Integer points = 0;
+
     // 사용자 삭제 시 토큰도 삭제
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();
