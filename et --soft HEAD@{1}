@@ -1,0 +1,13 @@
+[33m59f61c0[m[33m ([m[1;36mHEAD -> [m[1;32mfeat/41-points[m[33m)[m HEAD@{0}: commit (amend): 🩹chore: 출첵 service 파일 분리
+[33m9b6c533[m[33m ([m[1;31morigin/release[m[33m, [m[1;31morigin/feat/41-points[m[33m)[m HEAD@{1}: checkout: moving from feat/40-attendance to feat/41-points
+[33m2179af9[m[33m ([m[1;32mfeat/40-attendance[m[33m)[m HEAD@{2}: checkout: moving from feat/41-points to feat/40-attendance
+[33m9b6c533[m[33m ([m[1;31morigin/release[m[33m, [m[1;31morigin/feat/41-points[m[33m)[m HEAD@{3}: checkout: moving from main to feat/41-points
+[33m10bda4b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{4}: checkout: moving from feat/40-attendance to main
+[33m2179af9[m[33m ([m[1;32mfeat/40-attendance[m[33m)[m HEAD@{5}: commit (amend): 🩹chore: env 파일 추가
+[33ma5edca9[m HEAD@{6}: commit: ✨🩹chore: env 파일 추가
+[33m07261a1[m HEAD@{7}: commit: ✨feat: 출석체크 보상 교환 api 구현
+[33m7f2623a[m HEAD@{8}: commit: ✨feat: 출석체크 등록 api 구현
+[33m073fed1[m HEAD@{9}: commit (amend): ✨feat: 출석체크 조회 api 구현
+[33mdbbce9c[m HEAD@{10}: commit: ✨feat: 출석체크 api 구현
+[33m10bda4b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{11}: checkout: moving from main to feat/40-attendance
+[33m10bda4b[m[33m ([m[1;32mmain[m[33m)[m HEAD@{12}: clone: from https://github.com/Sookmyung-final-ShinNam/final_server.git

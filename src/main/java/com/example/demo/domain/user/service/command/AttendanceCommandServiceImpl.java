@@ -5,6 +5,7 @@ import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.user.entity.Attendance;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.AttendanceRepository;
+import com.example.demo.domain.user.repository.UserRepository;
 import com.example.demo.domain.user.service.query.AttendanceQueryService;
 import com.example.demo.domain.user.web.dto.AttendanceResponse;
 import jakarta.transaction.Transactional;
@@ -67,6 +68,10 @@ public class AttendanceCommandServiceImpl implements AttendanceCommandService {
         Attendance todayAttendance = attendanceRepository.findByUserAndAttendedDate(user, today)
                 .orElseThrow(() -> new CustomException(ErrorStatus.ATTENDANCE_NOT_CHECKED));
         todayAttendance.updateExchangeDate(today);
+
+        // 유저 포인트 반영
+        User attendanceUser = todayAttendance.getUser();
+        attendanceUser.setPoints(attendanceUser.getPoints() + 1);
 
         // 반영된 출석 체크 다시 조회
         return attendanceQueryService.getAttendances(user, today.getYear(), today.getMonthValue());
