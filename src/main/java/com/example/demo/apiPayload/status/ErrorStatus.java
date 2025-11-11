@@ -33,6 +33,7 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_4004", "사용자를 찾을 수 없습니다."),
     USER_ALREADY_LOGOUT(HttpStatus.BAD_REQUEST, "USER_4001", "이미 로그아웃된 사용자입니다."),
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_4002", "이미 삭제된 사용자입니다."),
+    USER_INVALID_POINT(HttpStatus.BAD_REQUEST, "USER_4003", "사용자의 포인트가 부족합니다."),
 
     // 관리자 관련 에러
     ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4003", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
@@ -71,9 +72,9 @@ public enum ErrorStatus implements BaseErrorCode {
     CHARACTER_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "CHARACTER_4009", "완성된 캐릭터만 관심 캐릭터로 등록할 수 있습니다."),
 
     // 출석 체크 관련 에러
-    ATTENDANCE_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다."),
-    ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4002", "이미 오늘의 출석 체크를 완료하였습니다."),
-    ATTENDANCE_NOT_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4003", "출석 체크를 완료하지 않은 날짜에 보상을 교환할 수 없습니다. 먼저 출석 체크를 완료해주세요."),
+    ATTENDANCE_INVALID_MONTH(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다."),
+    ATTENDANCE_INVALID_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4002", "출석 체크를 완료하지 않은 날짜에 보상을 교환할 수 없습니다. 먼저 출석 체크를 완료해주세요."),
+    ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4003", "이미 오늘의 출석 체크를 완료하였습니다."),
     ATTENDANCE_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4004", "도장 수 부족으로 보상 교환에 실패하셨습니다.")
 
     ;

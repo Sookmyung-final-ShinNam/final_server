@@ -15,6 +15,7 @@ public class HomeResponse {
     private Long userId;
     private String username;
     private String profileImageUrl;
+    private Integer points;
     private List<CharacterDto> favorites;
 
     public static HomeResponse from(User user, List<StoryCharacter> favorites) {
@@ -22,6 +23,7 @@ public class HomeResponse {
                 .userId(user.getId())
                 .username(user.getNickname())
                 .profileImageUrl(user.getProfileImageUrl())
+                .points(user.getPoints())
                 .favorites(favorites.stream()
                         .map(CharacterDto::from)
                         .collect(Collectors.toList()))
