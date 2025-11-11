@@ -3,6 +3,7 @@ package com.example.demo.domain.user.web.controller;
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.service.command.AttendanceCommandService;
 import com.example.demo.domain.user.service.query.AttendanceQueryService;
 import com.example.demo.domain.user.web.dto.AttendanceResponse;
 import com.example.demo.global.security.AuthController;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class AttendanceController extends AuthController {
 
     private final AttendanceQueryService attendanceQueryService;
+    private final AttendanceCommandService attendanceCommandService;
 
     // 출석 체크 조회
     @Operation(
@@ -49,10 +51,10 @@ public class AttendanceController extends AuthController {
     @PostMapping
     public ApiResponse<AttendanceResponse> checkAttendance() {
         User user = getCurrentUser();
-        return ApiResponse.of(SuccessStatus._OK, attendanceQueryService.checkAttendance(user));
+        return ApiResponse.of(SuccessStatus._OK, attendanceCommandService.checkAttendance(user));
     }
 
-    // 출석 체크 보상
+    // 출석 체크 보상 교환
     @Operation(
             summary = "출석 체크 보상 교환",
             description = "10개의 스탬프를 1개의 보상으로 교환합니다."
@@ -63,6 +65,6 @@ public class AttendanceController extends AuthController {
     @PostMapping("/exchange")
     public ApiResponse<AttendanceResponse> exchangeReward() {
         User user = getCurrentUser();
-        return ApiResponse.of(SuccessStatus._OK, attendanceQueryService.exchangeReward(user));
+        return ApiResponse.of(SuccessStatus._OK, attendanceCommandService.exchangeReward(user));
     }
 }

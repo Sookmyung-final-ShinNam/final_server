@@ -1,5 +1,7 @@
 package com.example.demo.domain.user.entity;
 
+import com.example.demo.apiPayload.code.exception.CustomException;
+import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.UserCharacterFavorite;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.global.entity.BaseEntity;
@@ -54,6 +56,11 @@ public class User extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    // 포인트 (1 포인트 = 10 출첵)
+    // 기본값 0
+    @Column(nullable = false)
+    private Integer points = 0;
+
     // 사용자 삭제 시 토큰도 삭제
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();
@@ -88,4 +95,14 @@ public class User extends BaseEntity {
         this.deletedAt = null; // 활성화 시 삭제 일시 초기화
     }
 
+    // 포인트 증가 (출첵 보상)
+    public void addPoints(int value) {
+        this.points += value;
+    }
+
+    // 포인트 사용 (동화 생성, 동영상 동화 요청)
+    public void usePoints(int value) {
+        if (this.points < value) throw new CustomException(ErrorStatus.USER_INVALID_POINT);
+        this.points -= value;
+    }
 }
