@@ -43,7 +43,7 @@ public class AttendanceQueryServiceImpl implements AttendanceQueryService {
                 .toList();
 
         // 오늘 출석 여부
-        boolean todayAttendance = attendances.stream().anyMatch(a -> a.equals(today));
+        boolean todayAttendance = attendanceRepository.existsByUserAndAttendedDate(user, today);
 
         // 마지막 보상 교환일
         LocalDate lastExchangeDate = attendanceRepository.findTopByUserOrderByExchangedDateDesc(user)
