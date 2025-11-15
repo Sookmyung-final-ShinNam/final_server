@@ -188,8 +188,8 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     .block();
 
             if (result == null) {
-                log.error("[Avatar] 결과가 null입니다!");
-                throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
+                log.error("[Avatar] 이미지 생성 결과(result)가 null입니다. prompt={}, reference=null, seed=null", prompt);
+                throw new CustomException(ErrorStatus.MEDIA_IMAGE_GENERATION_FAILED);
             }
 
             log.error("[Avatar] 이미지 URL: " + result.getImgUrl() + ", seed=" + result.getSeed());
