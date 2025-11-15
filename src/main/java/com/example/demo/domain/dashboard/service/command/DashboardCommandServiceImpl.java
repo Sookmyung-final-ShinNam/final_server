@@ -5,6 +5,7 @@ import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.dashboard.converter.DashboardConverter;
 import com.example.demo.domain.dashboard.entity.Dashboard;
 import com.example.demo.domain.dashboard.repository.DashboardBackgroundUsageRepository;
+import com.example.demo.domain.dashboard.repository.DashboardStoryStatsRepository;
 import com.example.demo.domain.dashboard.repository.DashboardThemeUsageRepository;
 import com.example.demo.domain.dashboard.repository.DashboardRepository;
 import com.example.demo.domain.dashboard.service.analyzer.DashboardAnalyzerService;
@@ -26,8 +27,10 @@ public class DashboardCommandServiceImpl implements DashboardCommandService {
     private final StoryRepository storyRepository;
     private final List<DashboardAnalyzerService> analyzers; // 모든 Analyzer 구현체 DI
     private final DashboardConverter converter;
+
     private final DashboardBackgroundUsageRepository bgRepo;
     private final DashboardThemeUsageRepository themeRepo;
+    private final DashboardStoryStatsRepository storyStatsRepo;
 
     /**
      * 스토리 기반으로 대시보드 업데이트
@@ -58,7 +61,8 @@ public class DashboardCommandServiceImpl implements DashboardCommandService {
         // 6. DTO 변환
         return converter.toResponse(
                 dashboard,
-                bgRepo.findAllByDashboard(dashboard), themeRepo.findAllByDashboard(dashboard) // 관심사 통계
+                bgRepo.findAllByDashboard(dashboard), themeRepo.findAllByDashboard(dashboard), // 관심사 통계
+                storyStatsRepo.findAllByDashboard(dashboard) // 스토리별 통계
         );
     }
 
