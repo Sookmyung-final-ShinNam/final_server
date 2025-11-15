@@ -51,7 +51,8 @@ public class Story extends BaseEntity {
     private String videoYoutubeLink;
 
     // 대시보드에 적용 여부
-    @Column(name = "dashboard_applied")
+    @Builder.Default
+    @Column(name = "dashboard_applied", nullable = false)
     private boolean dashboardApplied = false;
 
     // 스토리를 생성한 사용자
