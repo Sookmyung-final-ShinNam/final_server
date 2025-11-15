@@ -7,6 +7,8 @@ import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Collections;
 
 @Component
 public class DashboardLanguageConverter {
@@ -53,9 +55,15 @@ public class DashboardLanguageConverter {
                         .storyId(s.getStoryId())
                         .createdAt(s.getUpdatedAt())
                         .attemptStats(s.getFeedbackAttemptStats())
-                        .avgAttemptPerStage(s.getAvgAttemptPerStage())
-                        .avgAnswerLength(s.getAvgAnswerLength())
-                        .newWords(s.getNewWords())
+                        .avgAttemptPerStage(
+                                s.getAvgAttemptPerStage() != null ? s.getAvgAttemptPerStage() : 0.0
+                        )
+                        .avgAnswerLength(
+                                s.getAvgAnswerLength() != null ? s.getAvgAnswerLength() : 0
+                        )
+                        .newWords(
+                                Optional.ofNullable(s.getNewWords()).orElse(Collections.emptyList())
+                        )
                         .build())
                 .toList();
     }
