@@ -181,22 +181,37 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         String prompt = character.getAppearance().getCharacterImagePromptEn();
 
         try {
+            System.out.println("[Avatar] generateAvatarWithReference 시작, prompt=" + prompt);
+
             FluxResponse.FluxEndResponse result = avatarGeneratorService
                     .generateAvatarWithReference(prompt, null, null, true)
                     .block();
 
-            if (result == null) throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
+            if (result == null) {
+                System.out.println("[Avatar] 결과가 null입니다!");
+                throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
+            }
+
+            System.out.println("[Avatar] 이미지 URL: " + result.getImgUrl() + ", seed=" + result.getSeed());
 
             handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
+                System.out.println("[Avatar] 임시 파일 생성 완료: " + tempFile.getAbsolutePath());
+
                 String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
                         "character_" + character.getId() + ".png");
+
+                System.out.println("[Avatar] S3 업로드 완료, URL=" + s3Url);
+
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
             });
 
         } catch (Exception e) {
+            System.out.println("[Avatar] 예외 발생: " + e.getMessage());
+            e.printStackTrace();
             throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
         }
+
     }
 
     /**
