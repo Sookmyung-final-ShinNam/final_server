@@ -50,6 +50,10 @@ public class Story extends BaseEntity {
     @Column(name = "video_youtube_link", length = 500)
     private String videoYoutubeLink;
 
+    // 대시보드에 적용 여부
+    @Column(name = "dashboard_applied")
+    private boolean dashboardApplied = false;
+
     // 스토리를 생성한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = true)

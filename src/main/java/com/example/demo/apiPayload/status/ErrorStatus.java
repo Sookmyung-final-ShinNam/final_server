@@ -14,6 +14,7 @@ public enum ErrorStatus implements BaseErrorCode {
     COMMON_INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_500", "서버 에러가 발생했습니다. 관리자에게 문의하세요."),
     COMMON_BAD_REQUEST(HttpStatus.BAD_REQUEST, "COMMON_404", "잘못된 요청입니다."),
     COMMON_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_405", "인증되지 않은 요청입니다. 로그인 후 다시 시도하세요."),
+    COMMON_JSON_CONVERT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_505", "JSON 변환 중 오류가 발생했습니다."),
 
     // 인증 관련 에러
     OAUTH_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "OAUTH_4001", "OAuth 처리 중 오류가 발생했습니다. 인가 코드와 상태 값을 확인하세요."),
@@ -75,8 +76,11 @@ public enum ErrorStatus implements BaseErrorCode {
     ATTENDANCE_INVALID_MONTH(HttpStatus.BAD_REQUEST,"ATTENDANCE_4001", "월(month)은 1~12 사이여야 합니다."),
     ATTENDANCE_INVALID_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4002", "출석 체크를 완료하지 않은 날짜에 보상을 교환할 수 없습니다. 먼저 출석 체크를 완료해주세요."),
     ATTENDANCE_ALREADY_CHECKED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4003", "이미 오늘의 출석 체크를 완료하였습니다."),
-    ATTENDANCE_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4004", "도장 수 부족으로 보상 교환에 실패하셨습니다.")
+    ATTENDANCE_EXCHANGE_FAILED(HttpStatus.BAD_REQUEST,"ATTENDANCE_4004", "도장 수 부족으로 보상 교환에 실패하셨습니다."),
 
+    // 대시보드 관련 에러
+    DASHBOARD_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "DASHBOARD_4005", "이미 대시보드에 반영된 스토리입니다.")
+    
     ;
 
     private final HttpStatus httpStatus;
