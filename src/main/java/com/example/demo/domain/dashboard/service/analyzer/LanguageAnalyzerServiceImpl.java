@@ -31,6 +31,14 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
     @Override
     public void apply(Dashboard dashboard, Story story) {
 
+        // 기존 데이터 조회 (없으면 신규 생성)
+        DashboardStoryStats stats = statsRepo.findByDashboardAndStoryId(dashboard, story.getId())
+                .orElseGet(() -> DashboardStoryStats.builder()
+                        .dashboard(dashboard)
+                        .storyId(story.getId())
+                        .build()
+                );
+
         // 1. 기/승/전/결 시도 횟수
         int[] attempts = calculateAttemptCounts(story);
 
@@ -48,16 +56,13 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
         List<String> newWords = extractNewWords(dashboard, story);
 
         // 5. 최종 DashboardStoryStats 생성
-        DashboardStoryStats stats = converter.toStoryStats(
-                dashboard,
-                story.getId(),
-                attemptStats,
-                avgAttemptPerStage,
-                avgAnswerLength,
-                newWords
-        );
+        stats.setFeedbackAttemptStats(attemptStats);
+        stats.setAvgAttemptPerStage(avgAttemptPerStage);
+        stats.setAvgAnswerLength(avgAnswerLength);
+        stats.setNewWords(newWords);
 
         statsRepo.save(stats);
+
     }
 
     // 메시지별 feedback 개수 기준 기/승/전/결 카운트
@@ -114,7 +119,7 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
 
         Set<String> existingWords = statsRepo.findAllByDashboard(dashboard)
                 .stream()
-                .flatMap(s -> s.getNewWords().stream())
+                .flatMap(s -> Optional.ofNullable(s.getNewWords()).orElse(Collections.emptyList()).stream())
                 .collect(Collectors.toSet());
 
         List<String> currentWords = extractWordsFromStory(story);

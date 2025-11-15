@@ -13,6 +13,7 @@ public class DashboardConverter {
 
     private final DashboardInterestConverter interestConverter;
     private final DashboardLanguageConverter languageConverter;
+    private final DashboardEmotionConverter emotionConverter;
 
     public DashboardResponse toResponse(
             Dashboard dashboard,
@@ -24,6 +25,8 @@ public class DashboardConverter {
                 .backgroundStats(interestConverter.toBackgroundStats(bgUsages))
                 .themeStats(interestConverter.toThemeStats(themeUsages))
                 .languageStats(languageConverter.toLanguageStats(storyStats))
+                .storyEmotions(emotionConverter.toEmotionStats(storyStats))
+                .parentAdvice(dashboard.getParentAdvice())
                 .build();
     }
 
