@@ -181,33 +181,33 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         String prompt = character.getAppearance().getCharacterImagePromptEn();
 
         try {
-            log.info("[Avatar] generateAvatarWithReference 시작, prompt=" + prompt);
+            log.error("[Avatar] generateAvatarWithReference 시작, prompt=" + prompt);
 
             FluxResponse.FluxEndResponse result = avatarGeneratorService
                     .generateAvatarWithReference(prompt, null, null, true)
                     .block();
 
             if (result == null) {
-                log.info("[Avatar] 결과가 null입니다!");
+                log.error("[Avatar] 결과가 null입니다!");
                 throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
             }
 
-            log.info("[Avatar] 이미지 URL: " + result.getImgUrl() + ", seed=" + result.getSeed());
+            log.error("[Avatar] 이미지 URL: " + result.getImgUrl() + ", seed=" + result.getSeed());
 
             handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
-                log.info("[Avatar] 임시 파일 생성 완료: " + tempFile.getAbsolutePath());
+                log.error("[Avatar] 임시 파일 생성 완료: " + tempFile.getAbsolutePath());
 
                 String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
                         "character_" + character.getId() + ".png");
 
-                log.info("[Avatar] S3 업로드 완료, URL=" + s3Url);
+                log.error("[Avatar] S3 업로드 완료, URL=" + s3Url);
 
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
             });
 
         } catch (Exception e) {
-            log.info("[Avatar] 예외 발생: " + e.getMessage());
+            log.error("[Avatar] 예외 발생: " + e.getMessage());
             e.printStackTrace();
             throw new CustomException(ErrorStatus.FILE_UPLOAD_FAILED);
         }
