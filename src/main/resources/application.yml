@@ -22,7 +22,7 @@ chatgpt:
 
 flux:
   api:
-    url: https://api.us1.bfl.ai
+    url: https://api.bfl.ai
     key: "${FLUX_KEY}"
 
 runway:
