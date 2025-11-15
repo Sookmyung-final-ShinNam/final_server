@@ -16,9 +16,9 @@ public class SwaggerConfig {
     public OpenAPI createOpenAPI() {
 
         Info apiInfo = new Info()
-                .title("장신남 졸프 API - 리펙토링 완료")
+                .title("장신남 졸프 API - CICD 테스트")
                 .description("장신남 졸프 API 명세서")
-                .version("2.0.0");
+                .version("3.0.0");
 
         String jwtSchemeName = "JWT_TOKEN";
 
