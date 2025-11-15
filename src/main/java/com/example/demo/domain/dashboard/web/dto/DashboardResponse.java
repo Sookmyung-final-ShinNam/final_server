@@ -20,6 +20,12 @@ public class DashboardResponse {
     // 언어 통계
     private List<LanguageStatItem> languageStats;
 
+    // 정서 통계
+    private List<EmotionStatItem> emotionsStats;
+
+    // 부모님 조언
+    private String parentAdvice;
+
     @Data
     @Builder
     public static class InterestStatItem {
@@ -37,6 +43,20 @@ public class DashboardResponse {
         private double avgAttemptPerStage;
         private int avgAnswerLength;
         private List<String> newWords;
+    }
+
+    @Data
+    @Builder
+    public static class EmotionStatItem {
+        private Long storyId;
+        private LocalDateTime createdAt;
+        private double joy;
+        private double sadness;
+        private double anger;
+        private double fear;
+        private double surprise;
+        private double neutral;
+        private String summary;
     }
 
 }
