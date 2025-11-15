@@ -6,6 +6,7 @@ import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.entity.ConversationMessage;
+import com.example.demo.domain.conversation.event.StoryCompletedEvent;
 import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
@@ -14,6 +15,7 @@ import com.example.demo.domain.conversation.service.query.ConversationQueryServi
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -31,6 +33,7 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
     private final ConversationCompleteCommandService conversationCompleteCommandService;
     private final ConversationConverter converter;
     private final LlmClient llmClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @Override
@@ -126,6 +129,9 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         // 8. 최종 상태 업데이트
         story.setStatus(Story.StoryStatus.COMPLETED);
         story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED);
+
+        // 9. 이벤트 발행 (트랜잭션 커밋 후 처리)
+        eventPublisher.publishEvent(new StoryCompletedEvent(this, story.getId(), story.getUser().getId()));
 
         System.out.println("비동기 작업 완료: storyStatus=" + story.getStatus());
     }
