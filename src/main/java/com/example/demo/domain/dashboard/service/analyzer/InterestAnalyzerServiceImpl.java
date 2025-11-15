@@ -1,6 +1,6 @@
 package com.example.demo.domain.dashboard.service.analyzer;
 
-import com.example.demo.domain.dashboard.converter.DashboardConverter;
+import com.example.demo.domain.dashboard.converter.DashboardInterestConverter;
 import com.example.demo.domain.dashboard.entity.Dashboard;
 import com.example.demo.domain.dashboard.entity.DashboardBackgroundUsage;
 import com.example.demo.domain.dashboard.entity.DashboardThemeUsage;
@@ -24,7 +24,7 @@ public class InterestAnalyzerServiceImpl implements DashboardAnalyzerService {
 
     private final DashboardBackgroundUsageRepository bgRepo;
     private final DashboardThemeUsageRepository themeRepo;
-    private final DashboardConverter converter;
+    private final DashboardInterestConverter converter;
 
     @Override
     public void apply(Dashboard dashboard, Story story) {
