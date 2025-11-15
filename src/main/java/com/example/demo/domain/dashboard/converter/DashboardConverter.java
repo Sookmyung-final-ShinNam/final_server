@@ -25,7 +25,7 @@ public class DashboardConverter {
                 .backgroundStats(interestConverter.toBackgroundStats(bgUsages))
                 .themeStats(interestConverter.toThemeStats(themeUsages))
                 .languageStats(languageConverter.toLanguageStats(storyStats))
-                .storyEmotions(emotionConverter.toEmotionStats(storyStats))
+                .emotionsStats(emotionConverter.toEmotionStats(storyStats))
                 .parentAdvice(dashboard.getParentAdvice())
                 .build();
     }
