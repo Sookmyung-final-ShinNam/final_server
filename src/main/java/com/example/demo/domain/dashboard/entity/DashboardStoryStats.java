@@ -5,6 +5,7 @@ import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -43,6 +44,24 @@ public class DashboardStoryStats extends BaseEntity {
     // 새 단어
     @Convert(converter = StringListConverter.class)
     @Column(name = "new_words", columnDefinition = "TEXT")
-    private List<String> newWords;
+    private List<String> newWords = new ArrayList<>();
+
+    // 감정 점수 (0~1 범위)
+    @Column(nullable = false)
+    private double joy;      // 기쁨
+    @Column(nullable = false)
+    private double sadness;  // 슬픔
+    @Column(nullable = false)
+    private double anger;    // 분노
+    @Column(nullable = false)
+    private double fear;     // 두려움
+    @Column(nullable = false)
+    private double surprise; // 놀람
+    @Column(nullable = false)
+    private double neutral;  // 중립
+
+    // LLM이 생성한 스토리 요약
+    @Column(columnDefinition = "TEXT")
+    private String summary;
 
 }

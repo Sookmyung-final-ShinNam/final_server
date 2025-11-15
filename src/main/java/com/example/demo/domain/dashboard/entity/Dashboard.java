@@ -23,4 +23,7 @@ public class Dashboard extends BaseEntity {
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
+    @Column(name = "parent_advice", length = 200)
+    private String parentAdvice;
+
 }
