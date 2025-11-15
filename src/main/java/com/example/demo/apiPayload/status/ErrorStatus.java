@@ -14,6 +14,7 @@ public enum ErrorStatus implements BaseErrorCode {
     COMMON_INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_500", "서버 에러가 발생했습니다. 관리자에게 문의하세요."),
     COMMON_BAD_REQUEST(HttpStatus.BAD_REQUEST, "COMMON_404", "잘못된 요청입니다."),
     COMMON_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_405", "인증되지 않은 요청입니다. 로그인 후 다시 시도하세요."),
+    COMMON_JSON_CONVERT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_505", "JSON 변환 중 오류가 발생했습니다."),
 
     // 인증 관련 에러
     OAUTH_PROCESSING_FAILED(HttpStatus.BAD_REQUEST, "OAUTH_4001", "OAuth 처리 중 오류가 발생했습니다. 인가 코드와 상태 값을 확인하세요."),
