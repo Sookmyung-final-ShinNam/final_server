@@ -1,11 +1,13 @@
-package com.example.demo.domain.conversation.service.async;
+package com.example.demo.domain.conversation.web.controller;
 
+import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
+import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
-import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.entity.ConversationMessage;
+import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
@@ -14,14 +16,14 @@ import com.example.demo.domain.conversation.service.query.ConversationQueryServi
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
-@Service
+@RestController
+@RequestMapping("/api/test/conversations")
 @RequiredArgsConstructor
-public class ConversationAsyncServiceImpl implements ConversationAsyncService {
+public class ConversationTestController {
 
     private final ConversationMessageRepository messageRepo;
     private final ConversationSessionRepository sessionRepo;
@@ -32,59 +34,9 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
     private final ConversationConverter converter;
     private final LlmClient llmClient;
 
-    @Async
-    @Override
-    @Transactional
-    public void prepareNextStep(Long sessionId, ConversationSession.ConversationStep nextStep) {
 
-        // 1. 세션 객체와 context 문자열 조회
-        ConversationSession session = conversationQueryService.findSessionById(sessionId);
-        String context = conversationQueryService.findSessionContextById(sessionId);
-
-        // 2. LLM 호출 준비
-        String promptFileName = getPromptFile(nextStep);
-        String variable = llmClient.jsonEscape("이전 상황: " + context);
-
-        // 3. LLM 호출
-        String prompt = llmClient.buildPrompt(promptFileName, variable);
-        String llmResponse = llmClient.callChatGpt(prompt);
-
-        // 4. LLM 응답 파싱
-        String nextStory = llmClient.extractFieldValue(llmResponse, "nextStory");
-        String llmQuestion = llmClient.extractFieldValue(llmResponse, "llmQuestion");
-
-        // 5. 새로운 메시지 생성 및 저장
-        ConversationMessage newMessage = converter.toConversationMessage(nextStory, llmQuestion, session);
-        messageRepo.save(newMessage);
-
-        // 6. 세션 업데이트 및 저장
-        session.addMessage(newMessage);
-        session.setCurrentStep(nextStep);
-        sessionRepo.save(session);
-
-        System.out.println("비동기 작업 완료: sessionId=" + sessionId + ", nextStep=" + nextStep);
-    }
-
-    private String getPromptFile(ConversationSession.ConversationStep nextStep) {
-        switch (nextStep) {
-            case STEP_01:
-                return "story_next_step01.json";
-            case STEP_02:
-                return "story_next_step02.json";
-            case STEP_03:
-                return "story_next_step03.json";
-            case END:
-                return "story_next_end.json";
-            default:
-                throw new CustomException(ErrorStatus.COMMON_BAD_REQUEST);
-        }
-    }
-
-    @Async
-    @Override
-    @Transactional
-    public void storyComplete(Long sessionId) {
-
+    @PostMapping("/complete")
+    public ApiResponse<Void> storyCompleteTest(@RequestParam Long sessionId) {
         // 1. Story 조회
         Story story = storyRepo.findByStorySessions_Id(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
@@ -128,19 +80,13 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED);
 
         System.out.println("비동기 작업 완료: storyStatus=" + story.getStatus());
+
+        return ApiResponse.of(SuccessStatus._OK);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markStoryMaking(Story story) {
         story.setStatus(Story.StoryStatus.MAKING);
-    }
-
-    @Async
-    @Override
-    @Transactional
-    public void generateStoryVideo(Long storyId) {
-        conversationCompleteCommandService.generateStoryMedia(storyId, "video");
-        System.out.println("비동기 작업 완료: storyId=" + storyId + " 동영상 생성 완료");
     }
 
 }
