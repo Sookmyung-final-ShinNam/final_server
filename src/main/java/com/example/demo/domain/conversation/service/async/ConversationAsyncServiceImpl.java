@@ -80,7 +80,7 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         }
     }
 
-    @Async
+    // @Async
     @Override
     @Transactional
     public void storyComplete(Long sessionId) {
