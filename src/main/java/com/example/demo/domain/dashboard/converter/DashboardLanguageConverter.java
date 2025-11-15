@@ -1,6 +1,5 @@
 package com.example.demo.domain.dashboard.converter;
 
-import com.example.demo.domain.dashboard.entity.Dashboard;
 import com.example.demo.domain.dashboard.entity.DashboardStoryStats;
 import com.example.demo.domain.dashboard.entity.FeedbackAttemptStats;
 import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
@@ -24,27 +23,6 @@ public class DashboardLanguageConverter {
                 .seungCount(seung)
                 .jeonCount(jeon)
                 .gyeolCount(gyeol)
-                .build();
-    }
-
-    /**
-     * DashboardStoryStats 생성
-     */
-    public DashboardStoryStats toStoryStats(
-            Dashboard dashboard,
-            Long storyId,
-            FeedbackAttemptStats attemptStats,
-            double avgAttemptPerStage,
-            int avgAnswerLength,
-            List<String> newWords
-    ) {
-        return DashboardStoryStats.builder()
-                .dashboard(dashboard)
-                .storyId(storyId)
-                .feedbackAttemptStats(attemptStats)
-                .avgAttemptPerStage(avgAttemptPerStage)
-                .avgAnswerLength(avgAnswerLength)
-                .newWords(newWords)
                 .build();
     }
 

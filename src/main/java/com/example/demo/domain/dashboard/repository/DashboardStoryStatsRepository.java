@@ -15,6 +15,11 @@ public interface DashboardStoryStatsRepository extends JpaRepository<DashboardSt
     List<DashboardStoryStats> findAllByDashboard(Dashboard dashboard);
 
     /**
+     * 특정 Dashboard에 연결된 최근 10개 Story 통계 조회 (최신순)
+     */
+    List<DashboardStoryStats> findTop10ByDashboardOrderByCreatedAtDesc(Dashboard dashboard);
+
+    /**
      * 특정 Dashboard와 Story ID로 스토리 통계 조회
      */
     Optional<DashboardStoryStats> findByDashboardAndStoryId(Dashboard dashboard, Long storyId);

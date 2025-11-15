@@ -32,7 +32,7 @@ public class DashboardQueryServiceImpl implements DashboardQueryService {
                 dashboard,
                 bgRepo.findAllByDashboard(dashboard),
                 themeRepo.findAllByDashboard(dashboard),
-                storyStatsRepo.findAllByDashboard(dashboard)
+                storyStatsRepo.findTop10ByDashboardOrderByCreatedAtDesc(dashboard) // 최근 10개 StoryStats만 조회
         );
     }
 
