@@ -86,6 +86,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.setGrade(User.UserGrade.BASIC);
         user.setStatus(User.UserStatus.DELETED);
         user.setDeletedAt(BaseEntity.now());
+        user.addPoints(5);
         return userRepository.save(user);
     }
 
