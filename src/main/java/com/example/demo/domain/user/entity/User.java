@@ -95,7 +95,7 @@ public class User extends BaseEntity {
         this.deletedAt = null; // 활성화 시 삭제 일시 초기화
     }
 
-    // 포인트 증가 (출첵 보상)
+    // 포인트 증가 (신규 유저 기본값, 출첵 보상)
     public void addPoints(int value) {
         this.points += value;
     }

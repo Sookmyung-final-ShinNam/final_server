@@ -3,6 +3,7 @@ package com.example.demo.domain.user.service.query;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.user.entity.Token;
+import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.TokenRepository;
 import com.example.demo.domain.user.web.dto.LoginResponseDto;
 import com.example.demo.global.security.jwt.JwtProperties;
@@ -38,7 +39,11 @@ public class UserQueryServiceImpl implements UserQueryService {
         long accessTokenValiditySeconds = jwtProperties.getTokenValidity().getAccessToken();
         LocalDateTime accessTokenExpiredAt = createdAt.plusSeconds(accessTokenValiditySeconds);
 
+        // 유저 조회
+//        User user = token.getUser();
+
         return new LoginResponseDto.LoginResult(
+//                user.getEmail(),
                 token.getAccessToken(),
                 token.getRefreshToken(),
                 accessTokenExpiredAt
