@@ -18,7 +18,7 @@ public class LoginResponseDto {
     @Getter
     @AllArgsConstructor
     public static class LoginResult {
-        private final String email;
+//        private final String email;
         private final String accessToken;
         private final String refreshToken;
         private final LocalDateTime accessTokenExpiredAt; // 엑세스 토큰 만료 시간

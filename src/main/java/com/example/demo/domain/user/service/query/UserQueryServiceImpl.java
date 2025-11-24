@@ -40,10 +40,10 @@ public class UserQueryServiceImpl implements UserQueryService {
         LocalDateTime accessTokenExpiredAt = createdAt.plusSeconds(accessTokenValiditySeconds);
 
         // 유저 조회
-        User user = token.getUser();
+//        User user = token.getUser();
 
         return new LoginResponseDto.LoginResult(
-                user.getEmail(),
+//                user.getEmail(),
                 token.getAccessToken(),
                 token.getRefreshToken(),
                 accessTokenExpiredAt
