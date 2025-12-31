@@ -9,6 +9,5 @@ import com.example.demo.domain.user.entity.User;
  */
 public interface DashboardCommandService {
 
-    DashboardResponse updateByStory(Long storyId, User user);
-
+    Long updateByStory(Long storyId, User user);
 }

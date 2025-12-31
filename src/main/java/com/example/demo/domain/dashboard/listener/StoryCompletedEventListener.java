@@ -26,8 +26,8 @@ public class StoryCompletedEventListener {
         User user = userRepository.findById(event.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
-        DashboardResponse dashboardResponse = dashboardCommandService.updateByStory(event.getStoryId(), user);
-        System.out.println("대시보드 업데이트 완료 : " + dashboardResponse);
+        Long dashboardId = dashboardCommandService.updateByStory(event.getStoryId(), user);
+        System.out.println("유저(" + event.getUserId() + ")의 대시보드(" + dashboardId + ") 업데이트 완료");
     }
 
 }

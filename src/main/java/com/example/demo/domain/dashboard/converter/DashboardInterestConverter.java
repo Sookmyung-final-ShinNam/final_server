@@ -7,6 +7,8 @@ import com.example.demo.domain.story.entity.Theme;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.ToLongFunction;
 
 @Component
 public class DashboardInterestConverter {
@@ -24,6 +26,18 @@ public class DashboardInterestConverter {
                 .toList();
     }
 
+    /** 최대 흥미 배경 */
+    public String toMaxBackground(List<DashboardBackgroundUsage> bgUsages) {
+        if (bgUsages.isEmpty()) return null;
+
+        DashboardBackgroundUsage max = bgUsages.get(0);
+        for (DashboardBackgroundUsage u : bgUsages) {
+            if (u.getCount() > max.getCount()) { max = u; }
+        }
+
+        return max.getBackground().getName();
+    }
+
     /** 테마 통계 변환 */
     public List<DashboardResponse.InterestStatItem> toThemeStats(List<DashboardThemeUsage> themeUsages) {
         long total = themeUsages.stream().mapToLong(DashboardThemeUsage::getCount).sum();
@@ -35,6 +49,19 @@ public class DashboardInterestConverter {
                         .percent(total == 0 ? 0 : (u.getCount() * 100.0 / total))
                         .build())
                 .toList();
+    }
+
+    /** 최대 흥미 테마 */
+    public String toMaxTheme(List<DashboardThemeUsage> themeUsages) {
+        if (themeUsages.isEmpty()) return null;
+
+
+        DashboardThemeUsage max = themeUsages.get(0);
+        for (DashboardThemeUsage u : themeUsages) {
+            if (u.getCount() > max.getCount()) { max = u; }
+        }
+
+        return max.getTheme().getName();
     }
 
     /** 배경 사용 통계 생성/갱신 */

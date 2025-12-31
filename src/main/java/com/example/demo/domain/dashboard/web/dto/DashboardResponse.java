@@ -11,7 +11,12 @@ import java.util.List;
 @Builder
 public class DashboardResponse {
 
+    private String username;
     private Long dashboardId;
+
+    // 최대 관심사
+    private String maxTheme;
+    private String maxBackground;
 
     // 관심사 통계
     private List<InterestStatItem> backgroundStats;
@@ -38,6 +43,7 @@ public class DashboardResponse {
     @Builder
     public static class LanguageStatItem {
         private Long storyId;
+        private String storyName;
         private LocalDateTime createdAt;
         private FeedbackAttemptStats attemptStats;
         private double avgAttemptPerStage;

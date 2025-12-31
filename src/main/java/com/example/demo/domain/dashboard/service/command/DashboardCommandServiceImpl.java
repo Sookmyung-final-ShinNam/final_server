@@ -37,7 +37,7 @@ public class DashboardCommandServiceImpl implements DashboardCommandService {
      * N+1 문제 방지를 위해 배경/테마 통계를 배치 조회
      */
     @Transactional
-    public DashboardResponse updateByStory(Long storyId, User user) {
+    public Long updateByStory(Long storyId, User user) {
 
         // 1️. 사용자의 대시보드 조회, 없으면 새로 생성
         Dashboard dashboard = dashboardRepository.findByUser(user)
@@ -59,11 +59,7 @@ public class DashboardCommandServiceImpl implements DashboardCommandService {
         story.setDashboardApplied(true);
 
         // 6. DTO 변환
-        return converter.toResponse(
-                dashboard,
-                bgRepo.findAllByDashboard(dashboard), themeRepo.findAllByDashboard(dashboard), // 관심사 통계
-                storyStatsRepo.findAllByDashboard(dashboard) // 스토리별 통계
-        );
+        return dashboard.getId();
     }
 
 }

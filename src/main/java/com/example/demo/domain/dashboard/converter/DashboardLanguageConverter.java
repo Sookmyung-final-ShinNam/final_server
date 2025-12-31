@@ -3,9 +3,11 @@ package com.example.demo.domain.dashboard.converter;
 import com.example.demo.domain.dashboard.entity.DashboardStoryStats;
 import com.example.demo.domain.dashboard.entity.FeedbackAttemptStats;
 import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
+import com.example.demo.domain.story.entity.Story;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Collections;
 
@@ -27,10 +29,14 @@ public class DashboardLanguageConverter {
     }
 
     /** 언어 통계 변환 */
-    public List<DashboardResponse.LanguageStatItem> toLanguageStats(List<DashboardStoryStats> stats) {
+    public List<DashboardResponse.LanguageStatItem> toLanguageStats(
+            List<DashboardStoryStats> stats, Map<Long, String> storyTitles
+    ) {
+        // story 조회
         return stats.stream()
                 .map(s -> DashboardResponse.LanguageStatItem.builder()
                         .storyId(s.getStoryId())
+                        .storyName(storyTitles.get(s.getStoryId()))
                         .createdAt(s.getUpdatedAt())
                         .attemptStats(s.getFeedbackAttemptStats())
                         .avgAttemptPerStage(
