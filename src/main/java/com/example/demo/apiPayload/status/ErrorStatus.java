@@ -81,8 +81,6 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 대시보드 관련 에러
     DASHBOARD_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "DASHBOARD_4005", "이미 대시보드에 반영된 스토리입니다."),
-    DASHBOARD_NOT_FOUND(HttpStatus.NOT_FOUND, "DASHBOARD_4004", "해당 대시보드를 찾을 수 없습니다."),
-    
     ;
 
     private final HttpStatus httpStatus;
