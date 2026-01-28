@@ -58,7 +58,7 @@ public class AvatarGeneratorService {
 
         // Flux API 호출 → polling 방식으로 최종 이미지 URL 획득
         return client.post()
-                .uri(fluxApiUrl + "/v1/flux-kontext-pro")
+                .uri(fluxApiUrl + "/v1/flux-2-pro")
                 .header("x-key", fluxApiKey)
                 .header("Content-Type", "application/json;charset=UTF-8")
                 .bodyValue(body)
