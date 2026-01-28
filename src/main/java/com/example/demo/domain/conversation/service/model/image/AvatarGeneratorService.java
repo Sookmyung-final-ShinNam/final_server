@@ -90,7 +90,7 @@ public class AvatarGeneratorService {
                                         return Mono.empty(); // 아직 진행 중 → 재시도
                                     })
                             )
-                            .repeatWhenEmpty(repeat -> repeat.delayElements(Duration.ofSeconds(2)).take(10)) // 최대 10번 polling
+                            .repeatWhenEmpty(repeat -> repeat.delayElements(Duration.ofSeconds(5)).take(20)) // 5초 간격 × 20회 → 최대 100초 대기
                             .switchIfEmpty(Mono.error(new RuntimeException("Flux polling timeout")));
                 });
     }
