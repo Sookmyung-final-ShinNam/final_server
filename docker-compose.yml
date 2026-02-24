@@ -9,6 +9,8 @@ services:
       - "443:443"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # docker 에서 ec2 접속 가능
     networks:
       - my_network
 
