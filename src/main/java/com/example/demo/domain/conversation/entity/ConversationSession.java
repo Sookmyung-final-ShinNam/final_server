@@ -31,8 +31,9 @@ public class ConversationSession extends BaseEntity {
         결,
         END      // 종료
     }
+    @Enumerated(EnumType.STRING)
     @Column(name = "current_step", nullable = false)
-    private ConversationStep currentStep; 
+    private ConversationStep currentStep;
 
     @Column(name = "state", nullable = false)
     private String state; // ACTIVE, COMPLETED

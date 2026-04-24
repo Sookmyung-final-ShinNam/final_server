@@ -58,6 +58,8 @@ public class ConversationConverter {
                 .story(story)
                 .user(user)
                 .currentStep(ConversationSession.ConversationStep.START)
+                .state("ACTIVE")
+                .fullStory(null)
                 .build();
     }
 

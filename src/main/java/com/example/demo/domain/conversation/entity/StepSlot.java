@@ -10,12 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(
-        name = "step_slot",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"step_id", "slot_id"})
-        }
-)
+@Table(name = "step_slot")
 public class StepSlot extends BaseEntity {
 
     @Id

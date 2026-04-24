@@ -27,6 +27,6 @@ public class SlotDefinition {
     * 전 : TURNING_POINT / FEELING
     * 결 : MORAL / FINAL_ACTION
     * */
-    @Column(name = "slot_name", nullable = false)
+    @Column(name = "slot_name", nullable = false, unique = true)
     private String slotName;
 }
