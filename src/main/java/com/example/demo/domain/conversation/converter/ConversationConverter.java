@@ -2,11 +2,8 @@ package com.example.demo.domain.conversation.converter;
 
 import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
-import com.example.demo.domain.conversation.entity.ConversationFeedback;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
-import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import com.example.demo.domain.story.entity.*;
 import com.example.demo.domain.user.entity.User;
 import org.springframework.stereotype.Component;
@@ -61,45 +58,6 @@ public class ConversationConverter {
                 .story(story)
                 .user(user)
                 .currentStep(ConversationSession.ConversationStep.START)
-                .build();
-    }
-
-    public ConversationMessage toConversationMessage(ConversationSession session, String nextStory) {
-        return ConversationMessage.builder()
-                .session(session)
-                .nextStory(nextStory)
-                .build();
-    }
-
-    public ConversationMessage toConversationMessage(String nextStory, String llmQuestion, ConversationSession session) {
-        return ConversationMessage.builder()
-                .session(session)
-                .nextStory(nextStory)
-                .llmQuestion(llmQuestion)
-                .build();
-    }
-
-    public ConversationResponseDto.NextStepResponseDto toNextStepResponseDto(ConversationMessage message) {
-        return ConversationResponseDto.NextStepResponseDto.builder()
-                .messageId(message.getId())
-                .nextStory(message.getNextStory())
-                .llmQuestion(message.getLlmQuestion())
-                .build();
-    }
-
-    public ConversationFeedback toConversationFeedback(
-            String userAnswer,
-            String feedbackResult,
-            String feedbackText,
-            int feedbackCount,
-            ConversationMessage message
-    ) {
-        return ConversationFeedback.builder()
-                .attemptNumber(feedbackCount)
-                .userAnswer(userAnswer)
-                .isCorrect("GOOD".equalsIgnoreCase(feedbackResult))
-                .feedbackText(feedbackText)
-                .message(message)
                 .build();
     }
 
