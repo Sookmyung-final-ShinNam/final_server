@@ -68,7 +68,7 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
 
         int[] counts = new int[4]; // gi, seung, jeon, gyeol
 
-        for (ConversationSession session : story.getStorySessions()) {
+        /*for (ConversationSession session : story.getStorySessions()) {
             List<ConversationMessage> messages = session.getMessages();
 
             for (int i = 0; i < messages.size(); i++) {
@@ -89,14 +89,14 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
 
                 counts[stepIndex] += feedbackCount;
             }
-        }
+        }*/
 
         return counts;
     }
 
     // 평균 user_answer 길이
     private int calculateAverageAnswerLength(Story story) {
-        List<String> answers = story.getStorySessions().stream()
+        /*List<String> answers = story.getStorySessions().stream()
                 .flatMap(s -> s.getMessages().stream())
                 .flatMap(m -> m.getFeedbacks().stream())
                 .map(ConversationFeedback::getUserAnswer)
@@ -109,7 +109,8 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
                 .mapToInt(String::length)
                 .sum();
 
-        return totalLength / answers.size();
+        return totalLength / answers.size();*/
+        return 0;
     }
 
     // 새 단어 추출
@@ -134,7 +135,7 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
     private List<String> extractWordsFromStory(Story story) {
         List<String> result = new ArrayList<>();
 
-        for (ConversationFeedback f : story.getStorySessions().stream()
+        /*for (ConversationFeedback f : story.getStorySessions().stream()
                 .flatMap(s -> s.getMessages().stream())
                 .flatMap(m -> m.getFeedbacks().stream())
                 .toList()) {
@@ -148,7 +149,7 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
                     result.add(token.text().toLowerCase());
                 }
             }
-        }
+        }*/
         return result;
     }
 

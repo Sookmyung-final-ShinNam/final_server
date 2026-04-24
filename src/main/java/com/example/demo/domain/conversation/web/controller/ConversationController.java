@@ -3,7 +3,6 @@ package com.example.demo.domain.conversation.web.controller;
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
-import com.example.demo.domain.conversation.service.command.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.ConversationStartCommandService;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
@@ -28,7 +27,6 @@ public class ConversationController extends AuthController {
 
     private final ConversationQueryService conversationQueryService;
     private final ConversationStartCommandService conversationStartCommandService;
-    private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationAsyncService conversationAsyncService;
     private final StoryCommandService storyCommandService;
 
@@ -57,7 +55,7 @@ public class ConversationController extends AuthController {
         return ApiResponse.of(SuccessStatus._OK, conversationStartCommandService.startConversation(request, user));
     }
 
-    @Operation(
+   /* @Operation(
             summary = "다음 스텝 메시지 조회",
             description = """
                     다음 세션의 next-story와 llmQuestion이 있으면 응답, 없으면 상태 PENDING 반환
@@ -91,7 +89,10 @@ public class ConversationController extends AuthController {
     ) {
         return ApiResponse.of(SuccessStatus._OK, conversationFeedbackCommandService.handleFeedback(messageId, userAnswer));
     }
+*/
 
+
+    
     @Operation(
             summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
             description = """
