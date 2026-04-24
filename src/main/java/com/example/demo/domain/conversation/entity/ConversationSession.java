@@ -23,8 +23,16 @@ public class ConversationSession extends BaseEntity {
     @Column(name = "session_id")
     private Long id;
 
+    public enum ConversationStep {
+        START,   // 시작
+        기,
+        승,
+        전,
+        결,
+        END      // 종료
+    }
     @Column(name = "current_step", nullable = false)
-    private String currentStep; // START, 기, 승, 전, 결, END
+    private ConversationStep currentStep; 
 
     @Column(name = "state", nullable = false)
     private String state; // ACTIVE, COMPLETED
