@@ -4,8 +4,6 @@ import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
-import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

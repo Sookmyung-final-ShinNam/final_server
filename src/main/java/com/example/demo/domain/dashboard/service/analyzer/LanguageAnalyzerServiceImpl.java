@@ -1,7 +1,5 @@
 package com.example.demo.domain.dashboard.service.analyzer;
 
-import com.example.demo.domain.conversation.entity.ConversationFeedback;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.dashboard.converter.DashboardLanguageConverter;
 import com.example.demo.domain.dashboard.entity.Dashboard;

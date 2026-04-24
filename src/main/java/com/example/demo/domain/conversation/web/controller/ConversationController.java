@@ -35,11 +35,12 @@ public class ConversationController extends AuthController {
     @Operation(
             summary = "대화 세션 시작",
             description = """
-                    사용자 정보를 검증한 뒤 gui 정보들을 기반으로 Story / Character / Session을 생성하고
+                    사용자 정보를 검증한 뒤 gui 정보들을 기반으로 Story / Character / Conversation 부분을 생성하고
                     LLM을 호출하여 첫 문장을 생성합니다.
                     
-                    동기 처리 : Story 생성, Character 생성, 첫 메시지 저장, 응답 반환
-                    비동기 처리 : 다음 스텝(next-step=STEP_01) 사전 생성
+                    1. Story / Character / Conversation 을 생성
+                    2. start 부분의 문장 생성 후 반환 
+                    3. Conversation 에 맞는 SessionStep, StepSlot 사전 생성 
                     
                     - points 부족 시 진행 불가 (사용 포인트 1)
                     """

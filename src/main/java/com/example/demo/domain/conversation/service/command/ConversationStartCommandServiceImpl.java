@@ -7,10 +7,8 @@ import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.event.ConversationStartedEvent;
-import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
@@ -49,11 +47,11 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
 
     /**
      * 대화 세션 시작 요청을 처리하고,
-     * Story, Character, Session 생성 및 LLM 호출을 통해 첫 문장 생성 후 결과 반환
+     * Story, Character, Conversation 생성 및 LLM 호출을 통해 첫 문장 생성 후 결과 반환
      *
      * @param user    대화 요청을 보낸 사용자
      * @param request 대화 시작 요청 DTO
-     * @return 시작 응답 DTO (sessionId, nextStory)
+     * @return 시작 응답 DTO (sessionId, baseStory)
      */
     @Override
     @Transactional
@@ -117,14 +115,12 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // LLM 응답에서 첫 스토리 추출
         String startText = llmClient.extractFieldValue(response, "startText");
 
-        // 생성된 첫 문장을 포함하는 ConversationMessage 저장
-        ConversationMessage message = conversationMessageRepository.save(converter.toConversationMessage(session, startText));
-        session.addMessage(message);
+        // 여기부터
+        
+        1. full_story 에 llm 내용 저장;
+        2. 다른 엔티티들 미리 생성해놓기
 
-        // === EVENT: 비동기로 다음 단계 사전 생성 작업 실행 ===
-        eventPublisher.publishEvent(
-                new ConversationStartedEvent(session.getId(), ConversationSession.ConversationStep.STEP_01)
-        );
+        // 여기까지
 
         // 세션 ID와 생성된 첫 스토리를 포함하는 응답 DTO 반환
         return ConversationResponseDto.ConversationStartResponseDto.builder()
