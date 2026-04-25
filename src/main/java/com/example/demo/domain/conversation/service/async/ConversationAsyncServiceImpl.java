@@ -26,10 +26,7 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
     private final ConversationSessionRepository sessionRepo;
     private final StoryRepository storyRepo;
 
-    private final ConversationQueryService conversationQueryService;
     private final ConversationCompleteCommandService conversationCompleteCommandService;
-    private final ConversationConverter converter;
-    private final LlmClient llmClient;
     private final ApplicationEventPublisher eventPublisher;
 
     @Async

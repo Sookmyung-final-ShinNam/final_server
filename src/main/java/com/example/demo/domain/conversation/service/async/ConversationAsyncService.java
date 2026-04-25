@@ -1,7 +1,5 @@
 package com.example.demo.domain.conversation.service.async;
 
-import com.example.demo.domain.conversation.entity.ConversationSession;
-
 public interface ConversationAsyncService {
 
     /**

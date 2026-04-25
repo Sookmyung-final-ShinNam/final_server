@@ -21,11 +21,14 @@ public class StepAttempt extends BaseEntity {
     @Column(name = "attempt_no", nullable = false)
     private Integer attemptNo; // 1~3
 
-    @Column(name = "llm_question", nullable = false, columnDefinition = "TEXT")
-    private String llmQuestion;
-
     @Column(name = "user_answer", columnDefinition = "TEXT")
-    private String userAnswer;
+    private String userAnswer; // 사용자 대답 - raw data
+
+    @Column(name = "is_correct")
+    private Boolean isCorrect; // 정답 여부
+
+    @Column(name = "llm_feedback", columnDefinition = "TEXT")
+    private String llmFeedback; // LLM 피드백
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "step_id", nullable = false)

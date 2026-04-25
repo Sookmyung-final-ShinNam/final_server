@@ -33,13 +33,16 @@ public class SessionStep extends BaseEntity {
     private String status; // NONE, IN_PROGRESS, COMPLETED
 
     @Column(name = "prev_context", columnDefinition = "TEXT")
-    private String prevContext;
-
-    @Column(name = "final_summary", columnDefinition = "TEXT")
-    private String finalSummary;
+    private String prevContext; // 이전 맥락 (prevContext + finalAnswer + nextStory) -> llm 호출시 상황 전달용
 
     @Column(name = "next_story", columnDefinition = "TEXT")
-    private String nextStory;
+    private String nextStory; // 다음 이야기
+
+    @Column(name = "llm_question", nullable = false, columnDefinition = "TEXT")
+    private String llmQuestion; // 질문
+
+    @Column(name = "final_answer", columnDefinition = "TEXT")
+    private String finalAnswer; // 질문에 대한 대답 - 성공한 피드백을 저장 .
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)

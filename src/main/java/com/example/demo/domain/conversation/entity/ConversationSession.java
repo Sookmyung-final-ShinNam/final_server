@@ -36,7 +36,7 @@ public class ConversationSession extends BaseEntity {
     private ConversationStep currentStep;
 
     @Column(name = "state", nullable = false)
-    private String state; // ACTIVE, COMPLETED
+    private String state; // CONVERSATION, COMPLETED
 
     @Column(name = "full_story", columnDefinition = "TEXT")
     private String fullStory;
