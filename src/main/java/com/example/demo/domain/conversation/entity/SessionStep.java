@@ -26,11 +26,18 @@ public class SessionStep extends BaseEntity {
     @Column(name = "step_id")
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "step_type", nullable = false)
-    private String stepType; // 기, 승, 전, 결
+    private ConversationSession.ConversationStep stepType; // START와 END는 미사용
 
+    public enum Status {
+        NONE,
+        IN_PROGRESS,
+        COMPLETED
+    }
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status; // NONE, IN_PROGRESS, COMPLETED
+    private SessionStep.Status status;
 
     @Column(name = "prev_context", columnDefinition = "TEXT")
     private String prevContext; // 이전 맥락 (prevContext + finalAnswer + nextStory) -> llm 호출시 상황 전달용
@@ -38,7 +45,7 @@ public class SessionStep extends BaseEntity {
     @Column(name = "next_story", columnDefinition = "TEXT")
     private String nextStory; // 다음 이야기
 
-    @Column(name = "llm_question", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "llm_question", nullable = true, columnDefinition = "TEXT")
     private String llmQuestion; // 질문
 
     @Column(name = "final_answer", columnDefinition = "TEXT")

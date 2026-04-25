@@ -8,6 +8,7 @@ import com.example.demo.domain.character.repository.CharacterAppearanceRepositor
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.*;
+import com.example.demo.domain.conversation.event.NextStepStartEvent;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.repository.SlotDefinitionRepository;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
@@ -18,6 +19,7 @@ import com.example.demo.domain.story.repository.*;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
 
     private final StoryCharacterRepository storyCharacterRepository;
     private final CharacterAppearanceRepository characterAppearanceRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final ConversationSessionRepository conversationSessionRepository;
     private final SlotDefinitionRepository slotDefinitionRepository;
@@ -93,7 +96,22 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // 8. Session 초기 구조 생성 (기/승/전/결 + Slot preload)
         initializeSessionState(session, startText);
 
-        // 9. 세션 ID와 생성된 첫 스토리를 포함하는 응답 DTO 반환
+        /**
+         * 9. 다음 Step 비동기 시작 트리거
+         *
+         * 역할:
+         * - START → "기" 단계로 넘어가는 비동기 이벤트 발행
+         * - 실제 처리:
+         *   → startNextStep()
+         *   → generateStepContent()
+         *
+         */
+
+        eventPublisher.publishEvent(
+                new NextStepStartEvent(this, session.getId())
+        );
+
+        // 10. 세션 ID와 생성된 첫 스토리를 포함하는 응답 DTO 반환
         return ConversationResponseDto.ConversationStartResponseDto.builder()
                 .sessionId(session.getId())
                 .nextStory(startText)
@@ -193,13 +211,17 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // full story 저장
         session.setFullStory(startText);
 
-        // 기/승/전/결 Step 생성
-        List<String> stepTypes = List.of("기", "승", "전", "결");
+        List<ConversationSession.ConversationStep> stepTypes = List.of(
+                ConversationSession.ConversationStep.기,
+                ConversationSession.ConversationStep.승,
+                ConversationSession.ConversationStep.전,
+                ConversationSession.ConversationStep.결
+        );
 
         List<SessionStep> steps = stepTypes.stream()
                 .map(type -> SessionStep.builder()
                         .stepType(type)
-                        .status("NONE")
+                        .status(SessionStep.Status.NONE)
                         .session(session)
                         .build()
                 )

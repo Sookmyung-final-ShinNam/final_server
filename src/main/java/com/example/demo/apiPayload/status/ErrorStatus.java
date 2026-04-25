@@ -48,9 +48,29 @@ public enum ErrorStatus implements BaseErrorCode {
     // 피드백 관련 에러
     FEEDBACK_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "FEEDBACK_4001", "이미 GOOD 피드백이 완료된 메시지입니다. 더 이상 피드백을 보낼 수 없습니다."),
 
-    // 세션 관련 에러
+    // SESSION
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
-    SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "아직 진행 중인 세션입니다."),
+    SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "현재 세션 상태에서는 해당 작업을 수행할 수 없습니다."),
+    SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "SESSION_4002", "이미 완료된 세션입니다."),
+
+    // STEP
+    STEP_NOT_FOUND(HttpStatus.NOT_FOUND, "STEP_4004", "해당 스텝을 찾을 수 없습니다."),
+    STEP_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "STEP_4009", "이미 진행 중인 스텝입니다."),
+    STEP_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST, "STEP_4000", "현재 진행 중인 스텝이 아닙니다."),
+    STEP_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4001", "이미 완료된 스텝입니다."),
+
+    // ATTEMPT
+    ATTEMPT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "ATTEMPT_4001", "최대 시도 횟수를 초과했습니다."),
+    ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTEMPT_4004", "해당 시도 기록을 찾을 수 없습니다."),
+
+    // SLOT
+    SLOT_NOT_FOUND(HttpStatus.NOT_FOUND, "SLOT_4004", "해당 슬롯을 찾을 수 없습니다."),
+    SLOT_ALREADY_FILLED(HttpStatus.BAD_REQUEST, "SLOT_4001", "이미 채워진 슬롯입니다."),
+
+    // LLM
+    LLM_CALL_FAILED(HttpStatus.BAD_GATEWAY, "LLM_5001", "LLM 호출에 실패했습니다."),
+    LLM_RESPONSE_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "LLM_5002", "LLM 응답 파싱에 실패했습니다."),
+    LLM_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "LLM_5003", "LLM 응답 시간이 초과되었습니다."),
 
     // 동화 관련 에러
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),

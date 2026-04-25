@@ -1,6 +1,19 @@
 package com.example.demo.domain.conversation.service.async;
 
+import com.example.demo.domain.conversation.entity.SessionStep;
+import org.springframework.transaction.annotation.Transactional;
+
 public interface ConversationAsyncService {
+
+    /**
+     * 다음 단계 시작
+     * - currentStep 이동
+     * - SessionStep 상태 IN_PROGRESS 변경
+     * - prevContext 세팅
+     * - LLM 호출 → nextStory, llmQuestion 생성
+     * - 결과 저장
+     */
+    void startNextStep(Long sessionId);
 
     /**
      * 스토리 완료 처리
