@@ -8,4 +8,6 @@ import lombok.RequiredArgsConstructor;
 public class PageImageStartedEvent {
     private final Long storyId;
     private final Long pageId;
+    private final String basePrompt;
+    private final Long seed;
 }

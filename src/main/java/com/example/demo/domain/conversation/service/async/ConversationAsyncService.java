@@ -20,7 +20,7 @@ public interface ConversationAsyncService {
      * - StoryPage 업데이트 (각 장별 이미지)
      * - Story, StoryCharacter 상태 COMPLETED 으로 변경
      */
-    void storyComplete(Long sessionId);
+    void completeStory(Long storyId, Long sessionId);
 
     /**
      * 동영상 동화 생성

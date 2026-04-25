@@ -5,6 +5,11 @@ import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
+import com.example.demo.domain.conversation.entity.ConversationMessage;
+import com.example.demo.domain.conversation.entity.ConversationSession;
+import com.example.demo.domain.conversation.event.PageImageCompletedEvent;
+import com.example.demo.domain.conversation.event.PageImageStartedEvent;
+import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
 import com.example.demo.domain.conversation.service.model.image.FluxResponse;
@@ -16,6 +21,7 @@ import com.example.demo.domain.story.repository.StoryPageRepository;
 import com.example.demo.domain.story.repository.StoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +39,46 @@ import java.nio.file.StandardCopyOption;
 public class ConversationCompleteCommandServiceImpl implements ConversationCompleteCommandService {
 
     private final StoryPageRepository storyPageRepo;
-    private final StoryRepository storyRepository;
+    private final StoryRepository storyRepo;
+    private final ConversationSessionRepository sessionRepo;
     private final CharacterAppearanceRepository characterAppearanceRepo;
 
     private final LlmClient llmClient;
     private final S3Uploader s3Uploader;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final AvatarGeneratorService avatarGeneratorService;
     private final RunwayService runwayService;
+
+    @Override
+    @Transactional
+    public Long completeConversation(Long sessionId) {
+
+        // 1. Story 및 Session 조회
+        Story story = storyRepo.findByStorySessions_Id(sessionId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+
+        ConversationSession session = sessionRepo.findById(sessionId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
+
+        // 2. 현재 단계가 END 인지 확인
+        if (session.getCurrentStep() != ConversationSession.ConversationStep.END) {
+            throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
+        }
+
+        // 3. 마지막 메시지 조회
+        ConversationMessage lastMessage = session.getMessages().isEmpty()
+                ? null
+                : session.getMessages().get(session.getMessages().size() - 1);
+
+        if (lastMessage == null || lastMessage.getLlmAnswer() == null) {
+            throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
+        }
+
+        // 4. 상태 변경 -> MAKING 에서는 이어하기 불가
+        story.setStatus(Story.StoryStatus.MAKING);
+        return story.getId();
+    }
 
     @Override
     @Transactional
@@ -129,7 +167,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         // 1. imageType 유효성 검사
         validateImageType(imageType);
 
-        Story story = storyRepository.findById(storyId)
+        Story story = storyRepo.findById(storyId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         StoryCharacter character = story.getCharacter();
 
@@ -137,8 +175,10 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         if (isImage(imageType)) {
             // 캐릭터 기본 이미지 생성
             generateCharacterBaseImage(character);
+            story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 캐릭터 이미지 생성 완료
+
             // 스토리 페이지별 이미지 생성
-            generateStoryImages(story, character);
+            generateStoryImages(story, character); // 페이지별 생성 이벤트 발행
         } else {
             // 스토리 페이지별 동영상 생성
             generateStoryVideos(story, character);
@@ -177,13 +217,19 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
      * - 캐릭터 대표 이미지 URL 저장
      */
     private void generateCharacterBaseImage(StoryCharacter character) {
-        
+
+        // 1. 이미 생성된 이미지의 경우 다시 생성 X
+        if (character.getImageUrl() != null && !character.getImageUrl().isBlank()) {
+            log.error("===== [Avatar] 캐릭터 이미지 이미 생성됨, characterId={} =====", character.getId());
+            return;
+        }
+
         String prompt = character.getAppearance().getCharacterImagePromptEn();
         log.error("===== [Avatar] START generateCharacterBaseImage =====");
         log.error("[Avatar] Prompt = {}", prompt);
 
         try {
-            // 1. Avatar API 호출
+            // 2. Avatar API 호출
             log.error("[Avatar] 요청 시작: generateAvatarWithReference");
             FluxResponse.FluxEndResponse result = avatarGeneratorService
                     .generateAvatarWithReference(prompt, null, null, true)
@@ -198,7 +244,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
             log.error("[Avatar] result.getImgUrl() = {}", result.getImgUrl());
             log.error("[Avatar] result.getSeed() = {}", result.getSeed());
 
-            // 2. 파일 다운로드
+            // 3. 파일 다운로드
             log.error("[Avatar] 파일 다운로드 시작 (URL={})", result.getImgUrl());
             handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
 
@@ -209,7 +255,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     throw new RuntimeException("Downloaded temp file is empty");
                 }
 
-                // 3. S3 업로드
+                // 4. S3 업로드
                 log.error("[Avatar] S3 업로드 시작");
                 String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
                         "character_" + character.getId() + ".png");
@@ -232,28 +278,68 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
     }
 
     /**
-     * 스토리 각 페이지별 이미지 생성
-     * - 캐릭터 seed 사용 → 일관된 스타일 유지
-     * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     * 스토리 페이지 이미지 생성
+     * - 캐릭터 basePrompt, seed 사용 → 일관된 스타일 유지
+     * - 페이지별 생성 이벤트 발행함으로써 이미지 생성
      */
     private void generateStoryImages(Story story, StoryCharacter character) {
-
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
+        Long seed = character.getAppearance().getCharacterSeed(); // 캐릭터 고정 시드
 
+        // 페이지별 생성 이벤트 발행 → 리스너 generatePageImage 처리
         for (StoryPage page : story.getStoryPages()) {
+            if (page.getStatus() == StoryPage.PageStatus.TEXT) {
+                eventPublisher.publishEvent(new PageImageStartedEvent(story.getId(), page.getId(), basePrompt, seed));
+            }
+        }
+    }
 
+    /**
+     * 스토리 각 페이지별 이미지 생성
+     * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     */
+    @Override
+    @Transactional
+    public void generatePageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
+
+        // 1. Page 조회
+        StoryPage page = storyPageRepo.findById(pageId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
+
+        // 2. Page 상태가 TEXT인지 확인
+        if (page.getStatus() != StoryPage.PageStatus.TEXT) {
+            log.info("===== [Page] {}번째 페이지 이미지 이미 생성됨: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+            return;
+        }
+
+        // 3. 이미지 생성 시작
+        log.info("===== [Page] {}번째 페이지 이미지 생성 시작: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+
+        try {
+            // 4. 이미지 API 호출
             FluxResponse.FluxEndResponse result = avatarGeneratorService
-                    .generateAvatarWithReference(basePrompt, page.getContentEn(), character.getAppearance().getCharacterSeed(), false)
+                    .generateAvatarWithReference(basePrompt, page.getContentEn(), seed, false)
                     .block();
 
+            // 5. S3 업로드
             if (result != null) {
-                handleFileWithTemp(result.getImgUrl(), story.getId(), page.getPageNumber(), tempFile -> {
+                handleFileWithTemp(result.getImgUrl(), storyId, page.getPageNumber(), tempFile -> {
                     String s3Url = s3Uploader.uploadFileFromFile(tempFile,
-                            "stories/" + story.getId(),
+                            "stories/" + storyId,
                             "page_" + page.getPageNumber() + ".png");
                     page.setImageUrl(s3Url);
                 });
             }
+
+            // 6. DB 저장 (Page.status = IMAGE)
+            page.setStatus(StoryPage.PageStatus.IMAGE);
+
+            // 7. 이미지 생성 완료 이벤트 발행
+            eventPublisher.publishEvent(new PageImageCompletedEvent(storyId, pageId));
+
+        } catch (Exception e) {
+            log.error("===== [Page] {}번째 페이지 ERROR OCCURRED: pageId = {} =====", page.getPageNumber(), page.getId(), e);
+            throw e;  // CustomException 던지지 말고 원본 예외 그대로
         }
     }
 
