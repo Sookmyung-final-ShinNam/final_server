@@ -1,7 +1,10 @@
 package com.example.demo.domain.conversation.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
+import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.domain.conversation.entity.ConversationSession;
+import com.example.demo.domain.conversation.entity.SessionStep;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
 import com.example.demo.domain.conversation.service.command.ConversationStartCommandService;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
@@ -55,24 +58,28 @@ public class ConversationController extends AuthController {
         return ApiResponse.of(SuccessStatus._OK, conversationStartCommandService.startConversation(request, user));
     }
 
-   /* @Operation(
+   @Operation(
             summary = "다음 스텝 메시지 조회",
             description = """
                     다음 세션의 next-story와 llmQuestion이 있으면 응답, 없으면 상태 PENDING 반환
-                    조회하고 싶은 단계를 입력하세요. ex. currentStep 에 '기' 입력시 기단계의 nextStory 와 llmQuestion 반환
+                    조회하고 싶은 단계(기승전결 중 1)를 입력하세요. ex. currentStep 에 '기' 입력시 기단계의 nextStory 와 llmQuestion 반환
                     """
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
-    @GetMapping("/next-step")
-    public ApiResponse<Object> getNextStep(
-            @RequestParam Long sessionId,
-            @RequestParam String currentStep
-    ) {
-        return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getNextStepMessage(sessionId, currentStep));
-    }
+   @GetMapping("/next-step")
+   public ApiResponse<Object> getNextStep(
+           @RequestParam Long sessionId,
+           @RequestParam ConversationSession.ConversationStep currentStep
+   ) {
+       return ApiResponse.of(
+               SuccessStatus._OK,
+               conversationQueryService.getNextStepMessage(sessionId, currentStep)
+       );
+   }
 
+    /*
     @Operation(
             summary = "사용자 답변 피드백",
             description = """
@@ -89,10 +96,9 @@ public class ConversationController extends AuthController {
     ) {
         return ApiResponse.of(SuccessStatus._OK, conversationFeedbackCommandService.handleFeedback(messageId, userAnswer));
     }
-*/
+    */
 
 
-    
     @Operation(
             summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
             description = """

@@ -50,6 +50,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // SESSION
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
+    STEP_INVALID_ACCESS(HttpStatus.FORBIDDEN, "STEP_4013", "현재 단계가 아닙니다."),
     SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "현재 세션 상태에서는 해당 작업을 수행할 수 없습니다."),
     SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "SESSION_4002", "이미 완료된 세션입니다."),
 

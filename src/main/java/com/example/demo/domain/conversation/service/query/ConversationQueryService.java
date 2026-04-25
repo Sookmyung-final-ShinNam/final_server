@@ -1,6 +1,7 @@
 package com.example.demo.domain.conversation.service.query;
 
 import com.example.demo.domain.conversation.entity.ConversationSession;
+import com.example.demo.domain.conversation.entity.SessionStep;
 
 public interface ConversationQueryService {
 
@@ -10,6 +11,6 @@ public interface ConversationQueryService {
      * @param sessionId 대화 세션 ID
      * @return 대화 세션
      */
-    ConversationSession findSessionById(Long sessionId);
+    Object getNextStepMessage(Long sessionId, ConversationSession.ConversationStep currentStep);
 
 }

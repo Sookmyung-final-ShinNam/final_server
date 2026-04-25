@@ -16,6 +16,6 @@ public class ConversationEventListener {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleNextStep(NextStepStartEvent event) {
-        asyncService.startNextStep(event.getSessionId());
+        asyncService.startNextStep(event.getSessionId()); // 기승전결에서만 실행
     }
 }
