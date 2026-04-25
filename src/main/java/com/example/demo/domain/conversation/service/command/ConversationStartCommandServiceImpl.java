@@ -230,7 +230,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // SlotDefinition 전체 조회 후 stepType 기준 그룹핑
         List<SlotDefinition> definitions = slotDefinitionRepository.findAll();
 
-        Map<String, List<SlotDefinition>> grouped =
+        Map<ConversationSession.ConversationStep, List<SlotDefinition>> grouped =
                 definitions.stream()
                         .collect(Collectors.groupingBy(SlotDefinition::getStepType));
 
