@@ -13,12 +13,16 @@ import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.stream.Collectors;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConversationAsyncServiceImpl implements ConversationAsyncService {
@@ -87,9 +91,24 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
      */
     private void generateStepContent(SessionStep step) {
 
+        String slotList = step.getSlots().stream()
+                .map(s -> s.getSlotDefinition().getSlotName())
+                .collect(Collectors.joining(", "));
+
+        log.info("slotList = {}", slotList);
+
         try {
             String variable = llmClient.jsonEscape(
-                    "이전 스토리: " + step.getPrevContext()
+                    """
+                    prevContext:
+                    %s  
+    
+                    [SlotList]
+                    %s
+                    """.formatted(
+                            step.getPrevContext(),
+                            slotList
+                    )
             );
 
             String promptJson = llmClient.buildPrompt(

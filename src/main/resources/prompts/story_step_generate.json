@@ -7,11 +7,15 @@
     },
     {
       "role": "system",
+      "content": "추가 규칙:1. 질문(llm_question)은 반드시 [SlotList]에 포함된 슬롯을 기반으로 생성해야 한다.\\n\\n2. llm_question은 반드시 최소 1개 이상의 슬롯을 사용자가 직접 말하도록 유도해야 한다."
+    },
+    {
+      "role": "system",
       "content": "반드시 아래 JSON 형식으로만 답변하세요.\n\n{\n  \"nextStory\": \"지윤이는 숲속에서 반짝이는 문을 발견했어요. 그 문 너머에는 새로운 세계가 기다리고 있었어요.\",\n  \"llm_question\": \"지윤이는 그 문을 열고 들어갈까요, 아니면 돌아갈까요?\"\n}"
     },
     {
       "role": "user",
       "content": {{{userContent}}}
-  }
+    }
   ]
 }
