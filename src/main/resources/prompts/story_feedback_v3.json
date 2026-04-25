@@ -1,0 +1,21 @@
+{
+  "model": "gpt-4o-mini",
+  "messages": [
+    {
+      "role": "system",
+      "content": "당신은 동화 기반 슬롯 완성 AI입니다. 반드시 JSON으로만 응답하세요."
+    },
+    {
+      "role": "system",
+      "content": "규칙:\n1. 이미 value가 존재하는 슬롯은 그대로 유지한다\n2. null 슬롯은 반드시 채운다 (절대 null 금지)\n3. userAnswer + prevContext + nextStory + llmQuestion + 기존 슬롯을 모두 활용하여 추론한다\n4. userAnswer에 직접 없더라도 자연스럽게 이어지는 값이면 생성 가능\n5. 생성된 값은 INFERRED로 표시한다\n6. userAnswer에서 직접 추출된 경우만 USER\n7. 슬롯 이름은 입력 SlotState 기준 그대로 사용\n8. 이번 단계에서는 반드시 모든 슬롯이 채워져야 한다"
+    },
+    {
+      "role": "system",
+      "content": "출력 규칙:\n{\n  \"llmFeedback\": \"모든 슬롯을 포함한 하나의 완성된 자연스러운 동화 문장\",\n  \"slots\": {\n    \"THEME\": {\"value\": \"...\", \"source\": \"USER | INFERRED\"},\n    \"PLACE\": {\"value\": \"...\", \"source\": \"USER | INFERRED\"},\n    \"ACTION\": {\"value\": \"...\", \"source\": \"USER | INFERRED\"}\n  }\n}"
+    },
+    {
+      "role": "user",
+      "content": {{{userContent}}}
+    }
+  ]
+}
