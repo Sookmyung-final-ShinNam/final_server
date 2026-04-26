@@ -15,7 +15,6 @@ public class StartConversationEventHandler {
 
     private final ConversationNextStoryService conversationNextStoryService;
 
-    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(StartConversationEvent event) {
 

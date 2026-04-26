@@ -23,7 +23,6 @@ public class ConversationNextStoryEventHandler {
     private final SessionStepRepository stepRepo;
     private final LlmClient llmClient;
 
-    @Async
     @Transactional
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(ConversationNextStoryEvent event) {
