@@ -2,11 +2,9 @@ package com.example.demo.domain.conversation.service.async;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
-import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.entity.ConversationMessage;
-import com.example.demo.domain.conversation.event.StoryCompletedEvent;
 import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
@@ -18,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -85,40 +82,36 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
 
     @Async
     @Override
-    @Transactional
-    public void completeStory(Long storyId, Long sessionId) {
+    public void completeStory(Long sessionId) {
 
-        // 1. Story 및 Session 조회
-        Story story = storyRepo.findById(storyId)
+        // 1. Story 조회 (상태 확인용 객체)
+        Story story = storyRepo.findByStorySessions_Id(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+        Long storyId = story.getId();
 
-        ConversationSession session = sessionRepo.findById(sessionId)
-                .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
-
-
-        // 2. 이전 대화 조회
-        String context = "";
-        if (!story.getStorySessions().isEmpty()) {
-            context = conversationQueryService.findSessionContextById(session.getId());
-        } else {
-            throw new CustomException(ErrorStatus.STORY_NOT_FOUND);
+        if (story.getStatus() == Story.StoryStatus.READY_IMAGE || story.getStatus() == Story.StoryStatus.READY_VIDEO) {
+            System.out.println("이미 이미지까지 생성된 스토리: storyId=" + storyId); // 생성 완료된 스토리는 생략
+            return;
         }
 
-        // 3. LLM 호출 및 Story/Character/StoryPage 업데이트
-        conversationCompleteCommandService.completeStoryFromLlm(story, context);
-        story.setStatus(Story.StoryStatus.COMPLETED); // 텍스트 생성 완료
+        // 2. LLM 호출 및 Story/Character/StoryPage 업데이트 (스토리 정제)
+        if (story.getStatus() == Story.StoryStatus.MAKING) {
 
-        // 4. 캐릭터 이미지 및 StoryPage 이미지 생성
-        conversationCompleteCommandService.generateStoryMedia(story.getId(), "image");
+            // 3. 이전 대화 조회
+            String context = conversationQueryService.findSessionContextById(sessionId);
+            conversationCompleteCommandService.completeStoryFromLlm(storyId, context);
 
-        // 5. 최종 상태 업데이트
-        //story.setStatus(Story.StoryStatus.READY_IMAGE); // 페이지 이미지 생성 완료
-        //story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 캐릭터 이미지 생성 완료
+            // 4. completeStoryFromLlm 커밋 이후 Story 최신 상태 재조회
+            story = storyRepo.findById(storyId)
+                    .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+        }
 
-        // 9. 이벤트 발행 (트랜잭션 커밋 후 처리)
-        //eventPublisher.publishEvent(new StoryCompletedEvent(this, story.getId(), story.getUser().getId()));
+        // 5. 캐릭터 및 StoryPage 이미지 생성 (이미지 생성)
+        if (story.getStatus() == Story.StoryStatus.COMPLETED) {
+            conversationCompleteCommandService.generateStoryMedia(storyId, "image");
+        }
 
-        System.out.println("비동기 작업 완료: storyStatus=" + story.getStatus());
+        System.out.println("비동기 작업 완료: storyId=" + storyId + ", status=" + story.getStatus() + "스토리 정제 및 페이지 이미지 생성 이벤트 발행 완료");
     }
 
     @Async

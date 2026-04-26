@@ -1,21 +1,20 @@
 package com.example.demo.domain.conversation.service.command;
 
-import com.example.demo.domain.story.entity.Story;
-
 public interface ConversationCompleteCommandService {
 
     /**
-     * 대화 세션 완료(COMPLETED) 확인 후 동화 상태(MAKING) 변경
+     * 대화 세션 완료(COMPLETED) 확인 후 스토리 상태(MAKING) 업데이트
+     * 중복 확인 막기 위해 atomic update로 스토리 상태 업데이트
      * 상태 변경된 storyId 반환
      */
-    Long completeConversation(Long sessionId);
+    void completeConversation(Long sessionId);
 
     /**
      * 동화 정보 업데이트(제목, 3줄 요약)
      * 캐릭터 정보 업데이트(성격)
      * 동화 페이지 생성(정리된 내용)
      */
-    void completeStoryFromLlm(Story story, String context);
+    void completeStoryFromLlm(Long storyId, String context);
 
     /**
      * 캐릭터 정보 업데이트(기본 이미지) -> 이미지에서만
@@ -24,7 +23,12 @@ public interface ConversationCompleteCommandService {
     void generateStoryMedia(Long storyId, String imageType);
 
     /**
-     * 발행된 페이지별 이미지 생성 이벤트 처리 로직
+     * 개별 페이지 이미지 생성 및 페이지 상태 업데이트
      */
-    void generatePageImage(Long storyId, Long pageId, String basePrompt, Long Seed);
+    void generateStoryImage(Long storyId, Long pageId, String basePrompt, Long Seed);
+
+    /**
+     * 생성 완료된 페이지 이미지 개수 확인 및 스토리 상태 업데이트
+     */
+    void aggregateStoryPage(Long storyId);
 }

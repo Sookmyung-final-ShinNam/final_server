@@ -13,14 +13,13 @@ public interface ConversationAsyncService {
 
     /**
      * 스토리 완료 처리
-     * - Story 상태 MAKING 으로 변경
      * - Story 업데이트 (제목, 3줄 요약)
      * - StoryPage 생성 후 저장
      * - StoryCharacter 업데이트 (성격, 기본 이미지)
      * - StoryPage 업데이트 (각 장별 이미지)
      * - Story, StoryCharacter 상태 COMPLETED 으로 변경
      */
-    void completeStory(Long storyId, Long sessionId);
+    void completeStory(Long sessionId);
 
     /**
      * 동영상 동화 생성

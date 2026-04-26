@@ -368,10 +368,11 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
             if (story.getStatus() != Story.StoryStatus.READY_IMAGE) { // 중복 방지
-                story.setStatus(Story.StoryStatus.READY_IMAGE); // 스토리 상태 업데이트 - 모든 이미지 생성 완료
+                // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
+                story.setStatus(Story.StoryStatus.READY_IMAGE);
                 log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
 
-                // 9. 스토리 생성 완료 이벤트 발행
+                // 4. 스토리 생성 완료 이벤트 발행
                 eventPublisher.publishEvent(new StoryCompletedEvent(this, story.getId(), story.getUser().getId()));
             }
         }
