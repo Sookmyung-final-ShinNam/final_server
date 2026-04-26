@@ -25,18 +25,19 @@ public class ConversationSession extends BaseEntity {
 
     public enum ConversationStep {
         START,   // 시작
-        기,
-        승,
-        전,
-        결,
+        기, 승, 전, 결,
         END      // 종료
     }
     @Enumerated(EnumType.STRING)
     @Column(name = "current_step", nullable = false)
     private ConversationStep currentStep;
 
+    public enum SessionState {
+        ACTIVE, COMPLETED
+    }
+    @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false)
-    private String state; // CONVERSATION, COMPLETED
+    private SessionState state;
 
     @Column(name = "full_story", columnDefinition = "TEXT")
     private String fullStory;

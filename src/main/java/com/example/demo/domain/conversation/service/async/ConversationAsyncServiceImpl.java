@@ -35,13 +35,18 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
     private final ApplicationEventPublisher eventPublisher;
     private final LlmClient llmClient;
 
+    @Async
+    @Override
     @Transactional
     public void startNextStep(Long sessionId) {
+
+        log.info("[STEP-START] sessionId={}", sessionId);
 
         ConversationSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
 
         ConversationSession.ConversationStep current = session.getCurrentStep();
+        log.info("[CURRENT STEP] sessionId={}, current={}", sessionId, current);
 
         // 1. 현재 step 엔티티 조회
         SessionStep currentStep = stepRepo
@@ -69,20 +74,23 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
             }
             default -> throw new CustomException(ErrorStatus.STEP_NOT_FOUND);
         }
+        log.info("[NEXT STEP] sessionId={}, next={}", sessionId, nextStepType);
 
         // 3. 세션 step 이동
         session.setCurrentStep(nextStepType);
 
-        // 4. 다음 step 조회 (이미 생성되어 있음)
+        // 4. 다음 step 조회
         SessionStep nextStep = stepRepo
                 .findBySessionAndStepType(session, nextStepType)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STEP_NOT_FOUND));
+        log.info("[STEP STATUS BEFORE] step={}, status={}", nextStepType, nextStep.getStatus());
 
         // 5. 상태 변경
         nextStep.setStatus(SessionStep.Status.IN_PROGRESS);
 
-        // 6. prevContext 세팅 (핵심)
+        // 6. prevContext 세팅
         nextStep.setPrevContext(session.getFullStory());
+        log.info("[LLM CALL START] step={}", nextStepType);
 
         // 7. LLM 호출
         generateStepContent(nextStep);
@@ -130,14 +138,14 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
             String question = llmClient.extractFieldValue(response, "llm_question");
 
             if (nextStory == null || question == null) {
-                throw new CustomException(ErrorStatus.LLM_RESPONSE_INVALID);
+                throw new CustomException(ErrorStatus.CHAT_GPT_API_RESPONSE_FAILED);
             }
 
             step.setNextStory(nextStory);
             step.setLlmQuestion(question);
 
         } catch (Exception e) {
-            throw new CustomException(ErrorStatus.LLM_CALL_FAILED);
+            throw new CustomException(ErrorStatus.CHAT_GPT_API_CALL_FAILED);
         }
     }
 

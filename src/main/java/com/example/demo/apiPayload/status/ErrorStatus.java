@@ -52,38 +52,18 @@ public enum ErrorStatus implements BaseErrorCode {
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
     STEP_INVALID_ACCESS(HttpStatus.FORBIDDEN, "STEP_4013", "현재 단계가 아닙니다."),
     SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "현재 세션 상태에서는 해당 작업을 수행할 수 없습니다."),
-    SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "SESSION_4002", "이미 완료된 세션입니다."),
 
     // STEP
     STEP_NOT_FOUND(HttpStatus.NOT_FOUND, "STEP_4004", "해당 스텝을 찾을 수 없습니다."),
-    STEP_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "STEP_4009", "이미 진행 중인 스텝입니다."),
-    STEP_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST, "STEP_4000", "현재 진행 중인 스텝이 아닙니다."),
     STEP_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4011", "이전 스탭이 완료되지 않았습니다."),
-    STEP_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4001", "이미 완료된 스텝입니다."),
-
-    // ATTEMPT
-    ATTEMPT_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "ATTEMPT_4001", "최대 시도 횟수를 초과했습니다."),
-    ATTEMPT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTEMPT_4004", "해당 시도 기록을 찾을 수 없습니다."),
-
-    // SLOT
-    SLOT_NOT_FOUND(HttpStatus.NOT_FOUND, "SLOT_4004", "해당 슬롯을 찾을 수 없습니다."),
-    SLOT_ALREADY_FILLED(HttpStatus.BAD_REQUEST, "SLOT_4001", "이미 채워진 슬롯입니다."),
-
-    // LLM
-    LLM_CALL_FAILED(HttpStatus.BAD_GATEWAY, "LLM_5001", "LLM 호출에 실패했습니다."),
-    LLM_RESPONSE_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "LLM_5002", "LLM 응답 파싱에 실패했습니다."),
-    LLM_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "LLM_5003", "LLM 응답 시간이 초과되었습니다."),
 
     // 동화 관련 에러
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),
     STORY_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STORY_4006", "완성된 동화만 접근할 수 있습니다."),
     STORY_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4005", "해당 동화 페이지를 찾을 수 없습니다."),
-    STORY_ALREADY_FAVORITE(HttpStatus.BAD_REQUEST, "STORY_4007", "이미 관심 동화로 등록된 동화입니다."),
-    STORY_NOT_FAVORITE(HttpStatus.BAD_REQUEST, "STORY_4008", "관심 동화로 등록되지 않은 동화입니다."),
 
     // 이미지, 동영상 API 관련 에러
     MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType 은 image 또는 video 여야 합니다."),
-    MEDIA_IMAGE_GENERATION_FAILED(HttpStatus.BAD_REQUEST, "MEDIA_4005", "이미지 생성에 실패했습니다."),
 
     // 파일 관련 에러
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_4001", "파일 업로드에 실패했습니다."),
@@ -103,6 +83,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 대시보드 관련 에러
     DASHBOARD_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "DASHBOARD_4005", "이미 대시보드에 반영된 스토리입니다."),
+
     ;
 
     private final HttpStatus httpStatus;
