@@ -110,11 +110,12 @@ public class ConversationController extends AuthController {
     public ApiResponse<Void> storyComplete(
             @RequestParam Long sessionId
     ) {
-        // 동기 호출 - Story MAKING 변경
-        Long storyId = conversationCompleteCommandService.completeConversation(sessionId);
+        // 동기 호출 - Story 상태 변경: IN_PROGRESS > MAKING
+        conversationCompleteCommandService.completeConversation(sessionId);
 
         // 비동기 호출 - Story 이야기 정제 및 이미지 생성
-        conversationAsyncService.completeStory(storyId, sessionId);
+        conversationAsyncService.completeStory(sessionId);
+
         return ApiResponse.of(SuccessStatus._OK);
     }
 
