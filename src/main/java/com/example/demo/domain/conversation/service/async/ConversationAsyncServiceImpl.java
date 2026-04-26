@@ -2,19 +2,13 @@ package com.example.demo.domain.conversation.service.async;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
-import com.example.demo.domain.character.entity.StoryCharacter;
-import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
-import com.example.demo.domain.conversation.repository.ConversationMessageRepository;
-import com.example.demo.domain.conversation.event.StoryCompletedEvent;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +22,6 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
     private final StoryRepository storyRepo;
 
     private final ConversationCompleteCommandService conversationCompleteCommandService;
-    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @Override
@@ -44,21 +37,18 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
             return;
         }
 
-        // 4. 상태 변경 -> MAKING 에서는 이어하기 불가
-        markStoryMaking(story); // 중간 트랜젝션 처리
-        // 2. LLM 호출 및 Story/Character/StoryPage 업데이트 (스토리 정제)
         if (story.getStatus() == Story.StoryStatus.MAKING) {
-
             // 3. 이전 대화 조회
-            String context = conversationQueryService.findSessionContextById(sessionId);
-            conversationCompleteCommandService.completeStoryFromLlm(storyId, context);
+            ConversationSession session = sessionRepo.findById(sessionId)
+                    .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
+
+            // 2. LLM 호출 및 Story/Character/StoryPage 업데이트 (스토리 정제)
+            conversationCompleteCommandService.completeStoryFromLlm(storyId, session.getFullStory());
 
             // 4. completeStoryFromLlm 커밋 이후 Story 최신 상태 재조회
             story = storyRepo.findById(storyId)
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         }
-        // 5. 이전 대화 조회
-        String context = "";
 
         // 5. 캐릭터 및 StoryPage 이미지 생성 (이미지 생성)
         if (story.getStatus() == Story.StoryStatus.COMPLETED) {

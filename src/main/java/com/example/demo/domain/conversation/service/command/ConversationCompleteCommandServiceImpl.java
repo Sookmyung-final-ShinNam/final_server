@@ -5,7 +5,6 @@ import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.event.PageImageCompletedEvent;
 import com.example.demo.domain.conversation.event.PageImageStartedEvent;
@@ -67,14 +66,6 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
             throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
         }
 
-        // 3. 마지막 메시지 조회
-        ConversationMessage lastMessage = session.getMessages().isEmpty()
-                ? null
-                : session.getMessages().get(session.getMessages().size() - 1);
-
-        if (lastMessage == null || lastMessage.getLlmAnswer() == null) {
-            throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
-        }
 
         // 4. 상태 변경 -> MAKING 에서는 이어하기 불가
         if (story.getStatus() == Story.StoryStatus.IN_PROGRESS) {
@@ -146,6 +137,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     .pageNumber(i + 1)
                     .content(pages[i])
                     .contentEn(pagesEn[i])
+                    .status(StoryPage.PageStatus.TEXT)
                     .videoStatus(StoryPage.VideoStatus.NONE)
                     .story(story)
                     .build();
