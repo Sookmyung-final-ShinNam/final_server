@@ -3,13 +3,17 @@ package com.example.demo.domain.conversation.service.command;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.conversation.entity.*;
+import com.example.demo.domain.conversation.event.StartConversationEvent;
 import com.example.demo.domain.conversation.repository.SessionStepRepository;
 import com.example.demo.domain.conversation.repository.StepAttemptRepository;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Map;
 
@@ -20,6 +24,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
     private final StepAttemptRepository stepAttemptRepository;
     private final SessionStepRepository stepRepository;
     private final LlmClient llmClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -27,53 +32,65 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
 
         // 1. Step 조회
         SessionStep step = getStep(messageId);
-        System.out.println("[1] STEP 조회 완료: " + step.getId());
-
-        // 2. attemptNo
         int attemptNo = getAttemptNo(step);
-        System.out.println("[2] attemptNo = " + attemptNo);
 
-        // 3. StepAttempt 생성
-        StepAttempt attempt = createAttempt(step, attemptNo, userAnswer);
-        System.out.println("[3] StepAttempt 생성 완료");
-
-        // 4. LLM 입력 생성
-        String userContent = buildUserContent(step, userAnswer);
-        System.out.println("[4] userContent\n" + userContent);
-
-        // 5. 프롬프트 + LLM 호출
-        String response = callLlm(step, attemptNo, userContent);
-        System.out.println("[5] LLM RESPONSE\n" + response);
-
-        // 6. feedback 파싱
-        String llmFeedback = llmClient.extractFieldValue(response, "llmFeedback");
-        attempt.setLlmFeedback(llmFeedback);
-        System.out.println("[6] llmFeedback = " + llmFeedback);
-
-        // 7. slots 파싱 및 반영
-        applySlotUpdates(step, response);
-        System.out.println("[7] SLOT 업데이트 완료");
-
-        // 8. 슬롯 완료 여부
-        boolean allFilled = isAllSlotsFilled(step);
-        System.out.println("[8] allFilled = " + allFilled);
-
-        // 9. isCorrect
-        boolean isCorrect = allFilled;
-        attempt.setIsCorrect(isCorrect);
-        System.out.println("[9] isCorrect = " + isCorrect);
-
-        // 10. 완료 처리
-        if (allFilled) {
-            completeStep(step, llmFeedback);
-            System.out.println("[10] STEP COMPLETED");
+        // 3회 초과 방지
+        if (attemptNo > 3) {
+            throw new CustomException(ErrorStatus.FEEDBACK_ALREADY_COMPLETED);
         }
 
-        // 11. 저장
-        stepAttemptRepository.save(attempt);
-        System.out.println("[11] attempt 저장 완료");
+        // 2. StepAttempt 생성
+        StepAttempt attempt = createAttempt(step, attemptNo, userAnswer);
 
-        // 12. response
+        // 3. LLM 입력 생성
+        String userContent = buildUserContent(step, userAnswer);
+
+        // 4. 프롬프트 + LLM 호출
+        String response = callLlm(step, attemptNo, userContent);
+
+        // 5. feedback 파싱
+        String llmFeedback = llmClient.extractFieldValue(response, "llmFeedback");
+        attempt.setLlmFeedback(llmFeedback);
+
+        // 6. slots 파싱 및 반영
+        applySlotUpdates(step, response);
+
+        // 7. 슬롯 완료 여부
+        boolean allFilled = isAllSlotsFilled(step);
+        boolean isCorrect = allFilled;
+        attempt.setIsCorrect(isCorrect);
+
+        // 8. 완료 처리
+        if (isCorrect) {
+            completeStep(step, llmFeedback);
+
+            // 기승전 단계 → 다음 세션 미리 생성
+            if (shouldStartNextStep(step)) {
+
+                Long sessionId = step.getSession().getId();
+
+                TransactionSynchronizationManager.registerSynchronization(
+                        new TransactionSynchronizationAdapter() {
+                            @Override
+                            public void afterCommit() {
+                                eventPublisher.publishEvent(
+                                        new StartConversationEvent(sessionId)
+                                );
+                            }
+                        }
+                );
+
+            } else {
+                // 결 단계 → 세션 종료 처리
+                ConversationSession session = step.getSession();
+                session.setCurrentStep(ConversationSession.ConversationStep.END);
+                session.setState(ConversationSession.SessionState.COMPLETED);
+            }
+        }
+
+        // 9. 저장
+        stepAttemptRepository.save(attempt);
+
         return ConversationResponseDto.FeedbackResponseDto.builder()
                 .feedbackResult(isCorrect ? "GOOD" : "NEEDS_CORRECTION")
                 .feedbackText(llmFeedback)
@@ -82,18 +99,17 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
                 .build();
     }
 
-    // 1. STEP 조회
+    // STEP 조회
     private SessionStep getStep(Long messageId) {
         return stepRepository.findById(messageId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STEP_NOT_FOUND));
     }
 
-    // 2. attemptNo
     private int getAttemptNo(SessionStep step) {
         return step.getAttempts().size() + 1;
     }
 
-    // 3. attempt 생성
+    // attempt 생성
     private StepAttempt createAttempt(SessionStep step, int attemptNo, String userAnswer) {
         return StepAttempt.builder()
                 .step(step)
@@ -102,7 +118,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
                 .build();
     }
 
-    // 4. LLM 입력
+    // LLM 입력
     private String buildUserContent(SessionStep step, String userAnswer) {
 
         String slotContext = step.getSlots().stream()
@@ -135,7 +151,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         );
     }
 
-    // 5. LLM 호출
+    // LLM 호출
     private String callLlm(SessionStep step, int attemptNo, String userContent) {
 
         String promptFile = (attemptNo == 3)
@@ -147,7 +163,7 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         return llmClient.callChatGpt(prompt);
     }
 
-    // 7. SLOT 반영
+    // SLOT 반영
     private void applySlotUpdates(SessionStep step, String response) {
 
         Map<String, Map<String, String>> slots =
@@ -175,14 +191,14 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         });
     }
 
-    // 8. 완료 여부
+    // 완료 여부
     private boolean isAllSlotsFilled(SessionStep step) {
         return step.getSlots()
                 .stream()
                 .allMatch(s -> Boolean.TRUE.equals(s.getIsFilled()));
     }
 
-    // 10. 완료 처리
+    // 완료 처리
     private void completeStep(SessionStep step, String llmFeedback) {
 
         step.setFinalAnswer(llmFeedback);
@@ -196,5 +212,14 @@ public class ConversationFeedbackCommandServiceImpl implements ConversationFeedb
         step.getSession().setFullStory(updatedStory);
 
         step.setStatus(SessionStep.Status.COMPLETED);
+    }
+
+    private boolean shouldStartNextStep(SessionStep step) {
+
+        ConversationSession.ConversationStep type = step.getStepType();
+
+        return type == ConversationSession.ConversationStep.기
+                || type == ConversationSession.ConversationStep.승
+                || type == ConversationSession.ConversationStep.전;
     }
 }

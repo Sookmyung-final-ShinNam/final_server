@@ -8,6 +8,7 @@ import com.example.demo.domain.character.repository.CharacterAppearanceRepositor
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.*;
+import com.example.demo.domain.conversation.event.StartConversationEvent;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.repository.SlotDefinitionRepository;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Map;
@@ -41,12 +44,12 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
 
     private final StoryCharacterRepository storyCharacterRepository;
     private final CharacterAppearanceRepository characterAppearanceRepository;
-    private final ApplicationEventPublisher eventPublisher;
 
     private final ConversationSessionRepository conversationSessionRepository;
     private final SlotDefinitionRepository slotDefinitionRepository;
 
     private final LlmClient llmClient;
+    private final ApplicationEventPublisher eventPublisher;
     private final ConversationConverter converter;
 
     @Override
@@ -84,7 +87,17 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // 8. Session 초기 구조 생성 (기/승/전/결 + Slot preload)
         initializeSessionState(session, startText);
 
-        // 9. 기 단계 사전 생성 - 비동기 이벤트
+        // 9. 기 단계 사전 생성 - 비동기
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        eventPublisher.publishEvent(
+                                new StartConversationEvent(session.getId())
+                        );
+                    }
+                }
+        );
 
         // 10. 세션 ID와 생성된 첫 스토리를 포함하는 응답 DTO 반환
         return ConversationResponseDto.ConversationStartResponseDto.builder()
