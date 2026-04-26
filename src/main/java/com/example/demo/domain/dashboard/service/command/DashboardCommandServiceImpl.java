@@ -2,14 +2,9 @@ package com.example.demo.domain.dashboard.service.command;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
-import com.example.demo.domain.dashboard.converter.DashboardConverter;
 import com.example.demo.domain.dashboard.entity.Dashboard;
-import com.example.demo.domain.dashboard.repository.DashboardBackgroundUsageRepository;
-import com.example.demo.domain.dashboard.repository.DashboardStoryStatsRepository;
-import com.example.demo.domain.dashboard.repository.DashboardThemeUsageRepository;
 import com.example.demo.domain.dashboard.repository.DashboardRepository;
 import com.example.demo.domain.dashboard.service.analyzer.DashboardAnalyzerService;
-import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import com.example.demo.domain.user.entity.User;
@@ -26,11 +21,6 @@ public class DashboardCommandServiceImpl implements DashboardCommandService {
     private final DashboardRepository dashboardRepository;
     private final StoryRepository storyRepository;
     private final List<DashboardAnalyzerService> analyzers; // 모든 Analyzer 구현체 DI
-    private final DashboardConverter converter;
-
-    private final DashboardBackgroundUsageRepository bgRepo;
-    private final DashboardThemeUsageRepository themeRepo;
-    private final DashboardStoryStatsRepository storyStatsRepo;
 
     /**
      * 스토리 기반으로 대시보드 업데이트
