@@ -7,5 +7,4 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PageImageCompletedEvent {
     private final Long storyId;
-    private final Long pageId;
 }

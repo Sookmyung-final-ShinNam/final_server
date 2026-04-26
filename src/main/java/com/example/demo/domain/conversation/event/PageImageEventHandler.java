@@ -13,9 +13,16 @@ public class PageImageEventHandler {
 
     private final ConversationCompleteCommandService conversationCompleteCommandService;
 
+    // 개별 페이지 이미지 생성 및 페이지 상태 업데이트
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePageImageStarted(PageImageStartedEvent event) {
-        conversationCompleteCommandService.generatePageImage(event.getStoryId(), event.getPageId(), event.getBasePrompt(), event.getSeed());
+        conversationCompleteCommandService.generateStoryImage(event.getStoryId(), event.getPageId(), event.getBasePrompt(), event.getSeed());
+    }
+
+    // 생성 완료된 페이지 이미지 개수 확인 및 스토리 상태 업데이트 (동기)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handlePageImageCompleted(PageImageCompletedEvent event) {
+        conversationCompleteCommandService.aggregateStoryPage(event.getStoryId());
     }
 }

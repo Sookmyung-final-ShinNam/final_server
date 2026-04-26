@@ -9,6 +9,7 @@ import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.event.PageImageCompletedEvent;
 import com.example.demo.domain.conversation.event.PageImageStartedEvent;
+import com.example.demo.domain.conversation.event.StoryCompletedEvent;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
@@ -52,7 +53,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
     @Override
     @Transactional
-    public Long completeConversation(Long sessionId) {
+    public void completeConversation(Long sessionId) {
 
         // 1. Story 및 Session 조회
         Story story = storyRepo.findByStorySessions_Id(sessionId)
@@ -76,13 +77,14 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         }
 
         // 4. 상태 변경 -> MAKING 에서는 이어하기 불가
-        story.setStatus(Story.StoryStatus.MAKING);
-        return story.getId();
+        if (story.getStatus() == Story.StoryStatus.IN_PROGRESS) {
+            story.setStatus(Story.StoryStatus.MAKING);
+        }
     }
 
     @Override
     @Transactional
-    public void completeStoryFromLlm(Story story, String context) {
+    public void completeStoryFromLlm(Long storyId, String context) {
 
         // 1. LLM 호출 - story_complete.json
         String variable = llmClient.jsonEscape("원본 스토리: " + context);
@@ -98,7 +100,8 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         String thirdPage = llmClient.extractFieldValue(completeResponse, "thirdPage");
         String fourthPage = llmClient.extractFieldValue(completeResponse, "fourthPage");
 
-        // 3. Story 업데이트
+        // 3. Story 조회 및 업데이트
+        Story story = storyRepo.findById(storyId).orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         story.setTitle(title);
         story.setDescription(summary);
 
@@ -156,6 +159,8 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         appearance.setCharacterPromptEn(characterPromptEn);
         appearance.setCharacterImagePromptEn(characterImagePromptEn);
         characterAppearanceRepo.save(appearance);
+
+        story.setStatus(Story.StoryStatus.COMPLETED); // 스토리 상태 업데이트 - 텍스트 생성 완료
     }
 
     @Override
@@ -173,11 +178,11 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
         // 2. 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
         if (isImage(imageType)) {
-            // 캐릭터 기본 이미지 생성
+            // 스토리 캐릭터 이미지 생성
             generateCharacterBaseImage(character);
-            story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 캐릭터 이미지 생성 완료
+            story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 캐릭터 상태 업데이트 - 이미지 생성 완료
 
-            // 스토리 페이지별 이미지 생성
+            // 스토리 페이지 이미지 생성
             generateStoryImages(story, character); // 페이지별 생성 이벤트 발행
         } else {
             // 스토리 페이지별 동영상 생성
@@ -286,7 +291,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
         Long seed = character.getAppearance().getCharacterSeed(); // 캐릭터 고정 시드
 
-        // 페이지별 생성 이벤트 발행 → 리스너 generatePageImage 처리
+        // 페이지별 이미지 생성 이벤트 발행 → 리스너 generatePageImage 처리
         for (StoryPage page : story.getStoryPages()) {
             if (page.getStatus() == StoryPage.PageStatus.TEXT) {
                 eventPublisher.publishEvent(new PageImageStartedEvent(story.getId(), page.getId(), basePrompt, seed));
@@ -295,12 +300,13 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
     }
 
     /**
-     * 스토리 각 페이지별 이미지 생성
+     * 이미지 생성 이벤트 처리 로직
+     * - 스토리 각 페이지별 이미지 생성 및 상태 업데이트
      * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
      */
     @Override
     @Transactional
-    public void generatePageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
+    public void generateStoryImage(Long storyId, Long pageId, String basePrompt, Long seed) {
 
         // 1. Page 조회
         StoryPage page = storyPageRepo.findById(pageId)
@@ -332,14 +338,42 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
             }
 
             // 6. DB 저장 (Page.status = IMAGE)
-            page.setStatus(StoryPage.PageStatus.IMAGE);
+            page.setStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
+            log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
 
-            // 7. 이미지 생성 완료 이벤트 발행
-            eventPublisher.publishEvent(new PageImageCompletedEvent(storyId, pageId));
+            // 7. 이미지 생성 완료 이벤트 발행 → 리스너 aggregateStoryPage 처리
+            eventPublisher.publishEvent(new PageImageCompletedEvent(storyId));
 
         } catch (Exception e) {
             log.error("===== [Page] {}번째 페이지 ERROR OCCURRED: pageId = {} =====", page.getPageNumber(), page.getId(), e);
             throw e;  // CustomException 던지지 말고 원본 예외 그대로
+        }
+    }
+
+    /**
+     * 이미지 생성 완료 이벤트 처리 로직
+     * - 이미지 생성 완료된 페이지 개수 확인
+     * - 이후 스토리 상태 업데이트
+     */
+    @Override
+    @Transactional
+    public void aggregateStoryPage(Long storyId) {
+
+        // 1. 이미지 생성 완료된 페이지 개수 조회
+        int imageCount = storyPageRepo.countByStoryIdAndStatus(storyId, StoryPage.PageStatus.IMAGE);
+
+        // 2. 모든 페이지가 모두 생성 완료된 경우 스토리 상태 업데이트 (페이지 개수 = 4)
+        if(imageCount == 4) {
+            Story story = storyRepo.findById(storyId)
+                    .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+
+            if (story.getStatus() != Story.StoryStatus.READY_IMAGE) { // 중복 방지
+                story.setStatus(Story.StoryStatus.READY_IMAGE); // 스토리 상태 업데이트 - 모든 이미지 생성 완료
+                log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
+
+                // 9. 스토리 생성 완료 이벤트 발행
+                eventPublisher.publishEvent(new StoryCompletedEvent(this, story.getId(), story.getUser().getId()));
+            }
         }
     }
 
