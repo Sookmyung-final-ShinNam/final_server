@@ -28,64 +28,74 @@ import java.util.stream.Collectors;
 public class ConversationAsyncServiceImpl implements ConversationAsyncService {
 
     private final ConversationSessionRepository sessionRepo;
+    private final SessionStepRepository stepRepo;
     private final StoryRepository storyRepo;
 
     private final ConversationCompleteCommandService conversationCompleteCommandService;
     private final ApplicationEventPublisher eventPublisher;
-    private final ConversationSessionRepository sessionRepository;
-    private final SessionStepRepository stepRepository;
     private final LlmClient llmClient;
 
-    /**
-     * 다음 Step 초기화 (트랜잭션 영역)
-     *
-     * 역할:
-     * - session.currentStep → 다음 step으로 변경
-     * - SessionStep 상태 IN_PROGRESS 설정
-     * - prevContext 세팅
-     * - 이후 이벤트 발행해서 nextStory + llmQuestion 생성
-     *
-     */
     @Transactional
     public void startNextStep(Long sessionId) {
 
-        // 1. 세션 조회
-        ConversationSession session = sessionRepository.findById(sessionId)
+        ConversationSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
 
-        // 2. 다음 step 계산
-        ConversationSession.ConversationStep nextStep =
-                getNextStep(session.getCurrentStep());
+        ConversationSession.ConversationStep current = session.getCurrentStep();
 
-        if (nextStep == null) {
-            throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
-        }
-
-        // 3. 해당 step 조회
-        SessionStep step = stepRepository
-                .findBySessionIdAndStepType(sessionId, nextStep)
+        // 1. 현재 step 엔티티 조회
+        SessionStep currentStep = stepRepo
+                .findBySessionAndStepType(session, current)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STEP_NOT_FOUND));
 
-        // 4. 중복 실행 방지
-        if (step.getStatus() == SessionStep.Status.IN_PROGRESS) {
-            throw new CustomException(ErrorStatus.STEP_ALREADY_IN_PROGRESS);
+        // 2. 다음 step 계산 + 검증
+        ConversationSession.ConversationStep nextStepType;
+
+        switch (current) {
+            case START -> {
+                nextStepType = ConversationSession.ConversationStep.기;
+            }
+            case 기 -> {
+                validateCompleted(currentStep);
+                nextStepType = ConversationSession.ConversationStep.승;
+            }
+            case 승 -> {
+                validateCompleted(currentStep);
+                nextStepType = ConversationSession.ConversationStep.전;
+            }
+            case 전 -> {
+                validateCompleted(currentStep);
+                nextStepType = ConversationSession.ConversationStep.결;
+            }
+            default -> throw new CustomException(ErrorStatus.STEP_NOT_FOUND);
         }
 
+        // 3. 세션 step 이동
+        session.setCurrentStep(nextStepType);
+
+        // 4. 다음 step 조회 (이미 생성되어 있음)
+        SessionStep nextStep = stepRepo
+                .findBySessionAndStepType(session, nextStepType)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STEP_NOT_FOUND));
+
         // 5. 상태 변경
-        session.setCurrentStep(nextStep);
-        step.setStatus(SessionStep.Status.IN_PROGRESS);
+        nextStep.setStatus(SessionStep.Status.IN_PROGRESS);
 
-        // 6. 이전 스토리 컨텍스트 저장
-        step.setPrevContext(session.getFullStory());
+        // 6. prevContext 세팅 (핵심)
+        nextStep.setPrevContext(session.getFullStory());
 
-        // 7. llm 호출
-        generateStepContent(step); // ✔ 직접 호출
+        // 7. LLM 호출
+        generateStepContent(nextStep);
+    }
+
+    private void validateCompleted(SessionStep step) {
+        if (step.getStatus() != SessionStep.Status.COMPLETED) {
+            throw new CustomException(ErrorStatus.STEP_NOT_COMPLETED);
+        }
     }
 
     /**
-     * LLM 호출 + 결과 저장 (트랜잭션)
-     *
-     * 역할:
+     * LLM 호출 + 결과 저장
      * - nextStory 생성
      * - llmQuestion 생성
      */
@@ -94,7 +104,6 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
         String slotList = step.getSlots().stream()
                 .map(s -> s.getSlotDefinition().getSlotName())
                 .collect(Collectors.joining(", "));
-
         log.info("slotList = {}", slotList);
 
         try {
@@ -117,7 +126,6 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
             );
 
             String response = llmClient.callChatGpt(promptJson);
-
             String nextStory = llmClient.extractFieldValue(response, "nextStory");
             String question = llmClient.extractFieldValue(response, "llm_question");
 
@@ -127,31 +135,13 @@ public class ConversationAsyncServiceImpl implements ConversationAsyncService {
 
             step.setNextStory(nextStory);
             step.setLlmQuestion(question);
-            step.setStatus(SessionStep.Status.COMPLETED);
 
         } catch (Exception e) {
             throw new CustomException(ErrorStatus.LLM_CALL_FAILED);
         }
     }
 
-    /**
-     * 다음 Step 계산
-     *
-     * 흐름:
-     * START → 기 → 승 → 전 → 결 → 종료(null)
-     */
-    private ConversationSession.ConversationStep getNextStep(
-            ConversationSession.ConversationStep current
-    ) {
-        return switch (current) {
-            case START -> ConversationSession.ConversationStep.기;
-            case 기 -> ConversationSession.ConversationStep.승;
-            case 승 -> ConversationSession.ConversationStep.전;
-            case 전 -> ConversationSession.ConversationStep.결;
-            case 결 -> ConversationSession.ConversationStep.END;
-            case END -> null; // 마지막 단계
-        };
-    }
+
 
 
     @Async

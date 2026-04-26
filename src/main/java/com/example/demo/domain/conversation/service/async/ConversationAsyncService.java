@@ -1,17 +1,25 @@
 package com.example.demo.domain.conversation.service.async;
 
-import com.example.demo.domain.conversation.entity.SessionStep;
-import org.springframework.transaction.annotation.Transactional;
-
 public interface ConversationAsyncService {
 
     /**
-     * 다음 단계 시작
-     * - currentStep 이동
-     * - SessionStep 상태 IN_PROGRESS 변경
-     * - prevContext 세팅
-     * - LLM 호출 → nextStory, llmQuestion 생성
-     * - 결과 저장
+     * 다음 단계 시작 (특정 단계에 대한 사전 생성 - 시작 조건은
+     * 1. 현재 단계가 start 이면 ConversationSession.ConversationStep = START일때 -> 기 단계 사전 생성,
+     * 2. 현재 단계가 "기" 이면  - 기의 상태가 완료일때 -> 승 단계 사전 생성,
+     * 3. 현재 단계가 "승" 이면 - 승의 상태가 완료일때 -> 전 단계 사전 생성,
+     * 4. 현재 단계가 "전" 이면 - 전의 상태가 완료일때 -> 결 단계 사전 생성,
+     * 5. 4개 중 하나가 아니면 -> 잘못된 요청임.
+     *
+     * 동작
+     * 1. session.currentStep → 다음 step으로 이동
+     * 2. 해당 SessionStep.status -> IN_PROGRESS
+     * 3. 해당 SessionStep.prevContext 저장 -> session.fullStory
+     * 4. llm 호출
+     *    - input : step.prevContext
+     *    - output : nextStory & llmQuestion
+     * 5. llm 호출 결과 저장
+     * 	 - step.nextStory
+     * 	 - step.llmQuestion
      */
     void startNextStep(Long sessionId);
 

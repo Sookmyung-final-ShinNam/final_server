@@ -18,11 +18,6 @@ public class ConversationQueryServiceImpl implements ConversationQueryService {
     private final ConversationSessionRepository sessionRepo;
     private final SessionStepRepository stepRepository;
 
-    /**
-     * 세션 ID로 대화 세션을 조회합니다.
-     * @param sessionId 대화 세션 ID
-     * @return 대화 세션
-     * */
     @Override
     @Transactional
     public Object getNextStepMessage(Long sessionId, ConversationSession.ConversationStep stepType) {

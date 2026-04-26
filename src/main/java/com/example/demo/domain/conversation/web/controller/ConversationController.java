@@ -79,11 +79,10 @@ public class ConversationController extends AuthController {
        );
    }
 
-
     @Operation(
             summary = "사용자 답변 피드백",
             description = """
-                    사용자 답변에 대한 긍정/부정 평가와 피드백 제공
+                    사용자 답변에서 slot을 추출/추론하고 피드백을 제공합니다. 
                     """
     )
     @ApiResponses({

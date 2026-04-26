@@ -8,7 +8,6 @@ import com.example.demo.domain.character.repository.CharacterAppearanceRepositor
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.*;
-import com.example.demo.domain.conversation.event.NextStepStartEvent;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.repository.SlotDefinitionRepository;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
@@ -50,17 +49,6 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
     private final LlmClient llmClient;
     private final ConversationConverter converter;
 
-    /**
-     * 전체 플로우:
-     * 1. 유저 검증 + 포인트 차감
-     * 2. Story 생성
-     * 3. Theme / Background 적용
-     * 4. Character 생성
-     * 5. Session 생성
-     * 6. LLM 호출 (startText 생성)
-     * 7. Session 초기 상태 (기/승/전/결 + Slot) 구성
-     * 8. Response 반환
-     */
     @Override
     @Transactional
     public ConversationResponseDto.ConversationStartResponseDto startConversation(
@@ -96,20 +84,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // 8. Session 초기 구조 생성 (기/승/전/결 + Slot preload)
         initializeSessionState(session, startText);
 
-        /**
-         * 9. 다음 Step 비동기 시작 트리거
-         *
-         * 역할:
-         * - START → "기" 단계로 넘어가는 비동기 이벤트 발행
-         * - 실제 처리:
-         *   → startNextStep()
-         *   → generateStepContent()
-         *
-         */
-
-        eventPublisher.publishEvent(
-                new NextStepStartEvent(this, session.getId())
-        );
+        // 9. 기 단계 사전 생성 - 비동기 이벤트
 
         // 10. 세션 ID와 생성된 첫 스토리를 포함하는 응답 DTO 반환
         return ConversationResponseDto.ConversationStartResponseDto.builder()

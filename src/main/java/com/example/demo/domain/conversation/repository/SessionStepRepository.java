@@ -9,11 +9,16 @@ import java.util.Optional;
 
 @Repository
 public interface SessionStepRepository extends JpaRepository<SessionStep, Long> {
-    /**
-     * sessionId + stepType으로 특정 Step 조회
-     */
+
+    // sessionId + stepType으로 특정 Step 조회
     Optional<SessionStep> findBySessionIdAndStepType(
             Long sessionId,
             ConversationSession.ConversationStep stepType
     );
+
+    Optional<SessionStep> findBySessionAndStepType(
+            ConversationSession session,
+            ConversationSession.ConversationStep stepType
+    );
+
 }

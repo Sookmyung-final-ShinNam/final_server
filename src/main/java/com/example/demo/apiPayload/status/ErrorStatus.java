@@ -58,6 +58,7 @@ public enum ErrorStatus implements BaseErrorCode {
     STEP_NOT_FOUND(HttpStatus.NOT_FOUND, "STEP_4004", "해당 스텝을 찾을 수 없습니다."),
     STEP_ALREADY_IN_PROGRESS(HttpStatus.CONFLICT, "STEP_4009", "이미 진행 중인 스텝입니다."),
     STEP_NOT_IN_PROGRESS(HttpStatus.BAD_REQUEST, "STEP_4000", "현재 진행 중인 스텝이 아닙니다."),
+    STEP_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4011", "이전 스탭이 완료되지 않았습니다."),
     STEP_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4001", "이미 완료된 스텝입니다."),
 
     // ATTEMPT
