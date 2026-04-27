@@ -5,11 +5,11 @@ import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 public interface ConversationFeedbackCommandService {
 
     /**
-     * 피드백 요청을 처리하고, LLM에 피드백을 전달하여 응답을 반환
+     * 사용자 답변에 대한 LLM 피드백 처리
      *
-     * @param messageId 메시지 Id
-     * @param userAnswer 사용자 응답
-     * @return 피드백 응답 DTO
+     * @param messageId StepAttempt 또는 Step 기준 ID
+     * @param userAnswer 사용자 입력 답변
+     * @return 피드백 결과 (정답 여부 + 메시지)
      */
     ConversationResponseDto.FeedbackResponseDto handleFeedback(Long messageId, String userAnswer);
 }
