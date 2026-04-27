@@ -6,9 +6,7 @@ import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
 import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.event.PageImageCompletedEvent;
-import com.example.demo.domain.conversation.event.PageImageStartedEvent;
-import com.example.demo.domain.conversation.event.StoryCompletedEvent;
+import com.example.demo.domain.conversation.event.*;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
@@ -25,6 +23,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,16 +61,31 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         ConversationSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
 
-        // 2. 현재 단계가 END 인지 확인
+        // 2. 현재 대화 단계가 END 인지 확인
         if (session.getCurrentStep() != ConversationSession.ConversationStep.END) {
             throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
         }
 
 
-        // 4. 상태 변경 -> MAKING 에서는 이어하기 불가
+        // 4. 스토리 상태 변경 MAKING 에서는 이어하기 불가
         if (story.getStatus() == Story.StoryStatus.IN_PROGRESS) {
             story.setStatus(Story.StoryStatus.MAKING);
         }
+
+        // 5. 스토리의 전체 문맥 조회
+        String context = session.getFullStory();
+
+        // 5. 커밋 이후 이벤트 발행: 비동기 작업 (동화 생성) 시작
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        eventPublisher.publishEvent(
+                                new CompleteConversationEvent(story.getId(), context)
+                        );
+                    }
+                }
+        );
     }
 
     @Override

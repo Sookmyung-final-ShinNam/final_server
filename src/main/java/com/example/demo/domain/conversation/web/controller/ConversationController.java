@@ -75,10 +75,7 @@ public class ConversationController extends AuthController {
            @RequestParam Long sessionId,
            @RequestParam ConversationSession.ConversationStep currentStep
    ) {
-       return ApiResponse.of(
-               SuccessStatus._OK,
-               conversationQueryService.getNextStepMessage(sessionId, currentStep)
-       );
+       return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getNextStepMessage(sessionId, currentStep));
    }
 
     @Operation(
@@ -117,12 +114,11 @@ public class ConversationController extends AuthController {
     public ApiResponse<Void> storyComplete(
             @RequestParam Long sessionId
     ) {
-        // 동기 호출 - Story 상태 변경: IN_PROGRESS > MAKING
+        // 대화 완료 확인 후 동화 생성
         conversationCompleteCommandService.completeConversation(sessionId);
 
         // 비동기 호출 - Story 이야기 정제 및 이미지 생성
-        conversationAsyncService.completeStory(sessionId);
-
+//        conversationAsyncService.completeStory(sessionId);
         return ApiResponse.of(SuccessStatus._OK);
     }
 

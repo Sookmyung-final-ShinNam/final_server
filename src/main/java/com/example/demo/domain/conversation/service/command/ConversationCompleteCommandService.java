@@ -3,9 +3,8 @@ package com.example.demo.domain.conversation.service.command;
 public interface ConversationCompleteCommandService {
 
     /**
-     * 대화 세션 완료(COMPLETED) 확인 후 스토리 상태(MAKING) 업데이트
-     * 중복 확인 막기 위해 atomic update로 스토리 상태 업데이트
-     * 상태 변경된 storyId 반환
+     * 대화 완료(COMPLETED) 확인 후 스토리 업데이트 (상태-MAKING)
+     * 스토리 생성 이벤트 발행
      */
     void completeConversation(Long sessionId);
 
