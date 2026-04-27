@@ -18,10 +18,10 @@ public class StoryAdminResponseDto {
     private boolean needsVideoLink;
 
     public static StoryAdminResponseDto from(Story story) {
-        boolean needsImage = story.getStatus() == Story.StoryStatus.COMPLETED &&
+        boolean needsImage = story.getStatus() == Story.StoryStatus.READY_IMAGE &&
                 (story.getImageYoutubeLink() == null || story.getImageYoutubeLink().isBlank());
 
-        boolean needsVideo = story.getStatus() == Story.StoryStatus.COMPLETED &&
+        boolean needsVideo = story.getStatus() == Story.StoryStatus.READY_IMAGE &&
                 story.getVideoStatus() == com.example.demo.domain.story.entity.StoryPage.VideoStatus.COMPLETED &&
                 (story.getVideoYoutubeLink() == null || story.getVideoYoutubeLink().isBlank());
 

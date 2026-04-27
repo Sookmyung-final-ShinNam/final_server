@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -67,12 +68,12 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         }
 
 
-        // 4. 스토리 상태 변경 MAKING 에서는 이어하기 불가
+        // 3. 스토리 상태 변경 MAKING 에서는 이어하기 불가
         if (story.getStatus() == Story.StoryStatus.IN_PROGRESS) {
             story.setStatus(Story.StoryStatus.MAKING);
         }
 
-        // 5. 스토리의 전체 문맥 조회
+        // 4. 스토리 전체 문맥 조회
         String context = session.getFullStory();
 
         // 5. 커밋 이후 이벤트 발행: 비동기 작업 (동화 생성) 시작
@@ -167,7 +168,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         appearance.setCharacterImagePromptEn(characterImagePromptEn);
         characterAppearanceRepo.save(appearance);
 
-        story.setStatus(Story.StoryStatus.COMPLETED); // 스토리 상태 업데이트 - 텍스트 생성 완료
+        story.setStatus(Story.StoryStatus.COMPLETED); // 스토리 상태 업데이트 - 스토리 정제 완료
     }
 
     @Override
@@ -183,17 +184,20 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         StoryCharacter character = story.getCharacter();
 
-        // 2. 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
+        // 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
         if (isImage(imageType)) {
-            // 스토리 캐릭터 이미지 생성
+            // -- 이미지 생성
+            // 2-1. 캐릭터 이미지 생성 및 상태 업테이트
             generateCharacterBaseImage(character);
-            story.getCharacter().setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 캐릭터 상태 업데이트 - 이미지 생성 완료
+            character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
 
-            // 스토리 페이지 이미지 생성
+            // 2-2. 스토리 페이지 이미지 생성
             generateStoryImages(story, character); // 페이지별 생성 이벤트 발행
         } else {
+            // -- 동영상 생성
             // 스토리 페이지별 동영상 생성
             generateStoryVideos(story, character);
+
             // 동영상 생성 여부 업데이트
             for (StoryPage page : story.getStoryPages()) {
                 if (page.getVideoUrl() != null && page.getVideoUrl().endsWith(".mp4")) {
@@ -295,15 +299,31 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
      * - 페이지별 생성 이벤트 발행함으로써 이미지 생성
      */
     private void generateStoryImages(Story story, StoryCharacter character) {
+
+        // 1. 고정 값 조회
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
         Long seed = character.getAppearance().getCharacterSeed(); // 캐릭터 고정 시드
+        Long storyId = story.getId();
 
-        // 페이지별 이미지 생성 이벤트 발행 → 리스너 generatePageImage 처리
-        for (StoryPage page : story.getStoryPages()) {
-            if (page.getStatus() == StoryPage.PageStatus.TEXT) {
-                eventPublisher.publishEvent(new PageImageStartedEvent(story.getId(), page.getId(), basePrompt, seed));
-            }
-        }
+        // 2. 페이지 id만 추출
+        List<Long> pageIds = story.getStoryPages().stream()
+                .filter(page -> page.getStatus() == StoryPage.PageStatus.TEXT)
+                .map(StoryPage::getId)
+                .toList();
+
+        // 3. 페이지별 이미지 생성 이벤트 발행 → 리스너 generatePageImage 처리
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        for (Long pageId : pageIds) {
+                            eventPublisher.publishEvent(
+                                    new PageImageStartedEvent(storyId, pageId, basePrompt, seed)
+                            );
+                        }
+                    }
+                }
+        );
     }
 
     /**
@@ -349,8 +369,14 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
             log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
 
             // 7. 이미지 생성 완료 이벤트 발행 → 리스너 aggregateStoryPage 처리
-            eventPublisher.publishEvent(new PageImageCompletedEvent(storyId));
-
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            eventPublisher.publishEvent(new PageImageCompletedEvent(storyId));
+                        }
+                    }
+            );
         } catch (Exception e) {
             log.error("===== [Page] {}번째 페이지 ERROR OCCURRED: pageId = {} =====", page.getPageNumber(), page.getId(), e);
             throw e;  // CustomException 던지지 말고 원본 예외 그대로
@@ -375,12 +401,24 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
             if (story.getStatus() != Story.StoryStatus.READY_IMAGE) { // 중복 방지
+
                 // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
                 story.setStatus(Story.StoryStatus.READY_IMAGE);
-                log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
 
                 // 4. 스토리 생성 완료 이벤트 발행
-                eventPublisher.publishEvent(new StoryCompletedEvent(this, story.getId(), story.getUser().getId()));
+                Long userId = story.getUser().getId();
+                TransactionSynchronizationManager.registerSynchronization(
+                        new TransactionSynchronizationAdapter() {
+                            @Override
+                            public void afterCommit() {
+                                eventPublisher.publishEvent(
+                                        new StoryCompletedEvent(this, storyId, userId)
+                                );
+                            }
+                        }
+                );
+
+                log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
             }
         }
     }

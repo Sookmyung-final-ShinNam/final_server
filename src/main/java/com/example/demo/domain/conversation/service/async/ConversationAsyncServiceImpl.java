@@ -1,12 +1,6 @@
 package com.example.demo.domain.conversation.service.async;
 
-import com.example.demo.apiPayload.code.exception.CustomException;
-import com.example.demo.apiPayload.status.ErrorStatus;
-import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
-import com.example.demo.domain.story.entity.Story;
-import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
