@@ -2,9 +2,9 @@ package com.example.demo.domain.conversation.event;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
-import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
-import com.example.demo.domain.conversation.service.command.ConversationCompleteMediaCommandService;
-import com.example.demo.domain.conversation.service.command.ConversationCompleteTextCommandService;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteMediaCommandService;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteTextCommandService;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.example.demo.domain.conversation.service.async;
 
-import com.example.demo.domain.conversation.service.command.ConversationCompleteMediaCommandService;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteMediaCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

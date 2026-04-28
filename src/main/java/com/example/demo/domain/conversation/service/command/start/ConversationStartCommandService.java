@@ -1,4 +1,4 @@
-package com.example.demo.domain.conversation.service.command;
+package com.example.demo.domain.conversation.service.command.start;
 
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;

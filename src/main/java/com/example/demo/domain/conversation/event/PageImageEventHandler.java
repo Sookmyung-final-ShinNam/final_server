@@ -1,6 +1,6 @@
 package com.example.demo.domain.conversation.event;
 
-import com.example.demo.domain.conversation.service.command.ConversationCompleteMediaCommandService;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteMediaCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package com.example.demo.domain.conversation.event;
 
-import com.example.demo.domain.conversation.service.command.ConversationNextStoryCommandService;
+import com.example.demo.domain.conversation.service.command.next.ConversationNextStoryCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

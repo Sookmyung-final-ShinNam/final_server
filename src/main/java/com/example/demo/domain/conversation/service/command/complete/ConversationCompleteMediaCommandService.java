@@ -1,4 +1,4 @@
-package com.example.demo.domain.conversation.service.command;
+package com.example.demo.domain.conversation.service.command.complete;
 
 public interface ConversationCompleteMediaCommandService {
 
