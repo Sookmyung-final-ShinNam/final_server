@@ -115,30 +115,30 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
         }
 
         String prompt = character.getAppearance().getCharacterImagePromptEn();
-        log.error("===== [Avatar] START generateCharacterBaseImage =====");
-        log.error("[Avatar] Prompt = {}", prompt);
+        log.info("===== [Avatar] START generateCharacterBaseImage =====");
+        log.info("[Avatar] Prompt = {}", prompt);
 
         try {
             // 2. Avatar API 호출
-            log.error("[Avatar] 요청 시작: generateAvatarWithReference");
+            log.info("[Avatar] 요청 시작: generateAvatarWithReference");
             FluxResponse.FluxEndResponse result = avatarGeneratorService
                     .generateAvatarWithReference(prompt, null, null, true)
                     .block();
-            log.error("[Avatar] 요청 완료, result null 여부 = {}", (result == null));
+            log.info("[Avatar] 요청 완료, result null 여부 = {}", (result == null));
 
             if (result == null) {
-                log.error("[Avatar] result == null, 이미지 생성 실패");
+                log.info("[Avatar] result == null, 이미지 생성 실패");
                 throw new RuntimeException("Avatar API returned null");
             }
 
-            log.error("[Avatar] result.getImgUrl() = {}", result.getImgUrl());
-            log.error("[Avatar] result.getSeed() = {}", result.getSeed());
+            log.info("[Avatar] result.getImgUrl() = {}", result.getImgUrl());
+            log.info("[Avatar] result.getSeed() = {}", result.getSeed());
 
             // 3. 파일 다운로드
-            log.error("[Avatar] 파일 다운로드 시작 (URL={})", result.getImgUrl());
+            log.info("[Avatar] 파일 다운로드 시작 (URL={})", result.getImgUrl());
             handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
 
-                log.error("[Avatar] 다운로드 완료, tempFile exists={}, size={}",
+                log.info("[Avatar] 다운로드 완료, tempFile exists={}, size={}",
                         tempFile.exists(), tempFile.length());
 
                 if (!tempFile.exists() || tempFile.length() == 0) {
@@ -146,16 +146,16 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                 }
 
                 // 4. S3 업로드
-                log.error("[Avatar] S3 업로드 시작");
+                log.info("[Avatar] S3 업로드 시작");
                 String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
                         "character_" + character.getId() + ".png");
-                log.error("[Avatar] S3 업로드 완료, URL={}", s3Url);
+                log.info("[Avatar] S3 업로드 완료, URL={}", s3Url);
 
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
             });
 
-            log.error("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
+            log.info("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
 
         } catch (Exception e) {
             log.error("===== [Avatar] ERROR OCCURRED =====");
