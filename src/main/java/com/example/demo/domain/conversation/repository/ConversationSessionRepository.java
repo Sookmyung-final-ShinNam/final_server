@@ -26,14 +26,15 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
      * - 스토리의 재생성 쵯수가 3번 미만
      */
     @Query("""
-        SELECT cs FROM ConversationSession cs
-             JOIN FETCH cs.story s
-                WHERE cs.currentStep = :step
-                    AND (
-                        s.status IN :fail
-                        OR (s.status IN :stale AND s.updatedAt < :threshold)
+        SELECT cs 
+        FROM ConversationSession cs
+        JOIN FETCH cs.story s
+            WHERE cs.currentStep = :step
+                AND (
+                    s.storyStatus IN :fail
+                    OR (s.storyStatus IN :stale AND s.updatedAt < :threshold)
                     )
-                    AND s.retryCount < 3
+                AND s.retryCount < 3
     """
     )
     List<ConversationSession> findRetryTargetSessions(

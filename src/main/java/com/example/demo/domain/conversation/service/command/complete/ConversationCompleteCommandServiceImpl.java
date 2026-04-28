@@ -44,8 +44,8 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
 
         // 3. 스토리 상태 변경 MAKING 에서는 이어하기 불가
-        if (story.getStatus() == Story.StoryStatus.IN_PROGRESS) {
-            story.setStatus(Story.StoryStatus.MAKING);
+        if (story.getStoryStatus() == Story.StoryStatus.IN_PROGRESS) {
+            story.setStoryStatus(Story.StoryStatus.MAKING);
         }
 
         // 5. 커밋 이후 이벤트 발행: 비동기 작업 (동화 생성) 시작
@@ -73,7 +73,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         // 2. 실패 상태 업데이트
         Story story = storyRepo.findById(storyId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
-        story.setStatus(failedStatus);
+        story.setStoryStatus(failedStatus);
     }
 
     @Override

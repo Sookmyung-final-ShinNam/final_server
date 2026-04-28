@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -45,7 +46,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     private final RunwayService runwayService;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateStoryMedia(Long storyId, String imageType) {
 
         log.info("[Media] generateStoryMedia 시작, storyId={}, imageType={}", storyId, imageType);
@@ -273,10 +274,10 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             Story story = storyRepo.findById(storyId)
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
-            if (story.getStatus() != Story.StoryStatus.IMAGE_COMPLETED) { // 중복 방지
+            if (story.getStoryStatus() != Story.StoryStatus.IMAGE_COMPLETED) { // 중복 방지
 
                 // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
-                story.setStatus(Story.StoryStatus.IMAGE_COMPLETED);
+                story.setStoryStatus(Story.StoryStatus.IMAGE_COMPLETED);
 
                 // 4. 스토리 생성 완료 이벤트 발행
                 Long userId = story.getUser().getId();

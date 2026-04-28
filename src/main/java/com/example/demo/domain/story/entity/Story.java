@@ -35,7 +35,7 @@ public class Story extends BaseEntity {
     // 스토리 상태 (기본값 IN_PROGRESS)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StoryStatus status = StoryStatus.IN_PROGRESS;
+    private StoryStatus storyStatus = StoryStatus.IN_PROGRESS;
 
     public enum StoryStatus {
         IN_PROGRESS, // 세션 진행 중

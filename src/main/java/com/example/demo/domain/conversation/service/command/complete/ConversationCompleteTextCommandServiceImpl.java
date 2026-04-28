@@ -14,7 +14,9 @@ import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Service
@@ -29,13 +31,15 @@ public class ConversationCompleteTextCommandServiceImpl implements ConversationC
     private final LlmClient llmClient;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void completeStoryFromLlm(Long storyId, Long sessionId) {
 
         // 0. 세션 및 스토리 전체 문맥 조회
         ConversationSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
         String context = session.getFullStory();
+
+        log.info("[TEXT] completeStoryFromLlm 진입 storyId={}, sessionId={}", storyId, sessionId);
 
         // 1. LLM 호출 - story_complete.json
         String variable = llmClient.jsonEscape("원본 스토리: " + context);
@@ -113,6 +117,6 @@ public class ConversationCompleteTextCommandServiceImpl implements ConversationC
         characterAppearanceRepo.save(appearance);
 
         // 9. Story 업데이트 - 스토리 정제 완료
-        story.setStatus(Story.StoryStatus.TEXT_COMPLETED);
+        story.setStoryStatus(Story.StoryStatus.TEXT_COMPLETED);
     }
 }

@@ -18,17 +18,17 @@ public class StoryAdminResponseDto {
     private boolean needsVideoLink;
 
     public static StoryAdminResponseDto from(Story story) {
-        boolean needsImage = story.getStatus() == Story.StoryStatus.IMAGE_COMPLETED &&
+        boolean needsImage = story.getStoryStatus() == Story.StoryStatus.IMAGE_COMPLETED &&
                 (story.getImageYoutubeLink() == null || story.getImageYoutubeLink().isBlank());
 
-        boolean needsVideo = story.getStatus() == Story.StoryStatus.IMAGE_COMPLETED &&
+        boolean needsVideo = story.getStoryStatus() == Story.StoryStatus.IMAGE_COMPLETED &&
                 story.getVideoStatus() == com.example.demo.domain.story.entity.StoryPage.VideoStatus.COMPLETED &&
                 (story.getVideoYoutubeLink() == null || story.getVideoYoutubeLink().isBlank());
 
         return StoryAdminResponseDto.builder()
                 .id(story.getId())
                 .title(story.getTitle())
-                .status(story.getStatus().name())
+                .status(story.getStoryStatus().name())
                 .videoStatus(story.getVideoStatus().name())
                 .imageYoutubeLink(story.getImageYoutubeLink())
                 .videoYoutubeLink(story.getVideoYoutubeLink())
