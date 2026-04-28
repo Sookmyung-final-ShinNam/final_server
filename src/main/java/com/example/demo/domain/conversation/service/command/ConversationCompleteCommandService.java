@@ -20,7 +20,7 @@ public interface ConversationCompleteCommandService {
      * 캐릭터 정보 업데이트(성격)
      * 동화 페이지 생성(정리된 내용)
      */
-    void completeStoryFromLlm(Long storyId, String context);
+    void completeStoryFromLlm(Long storyId, Long sessionId);
 
     /**
      * 캐릭터 정보 업데이트(기본 이미지) -> 이미지에서만

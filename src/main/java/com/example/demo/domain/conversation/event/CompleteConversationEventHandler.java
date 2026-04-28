@@ -41,9 +41,11 @@ public class CompleteConversationEventHandler {
         }
 
         // 2. 스토리 정제: LLM 호출 및 Story/Character/StoryPage 업데이트
-        if (story.getStatus() == Story.StoryStatus.MAKING) {
+        if (story.getStatus() == Story.StoryStatus.MAKING ||
+                story.getStatus() == Story.StoryStatus.TEXT_FAILED
+        ) {
             try {
-                conversationCompleteCommandService.completeStoryFromLlm(storyId, event.getContext());
+                conversationCompleteCommandService.completeStoryFromLlm(storyId, event.getSessionId());
                 story = storyRepo.findById(storyId)
                         .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND)); // 스토리 최신 상태 재조회
             } catch (Exception e) {
@@ -56,7 +58,9 @@ public class CompleteConversationEventHandler {
         }
 
         // 3. 이미지 생성: 캐릭터 및 페이지 이미지 생성
-        if (story.getStatus() == Story.StoryStatus.TEXT_COMPLETED) {
+        if (story.getStatus() == Story.StoryStatus.TEXT_COMPLETED ||
+                story.getStatus() == Story.StoryStatus.IMAGE_FAILED
+        ) {
             try {
                 conversationCompleteCommandService.generateStoryMedia(storyId, "image");
             } catch (Exception e) {

@@ -7,5 +7,5 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CompleteConversationEvent {
     private final Long storyId;
-    private final String context;
+    private final Long sessionId;
 }

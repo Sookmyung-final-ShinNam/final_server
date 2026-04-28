@@ -74,16 +74,13 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
             story.setStatus(Story.StoryStatus.MAKING);
         }
 
-        // 4. 스토리 전체 문맥 조회
-        String context = session.getFullStory();
-
         // 5. 커밋 이후 이벤트 발행: 비동기 작업 (동화 생성) 시작
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronizationAdapter() {
                     @Override
                     public void afterCommit() {
                         eventPublisher.publishEvent(
-                                new CompleteConversationEvent(story.getId(), context)
+                                new CompleteConversationEvent(story.getId(), sessionId)
                         );
                     }
                 }
@@ -107,7 +104,11 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
     @Override
     @Transactional
-    public void completeStoryFromLlm(Long storyId, String context) {
+    public void completeStoryFromLlm(Long storyId, Long sessionId) {
+        // 0. 세션 및 스토리 전체 문맥 조회
+        ConversationSession session = sessionRepo.findById(sessionId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
+        String context = session.getFullStory();
 
         // 1. LLM 호출 - story_complete.json
         String variable = llmClient.jsonEscape("원본 스토리: " + context);
