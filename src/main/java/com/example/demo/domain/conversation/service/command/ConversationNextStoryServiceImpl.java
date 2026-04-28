@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Service
@@ -79,8 +81,17 @@ public class ConversationNextStoryServiceImpl implements ConversationNextStorySe
         // 7. prevContext 세팅 (LLM 입력 데이터)
         nextStep.setPrevContext(session.getFullStory());
 
-        // 8. 이벤트 발행
-        eventPublisher.publishEvent(new ConversationNextStoryEvent(nextStep.getId()));
+        // 8. llm 호출 - commit 이후 이벤트 발행
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        eventPublisher.publishEvent(
+                                new ConversationNextStoryEvent(nextStep.getId())
+                        );
+                    }
+                }
+        );
 
     }
 

@@ -87,7 +87,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         // 8. Session 초기 구조 생성 (기/승/전/결 + Slot preload)
         initializeSessionState(session, startText);
 
-        // 9. 기 단계 사전 생성 - 비동기
+        // 9. 기 단계 사전 생성 - commit 이후 이벤트 발행
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronizationAdapter() {
                     @Override
