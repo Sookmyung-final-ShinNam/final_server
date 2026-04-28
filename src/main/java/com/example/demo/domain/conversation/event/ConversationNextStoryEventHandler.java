@@ -32,7 +32,7 @@ public class ConversationNextStoryEventHandler {
         SessionStep step = stepRepo.findWithSlotsById(event.getStepId())
                 .orElseThrow(() -> new CustomException(ErrorStatus.STEP_NOT_FOUND));
 
-        // ✅ idempotency (중복 방지 핵심)
+        // idempotency (중복 방지)
         if (step.getNextStory() != null) {
             log.info("[SKIP] already processed stepId={}", step.getId());
             return;
