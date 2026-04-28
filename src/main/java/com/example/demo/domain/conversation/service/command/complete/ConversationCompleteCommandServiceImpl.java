@@ -76,4 +76,26 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         story.setStatus(failedStatus);
     }
+
+    @Override
+    @Transactional
+    public void retryFailedStories(Long storyId, Long sessionId) {
+
+        // 1. Story 조회 및 재생성 횟수 업데이트
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+        story.setRetryCount(story.getRetryCount() + 1);
+
+        // 2. 스토리 생성 이벤트 발행
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        eventPublisher.publishEvent(
+                                new CompleteConversationEvent(storyId, sessionId)
+                        );
+                    }
+                }
+        );
+    }
 }

@@ -2,8 +2,8 @@ package com.example.demo.domain.story.scheduler;
 
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
 import com.example.demo.domain.story.entity.Story;
-import com.example.demo.domain.story.service.command.StoryCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,7 +18,7 @@ import java.util.List;
 public class StoryRetryScheduler {
 
     final private ConversationSessionRepository sessionRepo;
-    final private StoryCommandService storyCommandService;
+    final private ConversationCompleteCommandService conversationCompleteCommandService;
 
     /**
      * 매일 자정 스토리 재생성 배치 시작
@@ -47,7 +47,7 @@ public class StoryRetryScheduler {
         for (ConversationSession session : targetSessions) {
             Story story = session.getStory();
 
-            storyCommandService.retryFailedStories(story.getId(), session.getId()); // 횟수 증가 및 이벤트 발행
+            conversationCompleteCommandService.retryFailedStories(story.getId(), session.getId()); // 횟수 증가 및 이벤트 발행
             log.info("[BATCH] 스토리 재생성 이벤트 발행 storyId={}, sessionId={}", story.getId(), session.getId());
         }
 
