@@ -3,6 +3,8 @@ package com.example.demo.domain.conversation.event;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
+import com.example.demo.domain.conversation.service.command.ConversationCompleteMediaCommandService;
+import com.example.demo.domain.conversation.service.command.ConversationCompleteTextCommandService;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class CompleteConversationEventHandler {
 
     private final StoryRepository storyRepo;
+    private final ConversationCompleteTextCommandService conversationCompleteTextCommandService;
+    private final ConversationCompleteMediaCommandService conversationCompleteMediaCommandService;
     private final ConversationCompleteCommandService conversationCompleteCommandService;
 
     /**
@@ -45,7 +49,7 @@ public class CompleteConversationEventHandler {
                 story.getStatus() == Story.StoryStatus.TEXT_FAILED
         ) {
             try {
-                conversationCompleteCommandService.completeStoryFromLlm(storyId, event.getSessionId());
+                conversationCompleteTextCommandService.completeStoryFromLlm(storyId, event.getSessionId());
                 story = storyRepo.findById(storyId)
                         .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND)); // 스토리 최신 상태 재조회
             } catch (Exception e) {
@@ -62,7 +66,7 @@ public class CompleteConversationEventHandler {
                 story.getStatus() == Story.StoryStatus.IMAGE_FAILED
         ) {
             try {
-                conversationCompleteCommandService.generateStoryMedia(storyId, "image");
+                conversationCompleteMediaCommandService.generateStoryMedia(storyId, "image");
             } catch (Exception e) {
                 // 이미지 생성 실패 처리
                 log.error("[END EVENT(CompleteConversationEvent)] 이미지 생성 실패 storyId={}", storyId, e);

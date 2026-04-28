@@ -1,6 +1,6 @@
 package com.example.demo.domain.conversation.service.async;
 
-import com.example.demo.domain.conversation.service.command.ConversationCompleteCommandService;
+import com.example.demo.domain.conversation.service.command.ConversationCompleteMediaCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -12,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ConversationAsyncServiceImpl implements ConversationAsyncService {
 
-    private final ConversationCompleteCommandService conversationCompleteCommandService;
+    private final ConversationCompleteMediaCommandService conversationCompleteMediaCommandService;
 
     @Async
     @Override
     @Transactional
     public void generateStoryVideo(Long storyId) {
-        conversationCompleteCommandService.generateStoryMedia(storyId, "video");
+        conversationCompleteMediaCommandService.generateStoryMedia(storyId, "video");
         System.out.println("비동기 작업 완료: storyId=" + storyId + " 동영상 생성 완료");
     }
 }
