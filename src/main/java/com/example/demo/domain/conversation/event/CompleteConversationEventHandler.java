@@ -29,8 +29,7 @@ public class CompleteConversationEventHandler {
         log.info("[START EVENT(CompleteConversationEvent)] storyId={}", storyId);
 
         // 1. 스토리 상태 조회
-        if (storyStatus == Story.StoryStatus.READY_IMAGE ||
-                storyStatus == Story.StoryStatus.READY_VIDEO) {
+        if (storyStatus == Story.StoryStatus.IMAGE_COMPLETED || storyStatus == Story.StoryStatus.VIDEO_COMPLETED) {
             log.info("이미 이미지까지 생성된 스토리: storyId={}", storyId);
             return;
         }
@@ -42,7 +41,7 @@ public class CompleteConversationEventHandler {
         }
 
         // 3. 이미지 생성: 캐릭터 및 페이지 이미지 생성
-        if (storyStatus == Story.StoryStatus.COMPLETED) {
+        if (storyStatus == Story.StoryStatus.TEXT_COMPLETED) {
             conversationCompleteCommandService.generateStoryMedia(storyId, "image");
         }
 

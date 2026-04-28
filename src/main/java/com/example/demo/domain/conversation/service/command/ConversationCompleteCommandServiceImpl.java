@@ -168,7 +168,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         appearance.setCharacterImagePromptEn(characterImagePromptEn);
         characterAppearanceRepo.save(appearance);
 
-        story.setStatus(Story.StoryStatus.COMPLETED); // 스토리 상태 업데이트 - 스토리 정제 완료
+        story.setStatus(Story.StoryStatus.TEXT_COMPLETED); // 스토리 상태 업데이트 - 스토리 정제 완료
     }
 
     @Override
@@ -400,10 +400,10 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
             Story story = storyRepo.findById(storyId)
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
-            if (story.getStatus() != Story.StoryStatus.READY_IMAGE) { // 중복 방지
+            if (story.getStatus() != Story.StoryStatus.IMAGE_COMPLETED) { // 중복 방지
 
                 // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
-                story.setStatus(Story.StoryStatus.READY_IMAGE);
+                story.setStatus(Story.StoryStatus.IMAGE_COMPLETED);
 
                 // 4. 스토리 생성 완료 이벤트 발행
                 Long userId = story.getUser().getId();
