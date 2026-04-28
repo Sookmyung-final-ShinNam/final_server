@@ -1,12 +1,19 @@
 package com.example.demo.domain.conversation.service.command;
 
+import com.example.demo.domain.story.entity.Story;
+
 public interface ConversationCompleteCommandService {
 
     /**
-     * 대화 완료(COMPLETED) 확인 후 스토리 업데이트 (상태-MAKING)
-     * 스토리 생성 이벤트 발행
+     * 대화 완료(COMPLETED) 확인 후,
+     * 스토리 상태 업데이트 및 스토리 생성 이벤트 발행
      */
-    void completeConversation(Long sessionId);
+    void completeStory(Long sessionId);
+
+    /**
+     * 스토리 생성 진행 실패 -> 스토리 상태 업데이트
+     */
+    void failStory(Long storyId, Story.StoryStatus failedStatus);
 
     /**
      * 동화 정보 업데이트(제목, 3줄 요약)

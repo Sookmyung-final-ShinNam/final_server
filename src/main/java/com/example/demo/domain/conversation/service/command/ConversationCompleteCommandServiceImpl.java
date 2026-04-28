@@ -17,12 +17,13 @@ import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.entity.StoryPage;
 import com.example.demo.domain.story.repository.StoryPageRepository;
 import com.example.demo.domain.story.repository.StoryRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -53,7 +54,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
     @Override
     @Transactional
-    public void completeConversation(Long sessionId) {
+    public void completeStory(Long sessionId) {
 
         // 1. Story 및 Session 조회
         Story story = storyRepo.findByStorySessions_Id(sessionId)
@@ -87,6 +88,21 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     }
                 }
         );
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void failStory(Long storyId, Story.StoryStatus failedStatus) {
+
+        // 1. 실패 상테 해당하는 enum 값 검증
+        if (!failedStatus.isFailedStatus()) {
+            throw new CustomException(ErrorStatus.STORY_INVALID_STATUS);
+        }
+
+        // 2. 실패 상태 업데이트
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+        story.setStatus(failedStatus);
     }
 
     @Override

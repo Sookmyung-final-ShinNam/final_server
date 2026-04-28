@@ -20,38 +20,53 @@ public class CompleteConversationEventHandler {
     private final StoryRepository storyRepo;
     private final ConversationCompleteCommandService conversationCompleteCommandService;
 
+    /**
+     * 스토리 생성 이벤트 핸들러
+     * - 현재 스토리 상태에 따라 필요 작업 수행
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(CompleteConversationEvent event) {
 
         Long storyId = event.getStoryId();
-        Story.StoryStatus storyStatus = getCurrentStatus(storyId);
         log.info("[START EVENT(CompleteConversationEvent)] storyId={}", storyId);
 
-        // 1. 스토리 상태 조회
-        if (storyStatus == Story.StoryStatus.IMAGE_COMPLETED || storyStatus == Story.StoryStatus.VIDEO_COMPLETED) {
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+
+        // 1. 이미 완료된 스토리 작업 생략
+        if (story.getStatus().isCompletedStatus()) {
             log.info("이미 이미지까지 생성된 스토리: storyId={}", storyId);
             return;
         }
 
         // 2. 스토리 정제: LLM 호출 및 Story/Character/StoryPage 업데이트
-        if (storyStatus == Story.StoryStatus.MAKING) {
-            conversationCompleteCommandService.completeStoryFromLlm(storyId, event.getContext());
-            storyStatus = getCurrentStatus(storyId); // 스토리 최신 상태 재조회
+        if (story.getStatus() == Story.StoryStatus.MAKING) {
+            try {
+                conversationCompleteCommandService.completeStoryFromLlm(storyId, event.getContext());
+                story = storyRepo.findById(storyId)
+                        .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND)); // 스토리 최신 상태 재조회
+            } catch (Exception e) {
+                // 스토리 정제 실패 처리
+                log.error("[END EVENT(CompleteConversationEvent)] 스토리 정제 실패 storyId={}", storyId, e);
+                conversationCompleteCommandService.failStory(storyId, Story.StoryStatus.TEXT_FAILED);
+                return;
+            }
+
         }
 
         // 3. 이미지 생성: 캐릭터 및 페이지 이미지 생성
-        if (storyStatus == Story.StoryStatus.TEXT_COMPLETED) {
-            conversationCompleteCommandService.generateStoryMedia(storyId, "image");
+        if (story.getStatus() == Story.StoryStatus.TEXT_COMPLETED) {
+            try {
+                conversationCompleteCommandService.generateStoryMedia(storyId, "image");
+            } catch (Exception e) {
+                // 이미지 생성 실패 처리
+                log.error("[END EVENT(CompleteConversationEvent)] 이미지 생성 실패 storyId={}", storyId, e);
+                conversationCompleteCommandService.failStory(storyId, Story.StoryStatus.IMAGE_FAILED);
+                return;
+            }
         }
 
         log.info("[END EVENT(CompleteConversationEvent)] storyId={}", storyId);
-    }
-
-    // 스토리 상태 조회
-    private Story.StoryStatus getCurrentStatus(Long storyId) {
-        Story story = storyRepo.findById(storyId).orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
-
-        return story.getStatus();
     }
 }

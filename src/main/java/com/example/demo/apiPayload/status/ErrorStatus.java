@@ -48,12 +48,12 @@ public enum ErrorStatus implements BaseErrorCode {
     // 피드백 관련 에러
     FEEDBACK_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "FEEDBACK_4001", "이미 GOOD 피드백이 완료된 메시지입니다. 더 이상 피드백을 보낼 수 없습니다."),
 
-    // SESSION
+    // SESSION 관련 에러
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
     STEP_INVALID_ACCESS(HttpStatus.FORBIDDEN, "STEP_4013", "현재 단계가 아닙니다."),
     SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "현재 세션 상태에서는 해당 작업을 수행할 수 없습니다."),
 
-    // STEP
+    // STEP 관련 에러
     STEP_NOT_FOUND(HttpStatus.NOT_FOUND, "STEP_4004", "해당 스텝을 찾을 수 없습니다."),
     STEP_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4011", "이전 스탭이 완료되지 않았습니다."),
 
@@ -61,6 +61,7 @@ public enum ErrorStatus implements BaseErrorCode {
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),
     STORY_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STORY_4006", "완성된 동화만 접근할 수 있습니다."),
     STORY_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4005", "해당 동화 페이지를 찾을 수 없습니다."),
+    STORY_INVALID_STATUS(HttpStatus.INTERNAL_SERVER_ERROR, "STORY_5001", "유효하지 않은 동화 상태입니다."),
 
     // 이미지, 동영상 API 관련 에러
     MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType 은 image 또는 video 여야 합니다."),

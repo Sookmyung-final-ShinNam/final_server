@@ -115,10 +115,8 @@ public class ConversationController extends AuthController {
             @RequestParam Long sessionId
     ) {
         // 대화 완료 확인 후 동화 생성
-        conversationCompleteCommandService.completeConversation(sessionId);
+        conversationCompleteCommandService.completeStory(sessionId);
 
-        // 비동기 호출 - Story 이야기 정제 및 이미지 생성
-//        conversationAsyncService.completeStory(sessionId);
         return ApiResponse.of(SuccessStatus._OK);
     }
 
