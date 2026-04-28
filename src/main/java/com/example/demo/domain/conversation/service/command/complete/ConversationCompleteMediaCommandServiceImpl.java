@@ -3,9 +3,9 @@ package com.example.demo.domain.conversation.service.command.complete;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.StoryCharacter;
-import com.example.demo.domain.conversation.event.PageImageCompletedEvent;
-import com.example.demo.domain.conversation.event.PageImageStartedEvent;
-import com.example.demo.domain.conversation.event.StoryCompletedEvent;
+import com.example.demo.domain.conversation.event.CompletePageImageEvent;
+import com.example.demo.domain.conversation.event.StartPageImageEvent;
+import com.example.demo.domain.conversation.event.CompleteStoryEvent;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
 import com.example.demo.domain.conversation.service.model.image.FluxResponse;
@@ -191,7 +191,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                     public void afterCommit() {
                         for (Long pageId : pageIds) {
                             eventPublisher.publishEvent(
-                                    new PageImageStartedEvent(storyId, pageId, basePrompt, seed)
+                                    new StartPageImageEvent(storyId, pageId, basePrompt, seed)
                             );
                         }
                     }
@@ -246,7 +246,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                     new TransactionSynchronizationAdapter() {
                         @Override
                         public void afterCommit() {
-                            eventPublisher.publishEvent(new PageImageCompletedEvent(storyId));
+                            eventPublisher.publishEvent(new CompletePageImageEvent(storyId));
                         }
                     }
             );
@@ -285,7 +285,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                             @Override
                             public void afterCommit() {
                                 eventPublisher.publishEvent(
-                                        new StoryCompletedEvent(this, storyId, userId)
+                                        new CompleteStoryEvent(storyId, userId)
                                 );
                             }
                         }

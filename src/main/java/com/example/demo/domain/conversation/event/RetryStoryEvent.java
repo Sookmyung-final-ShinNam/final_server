@@ -5,9 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class PageImageStartedEvent {
+public class RetryStoryEvent {
     private final Long storyId;
-    private final Long pageId;
-    private final String basePrompt;
-    private final Long seed;
+    private final Long sessionId;
 }

@@ -10,7 +10,6 @@ import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
@@ -92,7 +91,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
                     @Override
                     public void afterCommit() {
                         eventPublisher.publishEvent(
-                                new CompleteConversationEvent(storyId, sessionId)
+                                new RetryStoryEvent(storyId, sessionId)
                         );
                     }
                 }

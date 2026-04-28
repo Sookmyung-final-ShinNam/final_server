@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class PageImageCompletedEvent {
+public class CompleteStoryEvent {
     private final Long storyId;
+    private final Long userId;
 }
