@@ -4,8 +4,9 @@ import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
-import com.example.demo.domain.conversation.service.command.ConversationFeedbackCommandService;
-import com.example.demo.domain.conversation.service.command.ConversationStartCommandService;
+import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
+import com.example.demo.domain.conversation.service.command.feedback.ConversationFeedbackCommandService;
+import com.example.demo.domain.conversation.service.command.start.ConversationStartCommandService;
 import com.example.demo.domain.conversation.service.query.ConversationQueryService;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
@@ -30,6 +31,7 @@ public class ConversationController extends AuthController {
     private final ConversationQueryService conversationQueryService;
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
+    private final ConversationCompleteCommandService conversationCompleteCommandService;
     private final ConversationAsyncService conversationAsyncService;
     private final StoryCommandService storyCommandService;
 
@@ -73,10 +75,7 @@ public class ConversationController extends AuthController {
            @RequestParam Long sessionId,
            @RequestParam ConversationSession.ConversationStep currentStep
    ) {
-       return ApiResponse.of(
-               SuccessStatus._OK,
-               conversationQueryService.getNextStepMessage(sessionId, currentStep)
-       );
+       return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getNextStepMessage(sessionId, currentStep));
    }
 
     @Operation(
@@ -100,7 +99,8 @@ public class ConversationController extends AuthController {
     @Operation(
             summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
             description = """
-                    동기 - 바로 응답을 줍니다.
+                    동기  -  정합성 확인 후 바로 응답을 줍니다.
+                    
                     비동기 - 내용 기반으로 아래 정보들을 업데이트/생성합니다.
                             - 동화 정보 업데이트(제목, 3줄 요약)
                             - 캐릭터 정보 업데이트(성격, 기본 이미지)
@@ -114,7 +114,9 @@ public class ConversationController extends AuthController {
     public ApiResponse<Void> storyComplete(
             @RequestParam Long sessionId
     ) {
-        conversationAsyncService.storyComplete(sessionId);
+        // 대화 완료 확인 후 동화 생성
+        conversationCompleteCommandService.completeStory(sessionId);
+
         return ApiResponse.of(SuccessStatus._OK);
     }
 

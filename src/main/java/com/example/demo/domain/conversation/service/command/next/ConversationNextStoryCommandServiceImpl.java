@@ -1,4 +1,4 @@
-package com.example.demo.domain.conversation.service.command;
+package com.example.demo.domain.conversation.service.command.next;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
@@ -18,7 +18,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ConversationNextStoryServiceImpl implements ConversationNextStoryService {
+public class ConversationNextStoryCommandServiceImpl implements ConversationNextStoryCommandService {
 
     private final ConversationSessionRepository sessionRepo;
     private final SessionStepRepository stepRepo;

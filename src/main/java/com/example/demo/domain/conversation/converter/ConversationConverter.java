@@ -14,7 +14,7 @@ public class ConversationConverter {
     public Story toStory(User user) {
         return Story.builder()
                 .user(user)
-                .status(Story.StoryStatus.IN_PROGRESS)
+                .storyStatus(Story.StoryStatus.IN_PROGRESS)
                 .videoStatus(StoryPage.VideoStatus.NONE)
                 .dashboardApplied(false)
                 .build();

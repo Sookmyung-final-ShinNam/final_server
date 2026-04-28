@@ -29,6 +29,16 @@ public class StoryPage {
     @Column(name = "content_en", columnDefinition = "TEXT")
     private String contentEn;
 
+    // 페이지 생성 상태
+    @Enumerated(EnumType.STRING)
+    @Column(name = "page_status", nullable = false)
+    private PageStatus status = PageStatus.TEXT;
+
+    public enum PageStatus {
+        TEXT,
+        IMAGE
+    }
+
     // 페이지 이미지 URL
     @Column(name = "image_url", length = 500)
     private String imageUrl;

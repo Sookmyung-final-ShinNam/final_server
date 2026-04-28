@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface StoryPageRepository extends JpaRepository<StoryPage, Long> {
     Optional<StoryPage> findByStory_IdAndPageNumber(Long storyId, int pageNumber);
+
+    // 페이지 이미지 생성 완료 개수 조회
+    int countByStoryIdAndStatus(Long storyId, StoryPage.PageStatus status);
 }

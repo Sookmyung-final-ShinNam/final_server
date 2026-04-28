@@ -1,24 +1,27 @@
-package com.example.demo.domain.conversation.service.command;
+package com.example.demo.domain.conversation.service.command.complete;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
-import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
-import com.example.demo.domain.character.repository.CharacterAppearanceRepository;
+import com.example.demo.domain.conversation.event.CompletePageImageEvent;
+import com.example.demo.domain.conversation.event.StartPageImageEvent;
+import com.example.demo.domain.conversation.event.CompleteStoryEvent;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
 import com.example.demo.domain.conversation.service.model.image.FluxResponse;
-import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import com.example.demo.domain.conversation.service.model.video.RunwayService;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.entity.StoryPage;
 import com.example.demo.domain.story.repository.StoryPageRepository;
 import com.example.demo.domain.story.repository.StoryRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,102 +29,24 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ConversationCompleteCommandServiceImpl implements ConversationCompleteCommandService {
+public class ConversationCompleteMediaCommandServiceImpl implements ConversationCompleteMediaCommandService {
 
     private final StoryPageRepository storyPageRepo;
-    private final StoryRepository storyRepository;
-    private final CharacterAppearanceRepository characterAppearanceRepo;
+    private final StoryRepository storyRepo;
 
-    private final LlmClient llmClient;
+    private final ApplicationEventPublisher eventPublisher;
+
     private final S3Uploader s3Uploader;
-
     private final AvatarGeneratorService avatarGeneratorService;
     private final RunwayService runwayService;
 
     @Override
-    @Transactional
-    public void completeStoryFromLlm(Story story, String context) {
-
-        // 1. LLM 호출 - story_complete.json
-        String variable = llmClient.jsonEscape("원본 스토리: " + context);
-        String prompt = llmClient.buildPrompt("story_complete.json", variable);
-        String completeResponse = llmClient.callChatGpt(prompt);
-
-        // 2. LLM 응답 파싱
-        String title = llmClient.extractFieldValue(completeResponse, "title");
-        String summary = llmClient.extractFieldValue(completeResponse, "summary");
-        String characterPersonality = llmClient.extractFieldValue(completeResponse, "characterPersonality");
-        String firstPage = llmClient.extractFieldValue(completeResponse, "firstPage");
-        String secondPage = llmClient.extractFieldValue(completeResponse, "secondPage");
-        String thirdPage = llmClient.extractFieldValue(completeResponse, "thirdPage");
-        String fourthPage = llmClient.extractFieldValue(completeResponse, "fourthPage");
-
-        // 3. Story 업데이트
-        story.setTitle(title);
-        story.setDescription(summary);
-
-        // 4. Character 업데이트
-        story.getCharacter().setPersonality(characterPersonality);
-
-        // 5. LLM 호출 - story_for_image.json
-        variable = llmClient.jsonEscape(
-                "title: " + title +
-                        ", summary: " + summary +
-                        ", characterName: " + story.getCharacter().getName() +
-                        ", characterAge: " + story.getCharacter().getAge() +
-                        ", characterGender: " + story.getCharacter().getGender() +
-                        ", characterEyeColor: " + story.getCharacter().getAppearance().getEyeColor() +
-                        ", characterHairColor:" + story.getCharacter().getAppearance().getHairColor() +
-                        ", characterHairStyle:" + story.getCharacter().getAppearance().getHairStyle() +
-                        ", characterPersonality:" + characterPersonality +
-                        ", storyTheme: " + story.getStoryThemes() +
-                        ", storyBackground: " + story.getStoryBackgrounds() +
-                        ", firstPage:" + firstPage +
-                        ", secondPage:" + secondPage +
-                        ", thirdPage: " + thirdPage +
-                        ", fourthPage:" + fourthPage
-        );
-        prompt = llmClient.buildPrompt("story_for_image.json", variable);
-        String imageResponse = llmClient.callChatGpt(prompt);
-
-        // 6. LLM 응답 파싱
-        String firstPageEn = llmClient.extractFieldValue(imageResponse, "firstPageEn");
-        String secondPageEn = llmClient.extractFieldValue(imageResponse, "secondPageEn");
-        String thirdPageEn = llmClient.extractFieldValue(imageResponse, "thirdPageEn");
-        String fourthPageEn = llmClient.extractFieldValue(imageResponse, "fourthPageEn");
-        String characterPromptEn = llmClient.extractFieldValue(imageResponse, "characterPromptEn");
-        String characterImagePromptEn = llmClient.extractFieldValue(imageResponse, "characterImagePromptEn");
-
-        // 7. StoryPage 저장
-        String[] pages = {firstPage, secondPage, thirdPage, fourthPage};
-        String[] pagesEn = {firstPageEn, secondPageEn, thirdPageEn, fourthPageEn};
-
-        for (int i = 0; i < pages.length; i++) {
-            StoryPage page = StoryPage.builder()
-                    .pageNumber(i + 1)
-                    .content(pages[i])
-                    .contentEn(pagesEn[i])
-                    .videoStatus(StoryPage.VideoStatus.NONE)
-                    .story(story)
-                    .build();
-
-            story.getStoryPages().add(page);
-            storyPageRepo.save(page);
-        }
-
-        // 8. CharacterAppearance 업데이트
-        CharacterAppearance appearance = story.getCharacter().getAppearance();
-        appearance.setCharacterPromptEn(characterPromptEn);
-        appearance.setCharacterImagePromptEn(characterImagePromptEn);
-        characterAppearanceRepo.save(appearance);
-    }
-
-    @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generateStoryMedia(Long storyId, String imageType) {
 
         log.info("[Media] generateStoryMedia 시작, storyId={}, imageType={}", storyId, imageType);
@@ -129,19 +54,24 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         // 1. imageType 유효성 검사
         validateImageType(imageType);
 
-        Story story = storyRepository.findById(storyId)
+        Story story = storyRepo.findById(storyId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         StoryCharacter character = story.getCharacter();
 
-        // 2. 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
+        // 페이지별 미디어 생성 (이미지 or 영상) - (S3 업로드 포함)
         if (isImage(imageType)) {
-            // 캐릭터 기본 이미지 생성
+            // -- 이미지 생성
+            // 2-1. 캐릭터 이미지 생성 및 상태 업테이트
             generateCharacterBaseImage(character);
-            // 스토리 페이지별 이미지 생성
-            generateStoryImages(story, character);
+            character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
+
+            // 2-2. 스토리 페이지 이미지 생성
+            generateStoryImages(story, character); // 페이지별 생성 이벤트 발행
         } else {
+            // -- 동영상 생성
             // 스토리 페이지별 동영상 생성
             generateStoryVideos(story, character);
+
             // 동영상 생성 여부 업데이트
             for (StoryPage page : story.getStoryPages()) {
                 if (page.getVideoUrl() != null && page.getVideoUrl().endsWith(".mp4")) {
@@ -177,49 +107,55 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
      * - 캐릭터 대표 이미지 URL 저장
      */
     private void generateCharacterBaseImage(StoryCharacter character) {
-        
+
+        // 1. 이미 생성된 이미지의 경우 다시 생성 X
+        if (character.getImageUrl() != null && !character.getImageUrl().isBlank()) {
+            log.error("===== [Avatar] 캐릭터 이미지 이미 생성됨, characterId={} =====", character.getId());
+            return;
+        }
+
         String prompt = character.getAppearance().getCharacterImagePromptEn();
-        log.error("===== [Avatar] START generateCharacterBaseImage =====");
-        log.error("[Avatar] Prompt = {}", prompt);
+        log.info("===== [Avatar] START generateCharacterBaseImage =====");
+        log.info("[Avatar] Prompt = {}", prompt);
 
         try {
-            // 1. Avatar API 호출
-            log.error("[Avatar] 요청 시작: generateAvatarWithReference");
+            // 2. Avatar API 호출
+            log.info("[Avatar] 요청 시작: generateAvatarWithReference");
             FluxResponse.FluxEndResponse result = avatarGeneratorService
                     .generateAvatarWithReference(prompt, null, null, true)
                     .block();
-            log.error("[Avatar] 요청 완료, result null 여부 = {}", (result == null));
+            log.info("[Avatar] 요청 완료, result null 여부 = {}", (result == null));
 
             if (result == null) {
-                log.error("[Avatar] result == null, 이미지 생성 실패");
+                log.info("[Avatar] result == null, 이미지 생성 실패");
                 throw new RuntimeException("Avatar API returned null");
             }
 
-            log.error("[Avatar] result.getImgUrl() = {}", result.getImgUrl());
-            log.error("[Avatar] result.getSeed() = {}", result.getSeed());
+            log.info("[Avatar] result.getImgUrl() = {}", result.getImgUrl());
+            log.info("[Avatar] result.getSeed() = {}", result.getSeed());
 
-            // 2. 파일 다운로드
-            log.error("[Avatar] 파일 다운로드 시작 (URL={})", result.getImgUrl());
+            // 3. 파일 다운로드
+            log.info("[Avatar] 파일 다운로드 시작 (URL={})", result.getImgUrl());
             handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
 
-                log.error("[Avatar] 다운로드 완료, tempFile exists={}, size={}",
+                log.info("[Avatar] 다운로드 완료, tempFile exists={}, size={}",
                         tempFile.exists(), tempFile.length());
 
                 if (!tempFile.exists() || tempFile.length() == 0) {
                     throw new RuntimeException("Downloaded temp file is empty");
                 }
 
-                // 3. S3 업로드
-                log.error("[Avatar] S3 업로드 시작");
+                // 4. S3 업로드
+                log.info("[Avatar] S3 업로드 시작");
                 String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
                         "character_" + character.getId() + ".png");
-                log.error("[Avatar] S3 업로드 완료, URL={}", s3Url);
+                log.info("[Avatar] S3 업로드 완료, URL={}", s3Url);
 
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
             });
 
-            log.error("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
+            log.info("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
 
         } catch (Exception e) {
             log.error("===== [Avatar] ERROR OCCURRED =====");
@@ -232,27 +168,131 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
     }
 
     /**
-     * 스토리 각 페이지별 이미지 생성
-     * - 캐릭터 seed 사용 → 일관된 스타일 유지
-     * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     * 스토리 페이지 이미지 생성
+     * - 캐릭터 basePrompt, seed 사용 → 일관된 스타일 유지
+     * - 페이지별 생성 이벤트 발행함으로써 이미지 생성
      */
     private void generateStoryImages(Story story, StoryCharacter character) {
 
+        // 1. 고정 값 조회
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
+        Long seed = character.getAppearance().getCharacterSeed(); // 캐릭터 고정 시드
+        Long storyId = story.getId();
 
-        for (StoryPage page : story.getStoryPages()) {
+        // 2. 페이지 id만 추출
+        List<Long> pageIds = story.getStoryPages().stream()
+                .filter(page -> page.getStatus() == StoryPage.PageStatus.TEXT)
+                .map(StoryPage::getId)
+                .toList();
 
+        // 3. 페이지별 이미지 생성 이벤트 발행 → 리스너 generatePageImage 처리
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronizationAdapter() {
+                    @Override
+                    public void afterCommit() {
+                        for (Long pageId : pageIds) {
+                            eventPublisher.publishEvent(
+                                    new StartPageImageEvent(storyId, pageId, basePrompt, seed)
+                            );
+                        }
+                    }
+                }
+        );
+    }
+
+    /**
+     * 이미지 생성 이벤트 처리 로직
+     * - 스토리 각 페이지별 이미지 생성 및 상태 업데이트
+     * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     */
+    @Override
+    @Transactional
+    public void generateStoryImage(Long storyId, Long pageId, String basePrompt, Long seed) {
+
+        // 1. Page 조회
+        StoryPage page = storyPageRepo.findById(pageId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
+
+        // 2. Page 상태가 TEXT인지 확인
+        if (page.getStatus() != StoryPage.PageStatus.TEXT) {
+            log.info("===== [Page] {}번째 페이지 이미지 이미 생성됨: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+            return;
+        }
+
+        // 3. 이미지 생성 시작
+        log.info("===== [Page] {}번째 페이지 이미지 생성 시작: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+
+        try {
+            // 4. 이미지 API 호출
             FluxResponse.FluxEndResponse result = avatarGeneratorService
-                    .generateAvatarWithReference(basePrompt, page.getContentEn(), character.getAppearance().getCharacterSeed(), false)
+                    .generateAvatarWithReference(basePrompt, page.getContentEn(), seed, false)
                     .block();
 
+            // 5. S3 업로드
             if (result != null) {
-                handleFileWithTemp(result.getImgUrl(), story.getId(), page.getPageNumber(), tempFile -> {
+                handleFileWithTemp(result.getImgUrl(), storyId, page.getPageNumber(), tempFile -> {
                     String s3Url = s3Uploader.uploadFileFromFile(tempFile,
-                            "stories/" + story.getId(),
+                            "stories/" + storyId,
                             "page_" + page.getPageNumber() + ".png");
                     page.setImageUrl(s3Url);
                 });
+            }
+
+            // 6. DB 저장 (Page.status = IMAGE)
+            page.setStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
+            log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+
+            // 7. 이미지 생성 완료 이벤트 발행 → 리스너 aggregateStoryPage 처리
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            eventPublisher.publishEvent(new CompletePageImageEvent(storyId));
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            log.error("===== [Page] {}번째 페이지 ERROR OCCURRED: pageId = {} =====", page.getPageNumber(), page.getId(), e);
+            throw e;  // CustomException 던지지 말고 원본 예외 그대로
+        }
+    }
+
+    /**
+     * 이미지 생성 완료 이벤트 처리 로직
+     * - 이미지 생성 완료된 페이지 개수 확인
+     * - 이후 스토리 상태 업데이트
+     */
+    @Override
+    @Transactional
+    public void aggregateStoryPage(Long storyId) {
+
+        // 1. 이미지 생성 완료된 페이지 개수 조회
+        int imageCount = storyPageRepo.countByStoryIdAndStatus(storyId, StoryPage.PageStatus.IMAGE);
+
+        // 2. 모든 페이지가 모두 생성 완료된 경우 스토리 상태 업데이트 (페이지 개수 = 4)
+        if(imageCount == 4) {
+            Story story = storyRepo.findById(storyId)
+                    .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+
+            if (story.getStoryStatus() != Story.StoryStatus.IMAGE_COMPLETED) { // 중복 방지
+
+                // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
+                story.setStoryStatus(Story.StoryStatus.IMAGE_COMPLETED);
+
+                // 4. 스토리 생성 완료 이벤트 발행
+                Long userId = story.getUser().getId();
+                TransactionSynchronizationManager.registerSynchronization(
+                        new TransactionSynchronizationAdapter() {
+                            @Override
+                            public void afterCommit() {
+                                eventPublisher.publishEvent(
+                                        new CompleteStoryEvent(storyId, userId)
+                                );
+                            }
+                        }
+                );
+
+                log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
             }
         }
     }
@@ -360,5 +400,4 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         }
         return tempFile;
     }
-
 }
