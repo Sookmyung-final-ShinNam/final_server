@@ -1,6 +1,6 @@
 package com.example.demo.domain.conversation.event;
 
-import com.example.demo.domain.conversation.service.command.ConversationNextStoryService;
+import com.example.demo.domain.conversation.service.command.ConversationNextStoryCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -13,7 +13,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class StartConversationEventHandler {
 
-    private final ConversationNextStoryService conversationNextStoryService;
+    private final ConversationNextStoryCommandService conversationNextStoryCommandService;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -21,6 +21,6 @@ public class StartConversationEventHandler {
 
         log.info("[START EVENT] sessionId={}", event.getSessionId());
 
-        conversationNextStoryService.startNextStep(event.getSessionId());
+        conversationNextStoryCommandService.startNextStep(event.getSessionId());
     }
 }

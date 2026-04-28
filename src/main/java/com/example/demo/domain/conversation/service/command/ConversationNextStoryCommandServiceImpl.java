@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ConversationNextStoryServiceImpl implements ConversationNextStoryService {
+public class ConversationNextStoryCommandServiceImpl implements ConversationNextStoryCommandService {
 
     private final ConversationSessionRepository sessionRepo;
     private final SessionStepRepository stepRepo;
