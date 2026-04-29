@@ -32,4 +32,13 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     """)
     List<Story> findIncompleteStoriesForAdmin();
 
+    // 관리자용 - 스토리 재생성 배치 실패 동화 조회 (배치 횟수 3회 이상이고, 완성 상태가 아닌 동화)
+    @Query("""
+        SELECT s FROM Story s
+        WHERE s.retryCount >= 3
+            AND s.storyStatus NOT IN :complete
+    """)
+    List<Story> findFailedRetryStoriesForAdmin(
+            @Param("complete") List<Story.StoryStatus> completeStatus
+    );
 }

@@ -5,6 +5,7 @@ import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.story.service.command.StoryAdminCommandService;
 import com.example.demo.domain.story.service.query.StoryAdminQueryService;
 import com.example.demo.domain.story.web.dto.StoryAdminResponseDto;
+import com.example.demo.domain.story.web.dto.StoryFailedAdminResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,12 @@ public class StoryAdminController {
         return ApiResponse.of(SuccessStatus._OK, storyAdminQueryService.getIncompleteStories());
     }
 
+    @Operation(summary = "스토리 재생성 배치에 실패한 동화 조회")
+    @GetMapping("/failed-retry")
+    public ApiResponse<List<StoryFailedAdminResponseDto>> getFailedRetryStories() {
+        return ApiResponse.of(SuccessStatus._OK, storyAdminQueryService.getFailedRetryStories());
+    }
+
     @Operation(summary = "이미지용 유튜브 링크 업로드")
     @PostMapping("/{id}/youtube/image")
     public ApiResponse<String> uploadImageYoutube(
@@ -42,5 +49,4 @@ public class StoryAdminController {
     ) {
         return ApiResponse.of(SuccessStatus._OK, storyAdminCommandService.uploadVideoYoutube(id, youtubeLink));
     }
-
 }
