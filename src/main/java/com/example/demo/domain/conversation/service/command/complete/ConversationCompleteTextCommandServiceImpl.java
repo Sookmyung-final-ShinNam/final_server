@@ -101,7 +101,7 @@ public class ConversationCompleteTextCommandServiceImpl implements ConversationC
                     .pageNumber(i + 1)
                     .content(pages[i])
                     .contentEn(pagesEn[i])
-                    .status(StoryPage.PageStatus.TEXT)
+                    .pageStatus(StoryPage.PageStatus.TEXT)
                     .videoStatus(StoryPage.VideoStatus.NONE)
                     .story(story)
                     .build();

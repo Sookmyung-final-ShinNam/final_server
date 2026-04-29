@@ -181,7 +181,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
 
         // 2. 페이지 id만 추출
         List<Long> pageIds = story.getStoryPages().stream()
-                .filter(page -> page.getStatus() == StoryPage.PageStatus.TEXT)
+                .filter(page -> page.getPageStatus() == StoryPage.PageStatus.TEXT)
                 .map(StoryPage::getId)
                 .toList();
 
@@ -214,7 +214,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
 
         // 2. Page 상태가 TEXT인지 확인
-        if (page.getStatus() != StoryPage.PageStatus.TEXT) {
+        if (page.getPageStatus() != StoryPage.PageStatus.TEXT) {
             log.info("===== [Page] {}번째 페이지 이미지 이미 생성됨: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
             return;
         }
@@ -239,7 +239,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             }
 
             // 6. DB 저장 (Page.status = IMAGE)
-            page.setStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
+            page.setPageStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
             log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
 
             // 7. 이미지 생성 완료 이벤트 발행 → 리스너 aggregateStoryPage 처리
@@ -267,7 +267,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     public void aggregateStoryPage(Long storyId) {
 
         // 1. 이미지 생성 완료된 페이지 개수 조회
-        int imageCount = storyPageRepo.countByStoryIdAndStatus(storyId, StoryPage.PageStatus.IMAGE);
+        int imageCount = storyPageRepo.countByStoryIdAndPageStatus(storyId, StoryPage.PageStatus.IMAGE);
 
         // 2. 모든 페이지가 모두 생성 완료된 경우 스토리 상태 업데이트 (페이지 개수 = 4)
         if(imageCount == 4) {
