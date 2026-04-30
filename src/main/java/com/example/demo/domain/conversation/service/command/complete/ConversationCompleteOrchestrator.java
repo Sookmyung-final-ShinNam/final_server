@@ -49,7 +49,7 @@ public class ConversationCompleteOrchestrator {
             } catch (Exception e) {
                 // 스토리 정제 실패 처리
                 log.error("[orchestrateCompletion] 스토리 정제 실패 storyId={}", storyId, e);
-                conversationCompleteCommandService.failStory(storyId, Story.StoryStatus.TEXT_FAILED);
+                conversationCompleteCommandService.updateFailedStory(storyId, Story.StoryStatus.TEXT_FAILED);
                 return;
             }
 
@@ -64,7 +64,7 @@ public class ConversationCompleteOrchestrator {
             } catch (Exception e) {
                 // 이미지 생성 실패 처리
                 log.error("[orchestrateCompletion] 이미지 생성 실패 storyId={}", storyId, e);
-                conversationCompleteCommandService.failStory(storyId, Story.StoryStatus.IMAGE_FAILED);
+                conversationCompleteCommandService.updateFailedStory(storyId, Story.StoryStatus.IMAGE_FAILED);
                 return;
             }
         }

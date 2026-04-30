@@ -13,7 +13,7 @@ public interface ConversationCompleteCommandService {
     /**
      * 스토리 생성 진행 실패 -> 스토리 상태 업데이트
      */
-    void failStory(Long storyId, Story.StoryStatus failedStatus);
+    void updateFailedStory(Long storyId, Story.StoryStatus failedStatus);
 
     /**
      * 배치 대상 스토리의 retry_count를 +1하고 스토리 생성 이벤트 발행

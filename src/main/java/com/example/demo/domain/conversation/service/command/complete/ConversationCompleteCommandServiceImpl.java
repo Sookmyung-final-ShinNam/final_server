@@ -63,7 +63,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void failStory(Long storyId, Story.StoryStatus failedStatus) {
+    public void updateFailedStory(Long storyId, Story.StoryStatus failedStatus) {
 
         // 1. 실패 상테 해당하는 enum 값 검증
         if (!failedStatus.isFailedStatus()) {

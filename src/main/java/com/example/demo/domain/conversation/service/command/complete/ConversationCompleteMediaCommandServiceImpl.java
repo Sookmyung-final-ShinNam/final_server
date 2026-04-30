@@ -63,10 +63,9 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             // -- 이미지 생성
             // 2-1. 캐릭터 이미지 생성 및 상태 업테이트
             generateCharacterBaseImage(character);
-            character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
 
             // 2-2. 스토리 페이지 이미지 생성
-            generateStoryImages(story, character); // 페이지별 생성 이벤트 발행
+            generateStoryPageImages(story, character); // 페이지별 생성 이벤트 발행
         } else {
             // -- 동영상 생성
             // 스토리 페이지별 동영상 생성
@@ -153,10 +152,10 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
 
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
+                character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
             });
 
             log.info("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
-
         } catch (Exception e) {
             log.error("===== [Avatar] ERROR OCCURRED =====");
             log.error("Exception type: {}", e.getClass().getName());
@@ -170,9 +169,9 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     /**
      * 스토리 페이지 이미지 생성
      * - 캐릭터 basePrompt, seed 사용 → 일관된 스타일 유지
-     * - 페이지별 생성 이벤트 발행함으로써 이미지 생성
+     * - 페이지별 생성 비동기 이벤트 발행함으로써 이미지 생성
      */
-    private void generateStoryImages(Story story, StoryCharacter character) {
+    private void generateStoryPageImages(Story story, StoryCharacter character) {
 
         // 1. 고정 값 조회
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
@@ -185,7 +184,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                 .map(StoryPage::getId)
                 .toList();
 
-        // 3. 페이지별 이미지 생성 이벤트 발행 → 리스너 generatePageImage 처리
+        // 3. 페이지별 이미지 생성 비동기 이벤트 발행 → 리스너 generatePageImage 처리
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronizationAdapter() {
                     @Override
@@ -201,13 +200,15 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     }
 
     /**
-     * 이미지 생성 이벤트 처리 로직
+     * 이벤트 처리 로직
+     *
+     * 페이지 이미지 생성
      * - 스토리 각 페이지별 이미지 생성 및 상태 업데이트
      * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
      */
     @Override
     @Transactional
-    public void generateStoryImage(Long storyId, Long pageId, String basePrompt, Long seed) {
+    public void generateStoryPageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
 
         // 1. Page 조회
         StoryPage page = storyPageRepo.findById(pageId)
@@ -242,7 +243,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             page.setPageStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
             log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
 
-            // 7. 이미지 생성 완료 이벤트 발행 → 리스너 aggregateStoryPage 처리
+            // 7. 이미지 생성 완료 동기 이벤트 발행 → 리스너 aggregateStoryPage 처리
             TransactionSynchronizationManager.registerSynchronization(
                     new TransactionSynchronizationAdapter() {
                         @Override
@@ -258,19 +259,22 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     }
 
     /**
-     * 이미지 생성 완료 이벤트 처리 로직
+     * 이벤트 처리 로직
+     *
+     * 페이지 이미지 생성 완료 동기
      * - 이미지 생성 완료된 페이지 개수 확인
      * - 이후 스토리 상태 업데이트
      */
     @Override
-    @Transactional
-    public void aggregateStoryPage(Long storyId) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void aggregateStoryPageImage(Long storyId) {
 
         // 1. 이미지 생성 완료된 페이지 개수 조회
         int imageCount = storyPageRepo.countByStoryIdAndPageStatus(storyId, StoryPage.PageStatus.IMAGE);
+        log.info("[Aggregate] storyId={}, imageCount={}", storyId, imageCount);
 
         // 2. 모든 페이지가 모두 생성 완료된 경우 스토리 상태 업데이트 (페이지 개수 = 4)
-        if(imageCount == 4) {
+        if (imageCount == 4) {
             Story story = storyRepo.findById(storyId)
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
@@ -279,7 +283,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                 // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
                 story.setStoryStatus(Story.StoryStatus.IMAGE_COMPLETED);
 
-                // 4. 스토리 생성 완료 이벤트 발행
+                // 4. 동화 완성 이벤트 발행
                 Long userId = story.getUser().getId();
                 TransactionSynchronizationManager.registerSynchronization(
                         new TransactionSynchronizationAdapter() {
