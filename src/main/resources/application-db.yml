@@ -18,6 +18,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
+  # 슬롯 세팅을 위한 초기화 sql -> DB 스키마 생성 후에 작동되도록 해야함 !
   sql:
     init:
       mode: always
