@@ -37,18 +37,19 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         ConversationSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.SESSION_NOT_FOUND));
 
-        // 2. 현재 대화 단계가 END 인지 확인
-        if (session.getCurrentStep() != ConversationSession.ConversationStep.END) {
+        // 2. 현재 대화 세션 단계가 END 이고 상태가 COMPLETED 인지 확인
+        if (session.getCurrentStep() != ConversationSession.ConversationStep.END ||
+            session.getState() != ConversationSession.SessionState.COMPLETED
+        ) {
             throw new CustomException(ErrorStatus.SESSION_INVALID_STATE);
         }
-
 
         // 3. 스토리 상태 변경 MAKING 에서는 이어하기 불가
         if (story.getStoryStatus() == Story.StoryStatus.IN_PROGRESS) {
             story.setStoryStatus(Story.StoryStatus.MAKING);
         }
 
-        // 5. 커밋 이후 이벤트 발행: 비동기 작업 (동화 생성) 시작
+        // 4. 커밋 이후 이벤트 발행: 비동기 작업 (동화 생성) 시작
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronizationAdapter() {
                     @Override

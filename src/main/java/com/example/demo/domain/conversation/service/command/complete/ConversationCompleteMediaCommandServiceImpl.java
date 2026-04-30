@@ -17,6 +17,9 @@ import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     private final ApplicationEventPublisher eventPublisher;
 
     private final S3Uploader s3Uploader;
+    private final ConversationCompleteCommandService conversationCompleteCommandService;
     private final AvatarGeneratorService avatarGeneratorService;
     private final RunwayService runwayService;
 
@@ -205,8 +209,15 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
      * 페이지 이미지 생성
      * - 스토리 각 페이지별 이미지 생성 및 상태 업데이트
      * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     * - 최대 3번 생성 실패 시 > 최종 스토리 상태 IMAGE_FAILED 업데이트
      */
     @Override
+    @Retryable(
+            retryFor = Exception.class,      // 재시도를 수행할 예외 유형
+            recover = "recoverGenerateStoryPageImage", // 모든 재시도 실패 시 호출 메소드
+            maxAttempts = 3,                 // 최대 시도 횟수
+            backoff = @Backoff(delay = 1000) // 1초 대기
+    )
     @Transactional
     public void generateStoryPageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
 
@@ -254,8 +265,17 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             );
         } catch (Exception e) {
             log.error("===== [Page] {}번째 페이지 ERROR OCCURRED: pageId = {} =====", page.getPageNumber(), page.getId(), e);
-            throw e;  // CustomException 던지지 말고 원본 예외 그대로
+            throw e;
         }
+    }
+
+    // 페이지 이미지 모든 재시도 실패 시
+    @Recover
+    public void recoverGenerateStoryPageImage(Exception e, Long storyId, Long pageId, String basePrompt, Long seed) {
+        log.error("===== [Page] 페이지 이미지 생성 최종 실패: pageId={}, storyId={} =====", pageId, storyId, e);
+        // 페이지는 TEXT 상태 그대로
+        // 스토리 상태만 IMAGE_FAILED로 변경
+        conversationCompleteCommandService.updateFailedStory(storyId, Story.StoryStatus.IMAGE_FAILED);
     }
 
     /**

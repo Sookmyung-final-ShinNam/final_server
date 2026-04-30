@@ -67,6 +67,10 @@ dependencies {
 	// Korean text processing
 	implementation 'org.openkoreantext:open-korean-text:2.1.0'
 
+	// retry
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework.boot:spring-boot-starter-aop'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
