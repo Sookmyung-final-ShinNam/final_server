@@ -1,7 +1,5 @@
 package com.example.demo.domain.conversation.service.command.complete;
 
-import com.example.demo.domain.story.entity.Story;
-
 public interface ConversationCompleteTextCommandService {
 
     /**

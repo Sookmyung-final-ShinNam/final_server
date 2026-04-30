@@ -32,7 +32,7 @@ public class StoryPage {
     // 페이지 생성 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "page_status", nullable = false)
-    private PageStatus status = PageStatus.TEXT;
+    private PageStatus pageStatus = PageStatus.TEXT;
 
     public enum PageStatus {
         TEXT,

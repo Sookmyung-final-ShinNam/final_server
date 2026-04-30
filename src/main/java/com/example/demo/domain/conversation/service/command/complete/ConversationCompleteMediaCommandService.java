@@ -9,12 +9,12 @@ public interface ConversationCompleteMediaCommandService {
     void generateStoryMedia(Long storyId, String imageType);
 
     /**
-     * 개별 페이지 이미지 생성 및 페이지 상태 업데이트
+     * 이벤트 처리 로직 - 개별 페이지 이미지 생성 및 페이지 상태 업데이트
      */
-    void generateStoryImage(Long storyId, Long pageId, String basePrompt, Long Seed);
+    void generateStoryPageImage(Long storyId, Long pageId, String basePrompt, Long Seed);
 
     /**
-     * 생성 완료된 페이지 이미지 개수 확인 및 스토리 상태 업데이트
+     * 이벤트 처리 로직 - 생성 완료된 페이지 이미지 개수 확인 및 스토리 상태 업데이트
      */
-    void aggregateStoryPage(Long storyId);
+    void aggregateStoryPageImage(Long storyId);
 }

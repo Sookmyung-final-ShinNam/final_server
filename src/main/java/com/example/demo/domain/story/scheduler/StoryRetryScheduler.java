@@ -25,7 +25,7 @@ public class StoryRetryScheduler {
      * 매일 자정 스토리 재생성 배치 시작
      * - 실패 및 미완료 스토리 대상으로 스토리 생성 이벤트(CompleteConversationEvent) 발행
      */
-    @Scheduled(cron = "10 56 2 * * *")
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     public void retryScheduledStories() {
         log.info("[BATCH] 실패 및 오래된 스토리 재생성 배치 시작");
 

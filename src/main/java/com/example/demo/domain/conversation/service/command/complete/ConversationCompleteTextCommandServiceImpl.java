@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Slf4j
 @Service
@@ -101,7 +100,7 @@ public class ConversationCompleteTextCommandServiceImpl implements ConversationC
                     .pageNumber(i + 1)
                     .content(pages[i])
                     .contentEn(pagesEn[i])
-                    .status(StoryPage.PageStatus.TEXT)
+                    .pageStatus(StoryPage.PageStatus.TEXT)
                     .videoStatus(StoryPage.VideoStatus.NONE)
                     .story(story)
                     .build();

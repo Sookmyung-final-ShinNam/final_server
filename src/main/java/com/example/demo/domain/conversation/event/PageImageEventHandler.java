@@ -20,12 +20,12 @@ public class PageImageEventHandler {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePageImageStarted(StartPageImageEvent event) {
-        conversationCompleteMediaCommandService.generateStoryImage(event.getStoryId(), event.getPageId(), event.getBasePrompt(), event.getSeed());
+        conversationCompleteMediaCommandService.generateStoryPageImage(event.getStoryId(), event.getPageId(), event.getBasePrompt(), event.getSeed());
     }
 
     // 생성 완료된 페이지 이미지 개수 확인 및 스토리 상태 업데이트 (동기)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePageImageCompleted(CompletePageImageEvent event) {
-        conversationCompleteMediaCommandService.aggregateStoryPage(event.getStoryId());
+        conversationCompleteMediaCommandService.aggregateStoryPageImage(event.getStoryId());
     }
 }

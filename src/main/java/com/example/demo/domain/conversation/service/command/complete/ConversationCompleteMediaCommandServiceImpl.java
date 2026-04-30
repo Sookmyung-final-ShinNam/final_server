@@ -17,6 +17,9 @@ import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     private final ApplicationEventPublisher eventPublisher;
 
     private final S3Uploader s3Uploader;
+    private final ConversationCompleteCommandService conversationCompleteCommandService;
     private final AvatarGeneratorService avatarGeneratorService;
     private final RunwayService runwayService;
 
@@ -63,10 +67,9 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             // -- 이미지 생성
             // 2-1. 캐릭터 이미지 생성 및 상태 업테이트
             generateCharacterBaseImage(character);
-            character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
 
             // 2-2. 스토리 페이지 이미지 생성
-            generateStoryImages(story, character); // 페이지별 생성 이벤트 발행
+            generateStoryPageImages(story, character); // 페이지별 생성 이벤트 발행
         } else {
             // -- 동영상 생성
             // 스토리 페이지별 동영상 생성
@@ -153,10 +156,10 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
 
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
+                character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
             });
 
             log.info("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
-
         } catch (Exception e) {
             log.error("===== [Avatar] ERROR OCCURRED =====");
             log.error("Exception type: {}", e.getClass().getName());
@@ -170,9 +173,9 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     /**
      * 스토리 페이지 이미지 생성
      * - 캐릭터 basePrompt, seed 사용 → 일관된 스타일 유지
-     * - 페이지별 생성 이벤트 발행함으로써 이미지 생성
+     * - 페이지별 생성 비동기 이벤트 발행함으로써 이미지 생성
      */
-    private void generateStoryImages(Story story, StoryCharacter character) {
+    private void generateStoryPageImages(Story story, StoryCharacter character) {
 
         // 1. 고정 값 조회
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
@@ -181,11 +184,11 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
 
         // 2. 페이지 id만 추출
         List<Long> pageIds = story.getStoryPages().stream()
-                .filter(page -> page.getStatus() == StoryPage.PageStatus.TEXT)
+                .filter(page -> page.getPageStatus() == StoryPage.PageStatus.TEXT)
                 .map(StoryPage::getId)
                 .toList();
 
-        // 3. 페이지별 이미지 생성 이벤트 발행 → 리스너 generatePageImage 처리
+        // 3. 페이지별 이미지 생성 비동기 이벤트 발행 → 리스너 generatePageImage 처리
         TransactionSynchronizationManager.registerSynchronization(
                 new TransactionSynchronizationAdapter() {
                     @Override
@@ -201,20 +204,29 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     }
 
     /**
-     * 이미지 생성 이벤트 처리 로직
+     * 이벤트 처리 로직
+     *
+     * 페이지 이미지 생성
      * - 스토리 각 페이지별 이미지 생성 및 상태 업데이트
      * - 페이지별 prompt 조합 후 이미지 생성 및 S3 업로드
+     * - 최대 3번 생성 실패 시 > 최종 스토리 상태 IMAGE_FAILED 업데이트
      */
     @Override
+    @Retryable(
+            retryFor = Exception.class,      // 재시도를 수행할 예외 유형
+            recover = "recoverGenerateStoryPageImage", // 모든 재시도 실패 시 호출 메소드
+            maxAttempts = 3,                 // 최대 시도 횟수
+            backoff = @Backoff(delay = 1000) // 1초 대기
+    )
     @Transactional
-    public void generateStoryImage(Long storyId, Long pageId, String basePrompt, Long seed) {
+    public void generateStoryPageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
 
         // 1. Page 조회
         StoryPage page = storyPageRepo.findById(pageId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
 
         // 2. Page 상태가 TEXT인지 확인
-        if (page.getStatus() != StoryPage.PageStatus.TEXT) {
+        if (page.getPageStatus() != StoryPage.PageStatus.TEXT) {
             log.info("===== [Page] {}번째 페이지 이미지 이미 생성됨: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
             return;
         }
@@ -239,10 +251,10 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             }
 
             // 6. DB 저장 (Page.status = IMAGE)
-            page.setStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
+            page.setPageStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
             log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
 
-            // 7. 이미지 생성 완료 이벤트 발행 → 리스너 aggregateStoryPage 처리
+            // 7. 이미지 생성 완료 동기 이벤트 발행 → 리스너 aggregateStoryPage 처리
             TransactionSynchronizationManager.registerSynchronization(
                     new TransactionSynchronizationAdapter() {
                         @Override
@@ -253,24 +265,36 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             );
         } catch (Exception e) {
             log.error("===== [Page] {}번째 페이지 ERROR OCCURRED: pageId = {} =====", page.getPageNumber(), page.getId(), e);
-            throw e;  // CustomException 던지지 말고 원본 예외 그대로
+            throw e;
         }
     }
 
+    // 페이지 이미지 모든 재시도 실패 시
+    @Recover
+    public void recoverGenerateStoryPageImage(Exception e, Long storyId, Long pageId, String basePrompt, Long seed) {
+        log.error("===== [Page] 페이지 이미지 생성 최종 실패: pageId={}, storyId={} =====", pageId, storyId, e);
+        // 페이지는 TEXT 상태 그대로
+        // 스토리 상태만 IMAGE_FAILED로 변경
+        conversationCompleteCommandService.updateFailedStory(storyId, Story.StoryStatus.IMAGE_FAILED);
+    }
+
     /**
-     * 이미지 생성 완료 이벤트 처리 로직
+     * 이벤트 처리 로직
+     *
+     * 페이지 이미지 생성 완료 동기
      * - 이미지 생성 완료된 페이지 개수 확인
      * - 이후 스토리 상태 업데이트
      */
     @Override
-    @Transactional
-    public void aggregateStoryPage(Long storyId) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void aggregateStoryPageImage(Long storyId) {
 
         // 1. 이미지 생성 완료된 페이지 개수 조회
-        int imageCount = storyPageRepo.countByStoryIdAndStatus(storyId, StoryPage.PageStatus.IMAGE);
+        int imageCount = storyPageRepo.countByStoryIdAndPageStatus(storyId, StoryPage.PageStatus.IMAGE);
+        log.info("[Aggregate] storyId={}, imageCount={}", storyId, imageCount);
 
         // 2. 모든 페이지가 모두 생성 완료된 경우 스토리 상태 업데이트 (페이지 개수 = 4)
-        if(imageCount == 4) {
+        if (imageCount == 4) {
             Story story = storyRepo.findById(storyId)
                     .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
@@ -279,7 +303,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                 // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
                 story.setStoryStatus(Story.StoryStatus.IMAGE_COMPLETED);
 
-                // 4. 스토리 생성 완료 이벤트 발행
+                // 4. 동화 완성 이벤트 발행
                 Long userId = story.getUser().getId();
                 TransactionSynchronizationManager.registerSynchronization(
                         new TransactionSynchronizationAdapter() {
