@@ -1,8 +1,7 @@
 package com.example.demo.domain.dashboard.listener;
 
-import com.example.demo.domain.conversation.event.StoryCompletedEvent;
+import com.example.demo.domain.conversation.event.CompleteStoryEvent;
 import com.example.demo.domain.dashboard.service.command.DashboardCommandService;
-import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 import com.example.demo.apiPayload.code.exception.CustomException;
@@ -22,7 +21,7 @@ public class StoryCompletedEventListener {
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleStoryCompleted(StoryCompletedEvent event) {
+    public void handleStoryCompleted(CompleteStoryEvent event) {
         User user = userRepository.findById(event.getUserId())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 

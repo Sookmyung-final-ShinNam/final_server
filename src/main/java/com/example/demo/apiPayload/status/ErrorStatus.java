@@ -48,20 +48,23 @@ public enum ErrorStatus implements BaseErrorCode {
     // 피드백 관련 에러
     FEEDBACK_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "FEEDBACK_4001", "이미 GOOD 피드백이 완료된 메시지입니다. 더 이상 피드백을 보낼 수 없습니다."),
 
-    // 세션 관련 에러
+    // SESSION 관련 에러
     SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_4004", "해당 세션을 찾을 수 없습니다."),
-    SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "아직 진행 중인 세션입니다."),
+    STEP_INVALID_ACCESS(HttpStatus.FORBIDDEN, "STEP_4013", "현재 단계가 아닙니다."),
+    SESSION_INVALID_STATE(HttpStatus.FORBIDDEN, "SESSION_4011", "현재 세션 상태에서는 해당 작업을 수행할 수 없습니다."),
+
+    // STEP 관련 에러
+    STEP_NOT_FOUND(HttpStatus.NOT_FOUND, "STEP_4004", "해당 스텝을 찾을 수 없습니다."),
+    STEP_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STEP_4011", "이전 스탭이 완료되지 않았습니다."),
 
     // 동화 관련 에러
     STORY_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4004", "해당 동화를 찾을 수 없습니다."),
     STORY_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "STORY_4006", "완성된 동화만 접근할 수 있습니다."),
     STORY_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4005", "해당 동화 페이지를 찾을 수 없습니다."),
-    STORY_ALREADY_FAVORITE(HttpStatus.BAD_REQUEST, "STORY_4007", "이미 관심 동화로 등록된 동화입니다."),
-    STORY_NOT_FAVORITE(HttpStatus.BAD_REQUEST, "STORY_4008", "관심 동화로 등록되지 않은 동화입니다."),
+    STORY_INVALID_STATUS(HttpStatus.INTERNAL_SERVER_ERROR, "STORY_5001", "유효하지 않은 동화 상태입니다."),
 
     // 이미지, 동영상 API 관련 에러
     MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType 은 image 또는 video 여야 합니다."),
-    MEDIA_IMAGE_GENERATION_FAILED(HttpStatus.BAD_REQUEST, "MEDIA_4005", "이미지 생성에 실패했습니다."),
 
     // 파일 관련 에러
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_4001", "파일 업로드에 실패했습니다."),
@@ -81,6 +84,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 대시보드 관련 에러
     DASHBOARD_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "DASHBOARD_4005", "이미 대시보드에 반영된 스토리입니다."),
+
     ;
 
     private final HttpStatus httpStatus;

@@ -35,7 +35,35 @@ public class Story extends BaseEntity {
     // 스토리 상태 (기본값 IN_PROGRESS)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StoryStatus status = StoryStatus.IN_PROGRESS;
+    private StoryStatus storyStatus = StoryStatus.IN_PROGRESS;
+
+    public enum StoryStatus {
+        IN_PROGRESS, // 세션 진행 중
+        MAKING,      // 스토리 생성 중
+        TEXT_COMPLETED,  // 텍스트 생성 완료 - 스토리 정제
+        TEXT_FAILED,     // 텍스트 생성 실패
+        IMAGE_COMPLETED, // 이미지 생성 완료 - 캐릭터 + 페이지 (사용자 조회 가능 시점)
+        IMAGE_FAILED,    // 이미지 생성 실패
+        VIDEO_COMPLETED, // 동영상 생성 완료
+        VIDEO_FAILED;    // 동영상 생성 실패
+
+        // 스토리 생성 상태 여부
+        public boolean isCompletedStatus() {
+            return this == IMAGE_COMPLETED ||
+                    this == VIDEO_COMPLETED;
+        }
+
+        // 스토리 생성 실패 상태 여부
+        public boolean isFailedStatus() {
+            return this == TEXT_FAILED ||
+                    this == IMAGE_FAILED ||
+                    this == VIDEO_FAILED;
+        }
+    }
+
+    // 스토리 재생성 횟수
+    @Column(name = "retry_count", nullable = false)
+    private int retryCount = 0;
 
     // 스토리 비디오 상태
     @Enumerated(EnumType.STRING)
@@ -84,12 +112,6 @@ public class Story extends BaseEntity {
     // 스토리 삭제 시 캐릭터도 삭제
     @OneToOne(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private StoryCharacter character;
-
-    public enum StoryStatus {
-        IN_PROGRESS, // 진행 중
-        MAKING,      // complete 수행 중
-        COMPLETED    // 완료됨
-    }
 
     // 상태 변경 메서드
     public void markVideoAsMaking() {

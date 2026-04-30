@@ -30,7 +30,8 @@ public class StoryQueryServiceImpl implements StoryQueryService {
         Story story = storyRepository.findById(storyId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
-        if (story.getStatus() != Story.StoryStatus.COMPLETED) {
+        // 페이지 이미지 완성된 경우만 조회 가능
+        if (story.getStoryStatus() != Story.StoryStatus.IMAGE_COMPLETED) {
             throw new CustomException(ErrorStatus.STORY_NOT_COMPLETED);
         }
 

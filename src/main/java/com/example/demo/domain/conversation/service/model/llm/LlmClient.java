@@ -87,6 +87,34 @@ public class LlmClient {
                 .trim();
     }
 
+    public Map<String, Map<String, String>> extractFieldMap(String llmResponse, String fieldName) {
+        try {
+            String cleaned = cleanJsonResponse(llmResponse);
+            JsonNode root = objectMapper.readTree(cleaned);
+
+            JsonNode slotsNode = root.path(fieldName);
+
+            Map<String, Map<String, String>> result = new HashMap<>();
+
+            slotsNode.fields().forEachRemaining(entry -> {
+
+                String slotName = entry.getKey();
+                JsonNode valueNode = entry.getValue();
+
+                Map<String, String> slotMap = new HashMap<>();
+                slotMap.put("value", valueNode.path("value").asText(null));
+                slotMap.put("source", valueNode.path("source").asText(null));
+
+                result.put(slotName, slotMap);
+            });
+
+            return result;
+
+        } catch (Exception e) {
+            throw new CustomException(ErrorStatus.CHAT_GPT_API_RESPONSE_FAILED);
+        }
+    }
+
     /**
      * OpenAI API 호출
      * @param body JSON 문자열 (buildPrompt()에서 생성된 완성된 JSON)
