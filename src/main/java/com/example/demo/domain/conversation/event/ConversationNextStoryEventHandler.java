@@ -5,11 +5,11 @@ import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.conversation.entity.SessionStep;
 import com.example.demo.domain.conversation.repository.SessionStepRepository;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
 
@@ -23,7 +23,7 @@ public class ConversationNextStoryEventHandler {
     private final SessionStepRepository stepRepo;
     private final LlmClient llmClient;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(ConversationNextStoryEvent event) {
 
