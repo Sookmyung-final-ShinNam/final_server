@@ -1,6 +1,5 @@
 package com.example.demo.domain.dashboard.service.command;
 
-import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
 import com.example.demo.domain.user.entity.User;
 
 /**

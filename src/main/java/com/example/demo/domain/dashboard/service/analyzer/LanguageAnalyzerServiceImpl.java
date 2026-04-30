@@ -1,12 +1,13 @@
 package com.example.demo.domain.dashboard.service.analyzer;
 
-import com.example.demo.domain.conversation.entity.ConversationFeedback;
-import com.example.demo.domain.conversation.entity.ConversationMessage;
 import com.example.demo.domain.conversation.entity.ConversationSession;
+import com.example.demo.domain.conversation.entity.SessionStep;
+import com.example.demo.domain.conversation.entity.StepAttempt;
 import com.example.demo.domain.dashboard.converter.DashboardLanguageConverter;
 import com.example.demo.domain.dashboard.entity.Dashboard;
 import com.example.demo.domain.dashboard.entity.DashboardStoryStats;
 import com.example.demo.domain.dashboard.entity.FeedbackAttemptStats;
+import com.example.demo.domain.dashboard.repository.DashboardAnalyticsRepository;
 import com.example.demo.domain.dashboard.repository.DashboardStoryStatsRepository;
 import com.example.demo.domain.story.entity.Story;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,13 @@ import java.util.stream.Collectors;
 public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
 
     private final DashboardStoryStatsRepository statsRepo;
+    private final DashboardAnalyticsRepository analyticsRepo;
     private final DashboardLanguageConverter converter;
 
     @Override
     public void apply(Dashboard dashboard, Story story) {
+
+        List<StepAttempt> attempts = analyticsRepo.findAllAttemptsByStoryId(story.getId());
 
         // 기존 데이터 조회 (없으면 신규 생성)
         DashboardStoryStats stats = statsRepo.findByDashboardAndStoryId(dashboard, story.getId())
@@ -40,89 +44,91 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
                 );
 
         // 1. 기/승/전/결 시도 횟수
-        int[] attempts = calculateAttemptCounts(story);
+        int[] counts = calculateAttemptCounts(attempts);
 
         FeedbackAttemptStats attemptStats = converter.toAttemptStats(
-                attempts[0], attempts[1], attempts[2], attempts[3]
+                counts[0], counts[1], counts[2], counts[3]
         );
 
-        // 2. 전체 평균 시도수
-        double avgAttemptPerStage = Arrays.stream(attempts).average().orElse(0);
+        // 2. 평균 시도 수
+        double avgAttemptPerStage = Arrays.stream(counts).average().orElse(0);
 
         // 3. 평균 답변 길이
-        int avgAnswerLength = calculateAverageAnswerLength(story);
+        int avgAnswerLength = calculateAverageAnswerLength(attempts);
 
-        // 4. 새로운 단어 추출
-        List<String> newWords = extractNewWords(dashboard, story);
+        // 4. 새로운 단어
+        List<String> newWords = extractNewWords(dashboard, attempts);
 
-        // 5. 최종 DashboardStoryStats 생성
         stats.setFeedbackAttemptStats(attemptStats);
         stats.setAvgAttemptPerStage(avgAttemptPerStage);
         stats.setAvgAnswerLength(avgAnswerLength);
         stats.setNewWords(newWords);
 
         statsRepo.save(stats);
-
     }
 
-    // 메시지별 feedback 개수 기준 기/승/전/결 카운트
-    private int[] calculateAttemptCounts(Story story) {
+    /**
+     * 기/승/전/결 단계별 시도 횟수 집계
+     * 기준: StepAttempt 개수
+     * */
+    private int[] calculateAttemptCounts(List<StepAttempt> attempts) {
 
-        int[] counts = new int[4]; // gi, seung, jeon, gyeol
+        int[] counts = new int[4]; // 기, 승, 전, 결
 
-        for (ConversationSession session : story.getStorySessions()) {
-            List<ConversationMessage> messages = session.getMessages();
+        for (StepAttempt attempt : attempts) {
 
-            for (int i = 0; i < messages.size(); i++) {
-                ConversationMessage msg = messages.get(i);
-                int feedbackCount = msg.getFeedbacks().size(); // 메시지가 가진 feedback 수
-                int stepIndex;
+            SessionStep step = attempt.getStep();
+            ConversationSession.ConversationStep type = step.getStepType();
 
-                // 메시지 순서대로 기승전결 단계 매핑 (START는 제외)
-                switch (i) {
-                    case 1 -> stepIndex = 0; // STEP_01 → GI
-                    case 2 -> stepIndex = 1; // STEP_02 → SEUNG
-                    case 3 -> stepIndex = 2; // STEP_03 → JEON
-                    case 4 -> stepIndex = 3; // END → GYEOL
-                    default -> {
-                        continue; // START 메시지 제외
-                    }
-                }
+            if (type == ConversationSession.ConversationStep.START ||
+                    type == ConversationSession.ConversationStep.END) continue;
 
-                counts[stepIndex] += feedbackCount;
+            switch (type) {
+                case 기 -> counts[0]++;
+                case 승 -> counts[1]++;
+                case 전 -> counts[2]++;
+                case 결 -> counts[3]++;
             }
         }
 
         return counts;
     }
 
-    // 평균 user_answer 길이
-    private int calculateAverageAnswerLength(Story story) {
-        List<String> answers = story.getStorySessions().stream()
-                .flatMap(s -> s.getMessages().stream())
-                .flatMap(m -> m.getFeedbacks().stream())
-                .map(ConversationFeedback::getUserAnswer)
+    /**
+     * 평균 userAnswer 길이
+     * 기준: 모든 StepAttempt.userAnswer
+     */
+    private int calculateAverageAnswerLength(List<StepAttempt> attempts) {
+
+        List<String> answers = attempts.stream()
+                .map(StepAttempt::getUserAnswer)
                 .filter(Objects::nonNull)
+                .filter(a -> !a.isBlank())
                 .toList();
 
         if (answers.isEmpty()) return 0;
 
-        int totalLength = answers.stream()
+        int total = answers.stream()
                 .mapToInt(String::length)
                 .sum();
 
-        return totalLength / answers.size();
+        return total / answers.size();
     }
 
-    // 새 단어 추출
-    private List<String> extractNewWords(Dashboard dashboard, Story story) {
+    /**
+     * 새로운 단어 추출
+     * 기존 dashboard에 저장된 단어 제외
+     */
+    private List<String> extractNewWords(Dashboard dashboard, List<StepAttempt> attempts) {
 
         Set<String> existingWords = statsRepo.findAllByDashboard(dashboard)
                 .stream()
-                .flatMap(s -> Optional.ofNullable(s.getNewWords()).orElse(Collections.emptyList()).stream())
+                .flatMap(s -> Optional.ofNullable(s.getNewWords())
+                        .orElse(Collections.emptyList())
+                        .stream())
                 .collect(Collectors.toSet());
 
-        List<String> currentWords = extractWordsFromStory(story);
+        List<String> currentWords = extractWords(attempts);
 
         if (currentWords.isEmpty()) return Collections.emptyList();
 
@@ -132,25 +138,26 @@ public class LanguageAnalyzerServiceImpl implements DashboardAnalyzerService {
                 .toList();
     }
 
-    // user_answer 에서 단어 추출 (한국어 형태소 분석)
-    private List<String> extractWordsFromStory(Story story) {
+    /**
+     * StepAttempt.userAnswer 기반 형태소 분석
+     */
+    private List<String> extractWords(List<StepAttempt> attempts) {
+
         List<String> result = new ArrayList<>();
 
-        for (ConversationFeedback f : story.getStorySessions().stream()
-                .flatMap(s -> s.getMessages().stream())
-                .flatMap(m -> m.getFeedbacks().stream())
-                .toList()) {
+        for (StepAttempt attempt : attempts) {
 
-            String answer = f.getUserAnswer();
-            if (answer != null && !answer.isBlank()) {
-                Seq<KoreanToken> tokensSeq = OpenKoreanTextProcessorJava.tokenize(answer);
-                scala.collection.Iterator<KoreanToken> iter = tokensSeq.iterator();
-                while (iter.hasNext()) {
-                    KoreanToken token = iter.next();
-                    result.add(token.text().toLowerCase());
-                }
+            String answer = attempt.getUserAnswer();
+            if (answer == null || answer.isBlank()) continue;
+
+            Seq<KoreanToken> tokens = OpenKoreanTextProcessorJava.tokenize(answer);
+            var iter = tokens.iterator();
+
+            while (iter.hasNext()) {
+                result.add(iter.next().text().toLowerCase());
             }
         }
+
         return result;
     }
 

@@ -1,0 +1,22 @@
+package com.example.demo.domain.conversation.service.command.complete;
+
+import com.example.demo.domain.story.entity.Story;
+
+public interface ConversationCompleteCommandService {
+
+    /**
+     * 대화 완료(COMPLETED) 확인 후,
+     * 스토리 상태 업데이트 및 스토리 생성 이벤트 발행
+     */
+    void completeStory(Long sessionId);
+
+    /**
+     * 스토리 생성 진행 실패 -> 스토리 상태 업데이트
+     */
+    void updateFailedStory(Long storyId, Story.StoryStatus failedStatus);
+
+    /**
+     * 배치 대상 스토리의 retry_count를 +1하고 스토리 생성 이벤트 발행
+     */
+    void retryFailedStories(Long storyId, Long sessionId);
+}

@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "conversation_session_entity")
+@Table(name = "conversation_session")
 public class ConversationSession extends BaseEntity {
 
     @Id
@@ -23,38 +23,34 @@ public class ConversationSession extends BaseEntity {
     @Column(name = "session_id")
     private Long id;
 
-    // 현재 대화 단계 (기본값 START)
+    public enum ConversationStep {
+        START,   // 시작
+        기, 승, 전, 결,
+        END      // 종료
+    }
     @Enumerated(EnumType.STRING)
     @Column(name = "current_step", nullable = false)
-    private ConversationStep currentStep = ConversationStep.START;
+    private ConversationStep currentStep;
 
-    // 대화 세션 삭제 시 메시지도 삭제
-    @Builder.Default
-    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("id ASC") // 메시지 순서 유지를 위해 ID 기준으로 정렬
-    private List<ConversationMessage> messages = new ArrayList<>();
+    public enum SessionState {
+        ACTIVE, COMPLETED
+    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state", nullable = false)
+    private SessionState state;
 
-    // 대화 세션이 속한 스토리
+    @Column(name = "full_story", columnDefinition = "TEXT")
+    private String fullStory;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "story_id", nullable = false)
     private Story story;
 
-    // 대화 세션이 속한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public enum ConversationStep {
-        START,   // 시작 (next_story만 있음)
-        STEP_01, // 1단계
-        STEP_02, // 2단계
-        STEP_03, // 3단계
-        END      // 종료
-    }
-
-    public void addMessage(ConversationMessage message) {
-        messages.add(message);
-        message.setSession(this);
-    }
-
+    @Builder.Default
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SessionStep> steps = new ArrayList<>();
 }

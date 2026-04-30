@@ -33,10 +33,18 @@ public class ConversationResponseDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class NextStepResponseDto {
+    public static class StepMessageResponseDto {
         private Long messageId;
         private String nextStory;
         private String llmQuestion;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class StepPendingResponseDto {
+        private String status; // "PENDING"
     }
 
 }

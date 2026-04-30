@@ -1,7 +1,5 @@
 package com.example.demo.domain.dashboard.service.query;
 
-import com.example.demo.apiPayload.code.exception.CustomException;
-import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.dashboard.converter.DashboardConverter;
 import com.example.demo.domain.dashboard.entity.Dashboard;
 import com.example.demo.domain.dashboard.entity.DashboardBackgroundUsage;
@@ -20,9 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 @Service
@@ -75,4 +71,5 @@ public class DashboardQueryServiceImpl implements DashboardQueryService {
                 storyTitles
         );
     }
+
 }
