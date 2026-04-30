@@ -18,6 +18,11 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
 
+  sql:
+    init:
+      mode: always
+      defer-datasource-initialization: true
+
 # s3
 cloud:
   aws:
