@@ -26,7 +26,7 @@ public class ConversationNextStoryCommandServiceImpl implements ConversationNext
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void startNextStep(Long sessionId) {
 
         // 1. 세션 조회

@@ -23,8 +23,7 @@ public class ConversationNextStoryEventHandler {
     private final SessionStepRepository stepRepo;
     private final LlmClient llmClient;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional
     public void handle(ConversationNextStoryEvent event) {
 
         log.info("[EVENT HANDLE START] stepId={}", event.getStepId());
