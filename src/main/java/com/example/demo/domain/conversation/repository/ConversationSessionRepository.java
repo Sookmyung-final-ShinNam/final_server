@@ -35,8 +35,7 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
                     OR (s.storyStatus IN :stale AND s.updatedAt < :threshold)
                     )
                 AND s.retryCount < 3
-    """
-    )
+    """)
     List<ConversationSession> findRetryTargetSessions(
             @Param("step") ConversationSession.ConversationStep step,
             @Param("fail") List<Story.StoryStatus> failStatus,

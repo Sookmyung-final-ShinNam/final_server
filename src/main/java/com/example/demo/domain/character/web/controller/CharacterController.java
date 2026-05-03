@@ -24,8 +24,8 @@ public class CharacterController extends AuthController {
     @Operation(
             summary = "캐릭터 전체 조회",
             description = """
-            - 캐릭터 전체 반환
-            - 정렬 기준 : 미완성 -> 관심 캐릭터 -> createTime 내림차순
+            - 완료된 스토리의 캐릭터 전체 반환
+            - 정렬 기준 : 관심 캐릭터 -> createTime 내림차순
             - 옵션 : gender=FEMALE(여자만), gender=MALE(남자만), 기본은 전체
             """
     )
@@ -44,7 +44,7 @@ public class CharacterController extends AuthController {
             summary = "캐릭터 상세 조회",
             description = """
                 - 단일 캐릭터 상세 정보 조회
-                - 완료된 캐릭터만 조회 가능
+                - 완료된 스토리의 캐릭터만 조회 가능
                 - 관련된 동화 정보 포함
                 """
     )
