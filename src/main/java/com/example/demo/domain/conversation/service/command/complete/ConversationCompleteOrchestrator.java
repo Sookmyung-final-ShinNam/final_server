@@ -26,7 +26,8 @@ public class ConversationCompleteOrchestrator {
      * @param sessionId: 스토리 정제 작업 시 필요한 세션 객체의 context 조회 목적
      */
     public void orchestrateCompletion(Long storyId, Long sessionId) {
-        log.info("[orchestrateCompletion] storyId={}",storyId);
+
+        log.info("[ASYNC START] storyId={} at={}", storyId, System.currentTimeMillis());
 
         Story story = storyRepo.findById(storyId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
@@ -69,6 +70,5 @@ public class ConversationCompleteOrchestrator {
             }
         }
 
-        log.info("[orchestrateCompletion] storyId={}",storyId);
     }
 }

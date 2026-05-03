@@ -43,7 +43,10 @@ public class ConversationCompleteTextCommandServiceImpl implements ConversationC
         // 1. LLM 호출 - story_complete.json
         String variable = llmClient.jsonEscape("원본 스토리: " + context);
         String prompt = llmClient.buildPrompt("story_complete.json", variable);
+
+        log.info("[LLM1 START] storyId={} at={}", storyId, System.currentTimeMillis());
         String completeResponse = llmClient.callChatGpt(prompt);
+        log.info("[LLM1 END] storyId={} at={}", storyId, System.currentTimeMillis());
 
         // 2. LLM 응답 파싱
         String title = llmClient.extractFieldValue(completeResponse, "title");
@@ -81,7 +84,10 @@ public class ConversationCompleteTextCommandServiceImpl implements ConversationC
                         ", fourthPage:" + fourthPage
         );
         prompt = llmClient.buildPrompt("story_for_image.json", variable);
+
+        log.info("[LLM2 START] storyId={} at={}", storyId, System.currentTimeMillis());
         String imageResponse = llmClient.callChatGpt(prompt);
+        log.info("[LLM2 END] storyId={} at={}", storyId, System.currentTimeMillis());
 
         // 6. LLM 응답 파싱
         String firstPageEn = llmClient.extractFieldValue(imageResponse, "firstPageEn");

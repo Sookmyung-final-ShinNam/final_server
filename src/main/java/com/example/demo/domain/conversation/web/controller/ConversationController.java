@@ -18,11 +18,13 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * 대화 컨트롤러
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/conversations")
 @RequiredArgsConstructor
@@ -111,13 +113,20 @@ public class ConversationController extends AuthController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
     @PostMapping("/complete")
-    public ApiResponse<Void> storyComplete(
-            @RequestParam Long sessionId
-    ) {
-        // 대화 완료 확인 후 동화 생성
-        conversationCompleteCommandService.completeStory(sessionId);
+    public ApiResponse<Void> storyComplete(@RequestParam Long sessionId) {
 
-        return ApiResponse.of(SuccessStatus._OK);
+        long start = System.nanoTime();
+
+        try {
+            // 대화 완료 확인 후 동화 생성
+            conversationCompleteCommandService.completeStory(sessionId);
+            return ApiResponse.of(SuccessStatus._OK);
+
+        } finally {
+            long durationMs = (System.nanoTime() - start) / 1_000_000;
+
+            log.info("[HTTP] sessionId={} duration={}ms", sessionId, durationMs);
+        }
     }
 
     @Operation(

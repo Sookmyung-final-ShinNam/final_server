@@ -123,43 +123,32 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
 
         try {
             // 2. Avatar API 호출
-            log.info("[Avatar] 요청 시작: generateAvatarWithReference");
+            log.info("[IMAGE1 START] storyId={} at={}", character.getStory().getId(), System.currentTimeMillis());
             FluxResponse.FluxEndResponse result = avatarGeneratorService
                     .generateAvatarWithReference(prompt, null, null, true)
                     .block();
-            log.info("[Avatar] 요청 완료, result null 여부 = {}", (result == null));
+            log.info("[IMAGE1 END] storyId={} at={}", character.getStory().getId(), System.currentTimeMillis());
 
             if (result == null) {
-                log.info("[Avatar] result == null, 이미지 생성 실패");
                 throw new RuntimeException("Avatar API returned null");
             }
 
-            log.info("[Avatar] result.getImgUrl() = {}", result.getImgUrl());
-            log.info("[Avatar] result.getSeed() = {}", result.getSeed());
-
             // 3. 파일 다운로드
-            log.info("[Avatar] 파일 다운로드 시작 (URL={})", result.getImgUrl());
             handleFileWithTemp(result.getImgUrl(), character.getId(), 0, tempFile -> {
-
-                log.info("[Avatar] 다운로드 완료, tempFile exists={}, size={}",
-                        tempFile.exists(), tempFile.length());
 
                 if (!tempFile.exists() || tempFile.length() == 0) {
                     throw new RuntimeException("Downloaded temp file is empty");
                 }
 
                 // 4. S3 업로드
-                log.info("[Avatar] S3 업로드 시작");
                 String s3Url = s3Uploader.uploadFileFromFile(tempFile, "characters",
                         "character_" + character.getId() + ".png");
-                log.info("[Avatar] S3 업로드 완료, URL={}", s3Url);
 
                 character.getAppearance().setCharacterSeed(result.getSeed());
                 character.setImageUrl(s3Url);
                 character.setStatus(StoryCharacter.CharacterStatus.COMPLETED); // 이미지 생성 완료
             });
 
-            log.info("===== [Avatar] END SUCCESS generateCharacterBaseImage =====");
         } catch (Exception e) {
             log.error("===== [Avatar] ERROR OCCURRED =====");
             log.error("Exception type: {}", e.getClass().getName());
@@ -253,6 +242,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             // 6. DB 저장 (Page.status = IMAGE)
             page.setPageStatus(StoryPage.PageStatus.IMAGE); // 페이지 상태 업데이트 - 이미지 생성 완료
             log.info("===== [Page] {}번째 페이지 이미지 생성 완료: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+            log.info("[IMAGE2 END] storyId={} pageId = {} at={}", storyId, page.getPageNumber(), System.currentTimeMillis());
 
             // 7. 이미지 생성 완료 동기 이벤트 발행 → 리스너 aggregateStoryPage 처리
             TransactionSynchronizationManager.registerSynchronization(
@@ -317,6 +307,8 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
                 );
 
                 log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
+
+                log.info("[ASYNC END] sessionId={} at={}", storyId, System.currentTimeMillis());
             }
         }
     }

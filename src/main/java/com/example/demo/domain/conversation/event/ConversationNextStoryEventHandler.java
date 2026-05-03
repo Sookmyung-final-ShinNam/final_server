@@ -8,12 +8,13 @@ import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.event.TransactionPhase;
 
 import java.util.stream.Collectors;
+
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 @Slf4j
 @Component
@@ -23,7 +24,8 @@ public class ConversationNextStoryEventHandler {
     private final SessionStepRepository stepRepo;
     private final LlmClient llmClient;
 
-    @Transactional
+    @Transactional(propagation = REQUIRES_NEW)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(ConversationNextStoryEvent event) {
 
         log.info("[EVENT HANDLE START] stepId={}", event.getStepId());

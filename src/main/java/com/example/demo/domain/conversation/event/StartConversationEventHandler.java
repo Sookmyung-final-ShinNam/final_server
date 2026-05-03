@@ -16,6 +16,7 @@ public class StartConversationEventHandler {
     private final ConversationNextStoryCommandService conversationNextStoryCommandService;
 
     @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(StartConversationEvent event) {
 
         log.info("[START EVENT] sessionId={}", event.getSessionId());
