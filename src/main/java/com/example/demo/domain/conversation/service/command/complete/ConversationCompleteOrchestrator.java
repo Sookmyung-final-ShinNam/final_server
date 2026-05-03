@@ -53,7 +53,6 @@ public class ConversationCompleteOrchestrator {
                 conversationCompleteCommandService.updateFailedStory(storyId, Story.StoryStatus.TEXT_FAILED);
                 return;
             }
-
         }
 
         // 3. 이미지 생성: 캐릭터 및 페이지 이미지 생성
