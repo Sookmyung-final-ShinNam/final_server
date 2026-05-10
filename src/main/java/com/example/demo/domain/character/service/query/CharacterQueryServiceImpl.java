@@ -7,12 +7,14 @@ import com.example.demo.domain.character.entity.StoryCharacter;
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.character.repository.UserCharacterFavoriteRepository;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
+import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -32,8 +34,14 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
     @Override
     public CompletedCharacterResponse.CharacterListResponse getCompletedCharacters(User user, StoryCharacter.Gender gender) {
 
-        // 1. 유저의 모든 캐릭터 가져오기
-        List<StoryCharacter> characters = storyCharacterRepository.findByStory_User(user);
+        // 1. 유저의 모든 캐릭터 가져오기 (스토리 완료된 캐릭터만)
+        List<StoryCharacter> characters = storyCharacterRepository.findByUserAndStoryStatus(
+                user,
+                Arrays.asList(
+                        Story.StoryStatus.IMAGE_COMPLETED,
+                        Story.StoryStatus.VIDEO_COMPLETED
+                )
+        );
 
         // 2. 성별 필터링 (null 이면 전체)
         if (gender != null) {
@@ -47,13 +55,12 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
                 .map(fav -> fav.getCharacter().getId())
                 .collect(Collectors.toSet());
 
-        // 4. 정렬 (미완성 → 관심 → 최신순)
+        // 4. 정렬 (관심 → 최신순)
         List<StoryCharacter> sorted = characters.stream()
                 .sorted(Comparator
                         .comparingInt((StoryCharacter c) -> {
-                            if (c.getStatus() != StoryCharacter.CharacterStatus.COMPLETED) return 0;  // 미완성
-                            if (favoriteIds.contains(c.getId())) return 1;                              // 완성 & 관심
-                            return 2;                                                                  // 완성 & 비관심
+                            if (favoriteIds.contains(c.getId())) return 0;                              // 완성 & 관심
+                            return 1;                                                                  // 완성 & 비관심
                         })
                         .thenComparing(StoryCharacter::getCreatedAt, Comparator.reverseOrder())        // 최신순
                 )
@@ -70,9 +77,13 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
         User fullUser = userRepository.findByIdWithFavorites(user.getId())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
-        // 2. 캐릭터 조회 (완료된 캐릭터만)
-        StoryCharacter character = storyCharacterRepository.findByIdAndStatus(
-                characterId, StoryCharacter.CharacterStatus.COMPLETED
+        // 2. 캐릭터 조회 (스토리 완료된 캐릭터만)
+        StoryCharacter character = storyCharacterRepository.findByIdAndStoryStatus(
+                characterId,
+                Arrays.asList(
+                        Story.StoryStatus.IMAGE_COMPLETED,
+                        Story.StoryStatus.VIDEO_COMPLETED
+                )
         ).orElseThrow(() -> new CustomException(ErrorStatus.CHARACTER_NOT_FOUND));
 
         // 3. 관심 캐릭터 여부 확인
