@@ -122,7 +122,7 @@ public class ConversationController extends AuthController {
         try {
             // 대화 완료 확인 후 동화 생성
             conversationCompleteCommandService.completeStory(sessionId);
-            return ApiResponse.of(SuccessStatus._OK);
+            return ApiResponse.of(SuccessStatus._ACCEPTED);
 
         } finally {
             long durationMs = (System.nanoTime() - start) / 1_000_000;
@@ -151,6 +151,6 @@ public class ConversationController extends AuthController {
     ) {
         // 상태 변경
         storyCommandService.generateVideo(storyId);
-        return ApiResponse.of(SuccessStatus._OK);
+        return ApiResponse.of(SuccessStatus._ACCEPTED);
     }
 }

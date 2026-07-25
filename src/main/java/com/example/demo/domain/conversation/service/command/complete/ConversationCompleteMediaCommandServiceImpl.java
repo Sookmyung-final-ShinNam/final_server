@@ -3,9 +3,7 @@ package com.example.demo.domain.conversation.service.command.complete;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.StoryCharacter;
-import com.example.demo.domain.conversation.event.CompletePageImageEvent;
-import com.example.demo.domain.conversation.event.StartPageImageEvent;
-import com.example.demo.domain.conversation.event.CompleteStoryEvent;
+import com.example.demo.domain.conversation.event.*;
 import com.example.demo.domain.conversation.service.model.S3Uploader;
 import com.example.demo.domain.conversation.service.model.image.AvatarGeneratorService;
 import com.example.demo.domain.conversation.service.model.image.FluxResponse;
@@ -20,6 +18,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +31,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -68,21 +68,12 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
             // 2-1. 캐릭터 이미지 생성 및 상태 업테이트
             generateCharacterBaseImage(character);
 
-            // 2-2. 스토리 페이지 이미지 생성
-            generateStoryPageImages(story, character); // 페이지별 생성 이벤트 발행
+            // 2-2. 스토리 페이지 이미지 생성 및 상태 업테이트
+            generatePageImages(story, character);
         } else {
             // -- 동영상 생성
-            // 스토리 페이지별 동영상 생성
-            generateStoryVideos(story, character);
-
-            // 동영상 생성 여부 업데이트
-            for (StoryPage page : story.getStoryPages()) {
-                if (page.getVideoUrl() != null && page.getVideoUrl().endsWith(".mp4")) {
-                    page.setVideoStatus(StoryPage.VideoStatus.COMPLETED);
-                }
-            }
-            // 스토리 전체 상태 업데이트
-            story.setVideoStatus(StoryPage.VideoStatus.COMPLETED);
+            // 2-3. 스토리 페이지별 동영상 생성 및 상태 업테이트
+            generatePageVideos(story, character);
         }
 
         log.info("[Media] generateStoryMedia 완료, storyId={}", story.getId());
@@ -164,7 +155,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
      * - 캐릭터 basePrompt, seed 사용 → 일관된 스타일 유지
      * - 페이지별 생성 비동기 이벤트 발행함으로써 이미지 생성
      */
-    private void generateStoryPageImages(Story story, StoryCharacter character) {
+    private void generatePageImages(Story story, StoryCharacter character) {
 
         // 1. 고정 값 조회
         String basePrompt = character.getAppearance().getCharacterPromptEn(); // 포즈 없이 외형만 정리된 프롬프트
@@ -193,7 +184,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     }
 
     /**
-     * 이벤트 처리 로직
+     * 이미지 이벤트 처리 로직
      *
      * 페이지 이미지 생성
      * - 스토리 각 페이지별 이미지 생성 및 상태 업데이트
@@ -203,19 +194,19 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     @Override
     @Retryable(
             retryFor = Exception.class,      // 재시도를 수행할 예외 유형
-            recover = "recoverGenerateStoryPageImage", // 모든 재시도 실패 시 호출 메소드
+            recover = "recoverGeneratePageImage", // 모든 재시도 실패 시 호출 메소드
             maxAttempts = 3,                 // 최대 시도 횟수
             backoff = @Backoff(delay = 1000) // 1초 대기
     )
     @Transactional
-    public void generateStoryPageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
+    public void generatePageImage(Long storyId, Long pageId, String basePrompt, Long seed) {
 
         // 1. Page 조회
         StoryPage page = storyPageRepo.findById(pageId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
 
-        // 2. Page 상태가 TEXT인지 확인
-        if (page.getPageStatus() != StoryPage.PageStatus.TEXT) {
+        // 2. Page 이미지 상태가 완료되었는지 확인
+        if (page.getPageStatus() == StoryPage.PageStatus.IMAGE) {
             log.info("===== [Page] {}번째 페이지 이미지 이미 생성됨: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
             return;
         }
@@ -261,7 +252,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
 
     // 페이지 이미지 모든 재시도 실패 시
     @Recover
-    public void recoverGenerateStoryPageImage(Exception e, Long storyId, Long pageId, String basePrompt, Long seed) {
+    private void recoverGeneratePageImage(Exception e, Long storyId, Long pageId, String basePrompt, Long seed) {
         log.error("===== [Page] 페이지 이미지 생성 최종 실패: pageId={}, storyId={} =====", pageId, storyId, e);
         // 페이지는 TEXT 상태 그대로
         // 스토리 상태만 IMAGE_FAILED로 변경
@@ -269,7 +260,7 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
     }
 
     /**
-     * 이벤트 처리 로직
+     * 이미지 이벤트 처리 로직
      *
      * 페이지 이미지 생성 완료 동기
      * - 이미지 생성 완료된 페이지 개수 확인
@@ -277,87 +268,136 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
      */
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void aggregateStoryPageImage(Long storyId) {
+    public void aggregatePageImage(Long storyId) {
 
         // 1. 이미지 생성 완료된 페이지 개수 조회
         int imageCount = storyPageRepo.countByStoryIdAndPageStatus(storyId, StoryPage.PageStatus.IMAGE);
         log.info("[Aggregate] storyId={}, imageCount={}", storyId, imageCount);
 
         // 2. 모든 페이지가 모두 생성 완료된 경우 스토리 상태 업데이트 (페이지 개수 = 4)
-        if (imageCount == 4) {
-            Story story = storyRepo.findById(storyId)
-                    .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+        if (imageCount != 4) {
+            return;
+        }
 
-            if (story.getStoryStatus() != Story.StoryStatus.IMAGE_COMPLETED) { // 중복 방지
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
-                // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
-                story.setStoryStatus(Story.StoryStatus.IMAGE_COMPLETED);
+        if (story.getStoryStatus() != Story.StoryStatus.IMAGE_COMPLETED) { // 중복 방지
 
-                // 4. 동화 완성 이벤트 발행
-                Long userId = story.getUser().getId();
-                TransactionSynchronizationManager.registerSynchronization(
-                        new TransactionSynchronizationAdapter() {
-                            @Override
-                            public void afterCommit() {
-                                eventPublisher.publishEvent(
-                                        new CompleteStoryEvent(storyId, userId)
-                                );
-                            }
+            // 3. 스토리 상태 업데이트 - 모든 이미지 생성 완료
+            story.setStoryStatus(Story.StoryStatus.IMAGE_COMPLETED);
+
+            // 4. 동화 완성 이벤트 발행
+            Long userId = story.getUser().getId();
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronizationAdapter() {
+                        @Override
+                        public void afterCommit() {
+                            eventPublisher.publishEvent(
+                                    new CompleteStoryEvent(storyId, userId)
+                            );
                         }
-                );
+                    }
+            );
 
-                log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
+            log.info("===== [Story] 스토리 이미지 모두 생성 완료: storyId = {} =====", storyId);
 
-                log.info("[ASYNC END] sessionId={} at={}", storyId, System.currentTimeMillis());
-            }
+            log.info("[ASYNC END] sessionId={} at={}", storyId, System.currentTimeMillis());
         }
     }
 
     /**
-     * 스토리 각 페이지별 영상 생성
-     * - 캐릭터 이미지 → Runway API 기반 영상 변환
-     * - 최대 3번 재시도 (네트워크 오류 등 대응)
-     * - 성공 시 S3 업로드
+     * 스토리 페이지 동영상 생성
+     * - 캐릭터 characterImageUrl 사용 → 일관된 스타일 유지
+     * - 페이지별 생성 비동기 이벤트 발행함으로써 동영상 생성
      */
-    private void generateStoryVideos(Story story, StoryCharacter character) {
-        String characterImageUrl = character.getImageUrl();
+    private void generatePageVideos(Story story, StoryCharacter character) {
 
-        for (StoryPage page : story.getStoryPages()) {
+        // 1. 고정 값 조회
+        String characterImage = character.getImageUrl();
+        Long storyId = story.getId();
 
-            // 이미 생성 진행 중이거나 완료된 경우 스킵
-            if (page.getVideoStatus() != StoryPage.VideoStatus.NONE) {
-                log.info("[Media] Skip video generation (status={}), storyId={}, page={}",
-                        page.getVideoStatus(), story.getId(), page.getPageNumber());
-                continue;
-            }
+        // 2. 미완성 페이지 id만 추출
+        List<Long> pageIds = story.getStoryPages().stream()
+                .filter(page -> page.getVideoStatus() != StoryPage.VideoStatus.COMPLETED)
+                .map(StoryPage::getId)
+                .toList();
 
-            // 생성 시작
-            page.setVideoStatus(StoryPage.VideoStatus.MAKING);
-            storyPageRepo.save(page);
-
-            int maxAttempts = 3;
-            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-                try {
-                    String videoUrl = createVideo(characterImageUrl, story, page, attempt);
-
-                    handleFileWithTemp(videoUrl, story.getId(), page.getPageNumber(), videoFile -> {
-                        String s3Url = s3Uploader.uploadFileFromFile(videoFile,
-                                "stories/" + story.getId() + "/videos",
-                                "page_" + page.getPageNumber() + ".mp4");
-                        page.setVideoUrl(s3Url);
-                        storyPageRepo.save(page); // DB 저장
-                    });
-
-                    break; // 성공 시 attempt 루프 종료
-
-                } catch (Exception e) {
-                    log.warn("[Media] Attempt {} failed for storyId={}, page={}, error={}", attempt, story.getId(), page.getPageNumber(), e.getMessage());
-                    if (attempt == maxAttempts) {
-                        throw new RuntimeException("❌ Video generation failed after " + maxAttempts + " attempts", e);
-                    }
-                }
-            }
+        // 3. 페이지별 동영상 생성 비동기 이벤트 발행 → 리스너 generatePageImage 처리
+        for (Long pageId : pageIds) {
+            eventPublisher.publishEvent(
+                    new StartPageVideoEvent(storyId, pageId, characterImage)
+            );
         }
+    }
+
+    /**
+     * 동영상 이벤트 처리 로직
+     *
+     * 페이지 동영상 생성
+     * - 캐릭터 이미지 → Runway API 기반 영상 변환
+     * - 동영상 생성 및 S3 업로드
+     * - 최대 3번 생성 실패 (네트워크 오류 등 대응) 시 > 최종 스토리 상태 VIDEO_FAILED 업데이트
+     */
+    @Override
+    @Retryable(
+            retryFor = Exception.class,      // 재시도를 수행할 예외 유형
+            recover = "recoverGeneratePageVideo", // 모든 재시도 실패 시 호출 메소드
+            maxAttempts = 3,                 // 최대 시도 횟수
+            backoff = @Backoff(delay = 1000) // 1초 대기
+    )
+    @Transactional
+    public void generatePageVideo(Long storyId, Long pageId, String characterImage) {
+
+        // 0. 현재 시도 횟수
+        int attempt = RetrySynchronizationManager.getContext().getRetryCount() + 1;
+
+        // 1. Page 조회
+        StoryPage page = storyPageRepo.findById(pageId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
+
+        // 2. Page 동영상 상태가 완료되었는지 확인
+        if (page.getVideoStatus() == StoryPage.VideoStatus.COMPLETED) {
+            log.info("===== [Page Video] {}번째 페이지 동영상 이미 생성됨: pageId = {}, storyId = {} =====", page.getPageNumber(), page.getId(), storyId);
+            return;
+        }
+
+        // 3. 동영상 생성 시작
+        log.info("===== [Page Video] {}번째 페이지 동영상 생성 시작: attempt={}/3, pageId = {}, storyId = {} =====", page.getPageNumber(), attempt, page.getId(), storyId);
+
+        try {
+            String videoUrl = createVideo(characterImage, storyId, page, attempt);
+
+            handleFileWithTemp(videoUrl, storyId, page.getPageNumber(), videoFile -> {
+                String s3Url = s3Uploader.uploadFileFromFile(videoFile,
+                        "stories/" + storyId + "/videos",
+                        "page_" + page.getPageNumber() + ".mp4");
+                page.setVideoUrl(s3Url);
+            });
+
+            page.setVideoStatus(StoryPage.VideoStatus.COMPLETED); // 페이지 성공 상태 업데이트
+
+            log.info("===== [Page Video] {}번째 페이지 동영상 생성 완료: attempt={}/3, pageId={}, storyId={} =====", page.getPageNumber(), attempt, pageId, storyId);
+
+            // 4. 전체 페이지 동영상 생성 완료 여부 집계
+            eventPublisher.publishEvent(
+                    new CompletePageVideoEvent(storyId)
+            );
+
+        } catch (Exception e) {
+            log.warn("===== [Page Video] {}번째 페이지 동영상 생성 실패: attempt={}/3, pageId = {}, storyId = {} =====", page.getPageNumber(), attempt, page.getId(), storyId, e);
+            throw e;
+        }
+    }
+
+    // 페이지 동영상 모든 재시도 실패 시
+    @Recover
+    private void recoverGeneratePageVideo(Exception e, Long storyId, Long pageId, String characterImage) {
+
+        log.error("===== [Page] 동영상 생성 3회 최종 실패: pageId={}, storyId={} =====", pageId, storyId, e);
+
+        // 해당 페이지 생성 실패 시, 바로 스토리도 실패 상태 업데이트
+        conversationCompleteCommandService.updateFailedVideo(pageId, storyId);
     }
 
     /**
@@ -365,21 +405,68 @@ public class ConversationCompleteMediaCommandServiceImpl implements Conversation
      * - 캐릭터 이미지 파일 다운로드 → API 호출
      * - 프롬프트가 비어있으면 실패 처리
      */
-    private String createVideo(String characterImageUrl, Story story, StoryPage page, int attempt) throws IOException, InterruptedException {
+    private String createVideo(String characterImage, Long storyId, StoryPage page, int attempt) {
+        File tempFile = null;
 
-        if (page.getContentEn() == null || page.getContentEn().isEmpty()) {
-            throw new IOException("Page prompt is empty");
+        try {
+            if (page.getContentEn() == null || page.getContentEn().isEmpty()) {
+                throw new IOException("Page prompt is empty");
+            }
+
+            tempFile = downloadTempFile(characterImage, storyId, page.getPageNumber());
+
+            if (!tempFile.exists() || tempFile.length() == 0) {
+                throw new IOException("Downloaded character image is empty");
+            }
+
+            log.info("[Media] Attempt {}: Creating video, storyId={}, page={}, file={}, prompt={}",
+                    attempt, storyId, page.getPageNumber(), tempFile.getAbsolutePath(), page.getContentEn());
+
+            return runwayService.createImageToVideoAndWait(tempFile, page.getContentEn());
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Video generation interrupted", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Video generation failed", e);
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    /**
+     * 동영상 이벤트 처리 로직
+     *
+     * 페이지 동영상 생성 완료 동기
+     * - 동영상 생성 완료된 페이지 개수 확인
+     * - 이후 스토리 상태 업데이트
+     */
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void aggregatePageVideo(Long storyId) {
+
+        // 1. 동영상 생성 완료된 페이지 개수 조회
+        int videoCount = storyPageRepo.countByStoryIdAndVideoStatus(storyId, StoryPage.VideoStatus.COMPLETED);
+        log.info("[Page Video Aggregate] storyId={}, videoCount={}/4", storyId, videoCount);
+
+        // 2. 모든 페이지가 모두 생성 완료된 경우 동영상 상태 업데이트 (페이지 개수 = 4)
+        if (videoCount != 4) {
+            return;
         }
 
-        File tempFile = downloadTempFile(characterImageUrl, story.getId(), page.getPageNumber());
-        if (!tempFile.exists() || tempFile.length() == 0) {
-            throw new IOException("Downloaded character image is empty");
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+
+        if (story.getVideoStatus() != Story.VideoStatus.VIDEO_COMPLETED) { // 중복 방지
+
+            // 3. 스토리 상태 업데이트 - 모든 동영상 생성 완료
+            story.setVideoStatus(Story.VideoStatus.VIDEO_COMPLETED);
+
+            log.info("===== [Page Video] 전체 페이지 동영상 생성 완료: storyId = {} =====", storyId);
+
         }
-
-        log.info("[Media] Attempt {}: Creating video, storyId={}, page={}, file={}, prompt={}",
-                attempt, story.getId(), page.getPageNumber(), tempFile.getAbsolutePath(), page.getContentEn());
-
-        return runwayService.createImageToVideoAndWait(tempFile, page.getContentEn());
     }
 
     /**
