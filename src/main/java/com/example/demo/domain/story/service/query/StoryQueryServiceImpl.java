@@ -31,7 +31,7 @@ public class StoryQueryServiceImpl implements StoryQueryService {
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
 
         // 페이지 이미지 완성된 경우만 조회 가능
-        if (story.getStoryStatus().isCompletedStory()) {
+        if (!story.getStoryStatus().isCompletedStory()) {
             throw new CustomException(ErrorStatus.STORY_NOT_COMPLETED);
         }
 
