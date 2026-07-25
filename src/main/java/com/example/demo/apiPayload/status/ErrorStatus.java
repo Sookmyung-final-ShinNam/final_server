@@ -63,8 +63,11 @@ public enum ErrorStatus implements BaseErrorCode {
     STORY_PAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORY_4005", "해당 동화 페이지를 찾을 수 없습니다."),
     STORY_INVALID_STATUS(HttpStatus.INTERNAL_SERVER_ERROR, "STORY_5001", "유효하지 않은 동화 상태입니다."),
 
+    // 동영상 관련 에러
+    VIDEO_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "VIDEO_4001", "이미 동영상 생성이 완료된 동화입니다."),
+
     // 이미지, 동영상 API 관련 에러
-    MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType 은 image 또는 video 여야 합니다."),
+    MEDIA_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "MEDIA_4004", "imageType은 image 또는 video 여야 합니다."),
 
     // 파일 관련 에러
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_4001", "파일 업로드에 실패했습니다."),

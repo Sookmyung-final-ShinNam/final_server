@@ -3,6 +3,7 @@ package com.example.demo.domain.story.repository;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -21,13 +22,25 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     @Query("select s.storyStatus from Story s where s.id = :storyId")
     Story.StoryStatus findStoryStatusById(@Param("storyId") Long storyId);
 
+    // 동영상 상태 VIDEO_MAKING로 업데이트 (동시에 여러 요청이 들어와도 하나의 요청만 updated = 1)
+    @Modifying
+    @Query("""
+        UPDATE Story s SET s.videoStatus = 'VIDEO_MAKING'
+            WHERE s.id = :storyId
+                AND s.videoStatus IN :statuses
+    """)
+    int updateStatusAsMaking(
+            @Param("storyId") Long storyId,
+            @Param("statuses") List<Story.VideoStatus> statuses
+    );
+
     // 관리자용 -  링크가 비어 있는 동화 조회 : 이미지 숏츠 링크가 없거나, 영상 완료인데 영상 숏츠 링크가 없는 경우
     @Query("""
         SELECT s FROM Story s
         WHERE 
             (s.storyStatus = 'IMAGE_COMPLETED' AND (s.imageYoutubeLink IS NULL OR s.imageYoutubeLink = ''))
          OR
-            (s.storyStatus = 'IMAGE_COMPLETED' AND s.videoStatus = 'COMPLETED' 
+            (s.storyStatus = 'IMAGE_COMPLETED' AND s.videoStatus = 'VIDEO_COMPLETED' 
              AND (s.videoYoutubeLink IS NULL OR s.videoYoutubeLink = ''))
     """)
     List<Story> findIncompleteStoriesForAdmin();
@@ -36,9 +49,9 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     @Query("""
         SELECT s FROM Story s
         WHERE s.retryCount >= 3
-            AND s.storyStatus NOT IN :complete
+            AND s.storyStatus != :complete
     """)
     List<Story> findFailedRetryStoriesForAdmin(
-            @Param("complete") List<Story.StoryStatus> completeStatus
+            @Param("complete") Story.StoryStatus completeStatus
     );
 }

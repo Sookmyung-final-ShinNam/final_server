@@ -76,11 +76,6 @@ public class Story extends BaseEntity {
         public boolean isCompletedVideo() {
             return this == VIDEO_COMPLETED;
         }
-
-        // 스토리 생성 실패 상태 여부
-        public boolean isFailedVideo() {
-            return this == VIDEO_FAILED;
-        }
     }
 
     // 이미지용 유튜브 링크

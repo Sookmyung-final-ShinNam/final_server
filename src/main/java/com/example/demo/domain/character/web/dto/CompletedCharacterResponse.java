@@ -1,6 +1,6 @@
 package com.example.demo.domain.character.web.dto;
 
-import com.example.demo.domain.story.entity.StoryPage;
+import com.example.demo.domain.story.entity.Story;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -53,7 +53,7 @@ public class CompletedCharacterResponse {
 
         private String imageStoryUrl;     // 이미지 스토리 URL
 
-        private StoryPage.VideoStatus videoStatus; // 비디오 스토리 상태
+        private Story.VideoStatus videoStatus; // 비디오 스토리 상태
         private String videoStoryUrl;     // 비디오 스토리 URL
 
         private String imageYoutubeLink;   // 이미지 유튜브 링크

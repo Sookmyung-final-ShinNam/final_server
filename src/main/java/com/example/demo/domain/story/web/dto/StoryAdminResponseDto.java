@@ -22,7 +22,7 @@ public class StoryAdminResponseDto {
                 (story.getImageYoutubeLink() == null || story.getImageYoutubeLink().isBlank());
 
         boolean needsVideo = story.getStoryStatus() == Story.StoryStatus.IMAGE_COMPLETED &&
-                story.getVideoStatus() == com.example.demo.domain.story.entity.StoryPage.VideoStatus.COMPLETED &&
+                story.getVideoStatus() == Story.VideoStatus.VIDEO_COMPLETED &&
                 (story.getVideoYoutubeLink() == null || story.getVideoYoutubeLink().isBlank());
 
         return StoryAdminResponseDto.builder()

@@ -3,7 +3,6 @@ package com.example.demo.domain.conversation.web.controller;
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
 import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
 import com.example.demo.domain.conversation.service.command.feedback.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.start.ConversationStartCommandService;
@@ -36,7 +35,6 @@ public class ConversationController extends AuthController {
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationCompleteCommandService conversationCompleteCommandService;
-    private final ConversationAsyncService conversationAsyncService;
     private final StoryCommandService storyCommandService;
 
     @Operation(
@@ -138,28 +136,21 @@ public class ConversationController extends AuthController {
             description = """
                     1 포인트를 소비하여, 비동기로 동영상 동화 생성을 시작합니다.
                     
-                    동기 - 정합성 확인 후 바로 클라이언트에 응답을 줍니다.
-                        - 포인트 부족 시 진행 불가 
+                    1. 동기 - 정합성 확인 후 바로 클라이언트에 응답을 줍니다.
+                        - 포인트 부족 시 진행 불가
                     
-                    비동기 - 이미 생성된 동화(storyId)를 기반으로 각 페이지의 동영상을 생성합니다.
+                    2. 비동기 - 이미 생성된 동화(storyId)를 기반으로 각 페이지의 동영상을 생성합니다.
                     """
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
     @PostMapping("/video")
-    public ApiResponse<Void> storyToVideo(
+    public ApiResponse<Void> generateVideo(
             @RequestParam Long storyId
     ) {
-        long startTime = System.currentTimeMillis();
-        // log.info("[동영상 동화 생성] 전체 작업 시작: {}", LocalDateTime.now());
-
         // 상태 변경
-        storyCommandService.markStoryVideoAsMaking(storyId);
-
-        // 비동기 호출
-        conversationAsyncService.generateStoryVideo(storyId, startTime);
+        storyCommandService.generateVideo(storyId);
         return ApiResponse.of(SuccessStatus._OK);
     }
-
 }
