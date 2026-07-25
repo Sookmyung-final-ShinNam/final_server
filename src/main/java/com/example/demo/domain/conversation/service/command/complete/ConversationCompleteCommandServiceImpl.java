@@ -67,7 +67,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
     public void updateFailedStory(Long storyId, Story.StoryStatus failedStatus) {
 
         // 1. 실패 상테 해당하는 enum 값 검증
-        if (!failedStatus.isFailedStatus()) {
+        if (!failedStatus.isFailedStory()) {
             throw new CustomException(ErrorStatus.STORY_INVALID_STATUS);
         }
 
