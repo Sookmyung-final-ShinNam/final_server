@@ -49,9 +49,9 @@ public class StoryPage {
     private VideoStatus videoStatus = VideoStatus.NONE;
 
     public enum VideoStatus {
-        NONE,        // 아직 생성 안됨
-        MAKING,      // 생성 중
-        COMPLETED    // 생성 완료
+        NONE,       // 페이지 생성 전
+        COMPLETED,  // 페이지 생성 완료
+        FAILED      // 페이지 생성 실패
     }
 
     // 페이지 동영상 URL

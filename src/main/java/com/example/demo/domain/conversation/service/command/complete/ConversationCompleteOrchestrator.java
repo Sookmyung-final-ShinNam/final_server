@@ -34,7 +34,7 @@ public class ConversationCompleteOrchestrator {
         Story.StoryStatus currentStatus = story.getStoryStatus();
 
         // 1. 이미 완료된 스토리 작업 생략
-        if (currentStatus.isCompletedStatus()) {
+        if (currentStatus.isCompletedStory()) {
             log.info("이미 이미지까지 생성된 스토리: storyId={}", storyId);
             return;
         }
@@ -53,7 +53,6 @@ public class ConversationCompleteOrchestrator {
                 conversationCompleteCommandService.updateFailedStory(storyId, Story.StoryStatus.TEXT_FAILED);
                 return;
             }
-
         }
 
         // 3. 이미지 생성: 캐릭터 및 페이지 이미지 생성
@@ -69,6 +68,5 @@ public class ConversationCompleteOrchestrator {
                 return;
             }
         }
-
     }
 }

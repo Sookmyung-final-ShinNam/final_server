@@ -1,6 +1,7 @@
 package com.example.demo.domain.conversation.service.command.complete;
 
 import com.example.demo.domain.story.entity.Story;
+import com.example.demo.domain.story.entity.StoryPage;
 
 public interface ConversationCompleteCommandService {
 
@@ -11,9 +12,11 @@ public interface ConversationCompleteCommandService {
     void completeStory(Long sessionId);
 
     /**
-     * 스토리 생성 진행 실패 -> 스토리 상태 업데이트
+     * 스토리 생성 진행 실패 -> 스토리/페이지 상태 업데이트
      */
     void updateFailedStory(Long storyId, Story.StoryStatus failedStatus);
+
+    void updateFailedVideo(Long pageId, Long storyId); // 동영상 실패
 
     /**
      * 배치 대상 스토리의 retry_count를 +1하고 스토리 생성 이벤트 발행

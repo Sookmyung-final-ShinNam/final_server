@@ -22,7 +22,7 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
      *
      * 배치 대상 스토리 기준:
      * - 대화 세션이 완료되었고,
-     * - 스토리의 상태가 패한 TEXT_FAILED/IMAGE_FAILED/VIDEO_FAILED 또는 오래된 MAKING/TEXT_COMPLETED 이고,
+     * - 스토리의 상태가 패한 TEXT_FAILED/IMAGE_FAILED 또는 오래된 MAKING/TEXT_COMPLETED 이고,
      * - 스토리의 재생성 쵯수가 3번 미만
      */
     @Query("""
@@ -35,8 +35,7 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
                     OR (s.storyStatus IN :stale AND s.updatedAt < :threshold)
                     )
                 AND s.retryCount < 3
-    """
-    )
+    """)
     List<ConversationSession> findRetryTargetSessions(
             @Param("step") ConversationSession.ConversationStep step,
             @Param("fail") List<Story.StoryStatus> failStatus,

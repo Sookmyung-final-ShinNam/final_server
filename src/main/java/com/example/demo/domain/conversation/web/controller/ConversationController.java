@@ -3,7 +3,6 @@ package com.example.demo.domain.conversation.web.controller;
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
 import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
 import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
 import com.example.demo.domain.conversation.service.command.feedback.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.start.ConversationStartCommandService;
@@ -21,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 /**
  * 대화 컨트롤러
  */
@@ -34,7 +35,6 @@ public class ConversationController extends AuthController {
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationCompleteCommandService conversationCompleteCommandService;
-    private final ConversationAsyncService conversationAsyncService;
     private final StoryCommandService storyCommandService;
 
     @Operation(
@@ -99,14 +99,16 @@ public class ConversationController extends AuthController {
 
 
     @Operation(
-            summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
+            summary = "대화 세션 완료 및 동화 생성",
             description = """
-                    동기  -  정합성 확인 후 바로 응답을 줍니다.
+                    마지막 Feedback 이후 호출 가능하며, 비동기로 동화 생성을 시작합니다.
                     
-                    비동기 - 내용 기반으로 아래 정보들을 업데이트/생성합니다.
-                            - 동화 정보 업데이트(제목, 3줄 요약)
-                            - 캐릭터 정보 업데이트(성격, 기본 이미지)
-                            - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지)
+                    1. 동기 - 정합성 확인 후 바로 클라이언트에 응답을 줍니다.
+                 
+                    2. 비동기 - 대화 내용을 기반으로, 동화 관련 정보를 업데이트하며 동화를 생성합니다.
+                        - 동화 정보 업데이트(제목, 3줄 요약)
+                        - 캐릭터 정보 업데이트(성격, 기본 이미지)
+                        - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지)
                     """
     )
     @ApiResponses({
@@ -120,7 +122,7 @@ public class ConversationController extends AuthController {
         try {
             // 대화 완료 확인 후 동화 생성
             conversationCompleteCommandService.completeStory(sessionId);
-            return ApiResponse.of(SuccessStatus._OK);
+            return ApiResponse.of(SuccessStatus._ACCEPTED);
 
         } finally {
             long durationMs = (System.nanoTime() - start) / 1_000_000;
@@ -132,23 +134,23 @@ public class ConversationController extends AuthController {
     @Operation(
             summary = "페이지별 동영상 생성",
             description = """
-                    각 페이지에 맞는 동영상을 생성합니다.
+                    1 포인트를 소비하여, 비동기로 동영상 동화 생성을 시작합니다.
                     
-                    - points 부족 시 진행 불가 (사용 포인트 1)
+                    1. 동기 - 정합성 확인 후 바로 클라이언트에 응답을 줍니다.
+                        - 포인트 부족 시 진행 불가
+                    
+                    2. 비동기 - 이미 생성된 동화(storyId)를 기반으로 각 페이지의 동영상을 생성합니다.
                     """
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
     @PostMapping("/video")
-    public ApiResponse<Void> storyToVideo(
+    public ApiResponse<Void> generateVideo(
             @RequestParam Long storyId
     ) {
         // 상태 변경
-        storyCommandService.markStoryVideoAsMaking(storyId);
-        // 비동기 호출
-        conversationAsyncService.generateStoryVideo(storyId);
-        return ApiResponse.of(SuccessStatus._OK);
+        storyCommandService.generateVideo(storyId);
+        return ApiResponse.of(SuccessStatus._ACCEPTED);
     }
-
 }
