@@ -77,7 +77,8 @@ public class User extends BaseEntity {
     // 약관 2 : 사용자 대화 기록과 즐겨찾기는 탈퇴시 자동으로 삭제됩니다.
 
     public enum UserGrade {
-        BASIC,    // 기본 사용자
+        BASIC,    // 기본 사용자 (= 학생)
+        TEACHER,  // 선생님
         ADMIN     // 관리자
     }
 
@@ -87,10 +88,18 @@ public class User extends BaseEntity {
         DELETED   // 회원 탈퇴
     }
 
+    // 사용자 역할 전환 (관리자 전환 불가)
+    public void changeRole(UserGrade newGrade) {
+        if (newGrade == UserGrade.ADMIN) {
+            throw new CustomException(ErrorStatus.USER_ROLE_CHANGE_FAILED);
+        }
+
+        this.grade = newGrade;
+    }
+
     // 사용자 상태를 활성화로 변경
     public void activate() {
         this.status = UserStatus.ACTIVE;
-        this.setAgreedToTerms(true); // 활성화 시 약관 동의로 설정
         this.deletedAt = null; // 활성화 시 삭제 일시 초기화
     }
 

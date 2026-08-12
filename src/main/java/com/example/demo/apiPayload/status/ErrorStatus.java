@@ -35,9 +35,10 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_ALREADY_LOGOUT(HttpStatus.BAD_REQUEST, "USER_4001", "이미 로그아웃된 사용자입니다."),
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_4002", "이미 삭제된 사용자입니다."),
     USER_INVALID_POINT(HttpStatus.BAD_REQUEST, "USER_4003", "사용자의 포인트가 부족합니다."),
+    USER_ROLE_CHANGE_FAILED(HttpStatus.FORBIDDEN, "USER_4005", "일반 유저는 관리자 역할로 바꿀 수 없습니다."),
 
     // 관리자 관련 에러
-    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4003", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
+    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4001", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
 
     // 대화 관련 에러
     CHAT_GPT_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT_GPT_5001", "ChatGPT API 호출에 실패했습니다. 관리자에게 문의하세요."),

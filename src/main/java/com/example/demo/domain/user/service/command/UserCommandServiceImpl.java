@@ -101,18 +101,35 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public LoginResponseDto.LoginResult loginUser(String tempCode) {
+    public LoginResponseDto.LoginResult loginUser(String tempCode, User.UserGrade role) {
 
-        // tempCode 로 토큰 조회 및 반환 정보 생성
+        // 1. tempCode 로 토큰 조회 및 반환 정보 생성
         LoginResponseDto.LoginResult loginResult = userQueryService.findTokenByTempCode(tempCode);
 
-        // accessToken 으로 사용자 조회
+        // 2. accessToken 으로 사용자 조회
         Token token = tokenRepository.findByAccessToken(loginResult.getAccessToken())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
         User user = token.getUser();
 
-        // 사용자 활성화
+        // 3. 회원가입 여부 확인
+        boolean isSignup = !user.isAgreedToTerms();
+
+        if (isSignup) {
+            // role=TEACHER(선생님)인 경우, 이메일 인증 확인 및 역활 전환
+            if (role == User.UserGrade.TEACHER) {
+//                EmailVerification emailVerification = emailVerificationRepository
+//                        .findTopByUserIdAndVerifiedTrueOrderByVerifiedAtDesc(user.getId())
+//                        .filter(ev -> ev.getVerifiedAt().isAfter(LocalDateTime.now().minusMinutes(30)))
+//                        .orElseThrow(() -> new CustomException(ErrorStatus.EMAIL_NOT_VERIFIED));
+
+                user.changeRole(User.UserGrade.TEACHER);
+            }
+
+            user.setAgreedToTerms(true); // 회원가입 시 약관 동의로 설정
+        }
+
+        // 4. 사용자 활성화
         user.activate();
         userRepository.save(user);
 
