@@ -6,8 +6,10 @@ import com.example.demo.domain.character.repository.UserCharacterFavoriteReposit
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
+import com.example.demo.domain.user.entity.EmailVerification;
 import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.repository.EmailVerificationRepository;
 import com.example.demo.domain.user.repository.TokenRepository;
 import com.example.demo.domain.user.repository.UserRepository;
 import com.example.demo.domain.user.service.query.UserQueryService;
@@ -34,6 +36,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final EmailVerificationRepository emailVerificationRepository;
     private final ConversationSessionRepository conversationSessionRepository;
     private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
     private final StoryRepository storyRepository;
@@ -118,10 +121,9 @@ public class UserCommandServiceImpl implements UserCommandService {
         if (isSignup) {
             // role=TEACHER(선생님)인 경우, 이메일 인증 확인 및 역활 전환
             if (role == User.UserGrade.TEACHER) {
-//                EmailVerification emailVerification = emailVerificationRepository
-//                        .findTopByUserIdAndVerifiedTrueOrderByVerifiedAtDesc(user.getId())
-//                        .filter(ev -> ev.getVerifiedAt().isAfter(LocalDateTime.now().minusMinutes(30)))
-//                        .orElseThrow(() -> new CustomException(ErrorStatus.EMAIL_NOT_VERIFIED));
+                emailVerificationRepository.findByUser(user)
+                        .filter(EmailVerification::isValid)
+                        .orElseThrow(() -> new CustomException(ErrorStatus.EMAIL_VERIFICATION_NOT_COMPLETED));
 
                 user.changeRole(User.UserGrade.TEACHER);
             }
@@ -157,10 +159,11 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
-        // 관련 엔티티 삭제 (대화, 토큰, 즐겨찾기)
+        // 관련 엔티티 삭제 (대화, 토큰, 즐겨찾기, 이메일 인증 내역)
         tokenRepository.deleteAllByUser(user);
         conversationSessionRepository.deleteAllByUser(user);
         userCharacterFavoriteRepository.deleteAllByUser(user);
+        emailVerificationRepository.deleteAllByUser(user);
 
         // 스토리의 user를 null로 세팅
         List<Story> stories = storyRepository.findByUser(user);
