@@ -30,14 +30,21 @@ public enum ErrorStatus implements BaseErrorCode {
 
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "EMAIL_4001", "이메일을 찾을 수 없습니다. 올바른 이메일을 입력하세요."),
 
+    EMAIL_VERIFICATION_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4001", "인증코드가 만료되었습니다. 인증을 다시 요청하세요."),
+    EMAIL_VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4002", "인증코드가 일치하지 않습니다."),
+    EMAIL_VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "EMAIL_VERIFICATION_4003", "이메일 인증 요청 내역을 찾을 수 없습니다."),
+    EMAIL_VERIFICATION_NOT_COMPLETED(HttpStatus.FORBIDDEN, "EMAIL_VERIFICATION_4004", "이메일 인증이 완료되지 않았거나 만료되었습니다. 인증을 다시 진행하세요."),
+    EMAIL_VERIFICATION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4005", "이미 다른 계정에서 인증된 이메일입니다."),
+
     // 회원 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_4004", "사용자를 찾을 수 없습니다."),
     USER_ALREADY_LOGOUT(HttpStatus.BAD_REQUEST, "USER_4001", "이미 로그아웃된 사용자입니다."),
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_4002", "이미 삭제된 사용자입니다."),
     USER_INVALID_POINT(HttpStatus.BAD_REQUEST, "USER_4003", "사용자의 포인트가 부족합니다."),
+    USER_ROLE_CHANGE_FAILED(HttpStatus.FORBIDDEN, "USER_4005", "일반 유저는 관리자 역할로 바꿀 수 없습니다."),
 
     // 관리자 관련 에러
-    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4003", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
+    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4001", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
 
     // 대화 관련 에러
     CHAT_GPT_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT_GPT_5001", "ChatGPT API 호출에 실패했습니다. 관리자에게 문의하세요."),
