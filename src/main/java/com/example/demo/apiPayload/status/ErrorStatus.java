@@ -42,6 +42,7 @@ public enum ErrorStatus implements BaseErrorCode {
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_4002", "이미 삭제된 사용자입니다."),
     USER_INVALID_POINT(HttpStatus.BAD_REQUEST, "USER_4003", "사용자의 포인트가 부족합니다."),
     USER_ROLE_CHANGE_FAILED(HttpStatus.FORBIDDEN, "USER_4005", "일반 유저는 관리자 역할로 바꿀 수 없습니다."),
+    USER_ROLE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "USER_4006", "해당 역할로는 이용할 수 없는 기능입니다."),
 
     // 관리자 관련 에러
     ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4001", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
@@ -101,7 +102,7 @@ public enum ErrorStatus implements BaseErrorCode {
     CLASSROOM_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "CLASSROOM_4002", "이미 가입하거나 가입 요청한 학급입니다."),
     CLASSROOM_NOT_APPROVED(HttpStatus.FORBIDDEN, "CLASSROOM_4003", "아직 승인되지 않은 학급입니다."),
     CLASSROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CLASSROOM_4013", "해당 학급에 접근 권한이 없습니다."),
-    CLASSROOM_ACORN_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CLASSROOM_4006", "도토리는 최대 20개까지 보유할 수 있습니다. 관리자 승인이 필요합니다."),
+    CLASSROOM_ACORN_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CLASSROOM_4006", "학급당 도토리는 최대 20개까지 보유할 수 있습니다. 관리자 승인이 필요합니다."),
 
     // 과제 관련 에러
     ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ASSIGNMENT_4004", "해당 과제를 찾을 수 없습니다."),

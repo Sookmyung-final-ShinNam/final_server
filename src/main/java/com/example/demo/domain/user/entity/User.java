@@ -60,10 +60,6 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private int points = 0;
 
-    // 도토리 (학급 보상 재화, 5개씩 충전, max 20)
-    @Column(nullable = false)
-    private int acorn = 0;
-
     // 사용자 삭제 시 토큰도 삭제
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Token> tokens = new HashSet<>();
@@ -117,11 +113,5 @@ public class User extends BaseEntity {
     public void usePoints(int value) {
         if (this.points < value) throw new CustomException(ErrorStatus.USER_INVALID_POINT);
         this.points -= value;
-    }
-
-    // 도토리 충전 (5개씩, 최대 20개)
-    public void chargeAcorn() {
-        if (this.acorn + 5 > 20) throw new CustomException(ErrorStatus.CLASSROOM_ACORN_LIMIT_EXCEEDED);
-        this.acorn += 5;
     }
 }
