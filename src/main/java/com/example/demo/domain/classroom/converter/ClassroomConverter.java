@@ -8,7 +8,6 @@ import com.example.demo.domain.user.entity.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +15,16 @@ import java.util.List;
 @Component
 public class ClassroomConverter {
 
+    // ─────────────────────────────────────────────────────
+    // 학급 목록 조회 응답
+    // ─────────────────────────────────────────────────────
+
     public ClassroomResponseDto.TeacherClassroomListResponse toTeacherListResponse(User teacher, List<Classroom> classrooms) {
         List<ClassroomResponseDto.TeacherClassroomItem> items = classrooms.stream()
                 .map(c -> ClassroomResponseDto.TeacherClassroomItem.builder()
                         .classroomId(c.getId())
                         .name(c.getName())
-                        .studentCount((int) c.getStudents().stream()
-                                .filter(s -> s.getStatus() == Student.JoinStatus.APPROVED)
-                                .count())
+                        .studentCount(c.countApprovedStudents())
                         .code(c.getCode())
                         .build())
                 .toList();
@@ -34,12 +35,44 @@ public class ClassroomConverter {
                 .build();
     }
 
+    public ClassroomResponseDto.StudentClassroomListResponse toStudentListResponse(User student, List<Student> myEnrollments) {
+        List<ClassroomResponseDto.StudentClassroomItem> items = myEnrollments.stream()
+                .map(s -> {
+                    Classroom c = s.getClassroom();
+                    return ClassroomResponseDto.StudentClassroomItem.builder()
+                            .classroomId(c.getId())
+                            .name(c.getName())
+                            .studentCount(c.countApprovedStudents())
+                            .code(c.getCode())
+                            .joinStatus(s.getStatus())
+                            .build();
+                })
+                .toList();
+
+        return ClassroomResponseDto.StudentClassroomListResponse.builder()
+                .nickname(student.getNickname())
+                .classrooms(items)
+                .build();
+    }
+
+    // ─────────────────────────────────────────────────────
+    // 학급 상세 조회 응답
+    // ─────────────────────────────────────────────────────
+
     public ClassroomResponseDto.TeacherClassroomDetailResponse toTeacherDetailResponse(Classroom classroom, List<Student> students) {
         List<ClassroomResponseDto.TeacherStudentItem> items = new ArrayList<>();
-        for (int i = 0; i < students.size(); i++) {
-            Student s = students.get(i);
+        int approvedNumber = 0;
+
+        for (Student s : students) {
+            int number = 0; // 기본값 0 (PENDING인 학생 번호)
+
+            if (s.getStatus() == Student.JoinStatus.APPROVED) {
+                approvedNumber++;
+                number = approvedNumber;
+            }
+
             items.add(ClassroomResponseDto.TeacherStudentItem.builder()
-                    .number(i + 1)
+                    .studentNo(number)
                     .studentId(s.getStudent().getId())
                     .studentName(s.getStudent().getNickname())
                     .joinStatus(s.getStatus())
@@ -56,10 +89,11 @@ public class ClassroomConverter {
 
     public ClassroomResponseDto.StudentClassroomDetailResponse toStudentDetailResponse(Classroom classroom, List<Student> approvedStudents) {
         List<ClassroomResponseDto.StudentItem> items = new ArrayList<>();
+
         for (int i = 0; i < approvedStudents.size(); i++) {
             Student s = approvedStudents.get(i);
             items.add(ClassroomResponseDto.StudentItem.builder()
-                    .number(i + 1)
+                    .studentNo(i + 1)
                     .studentId(s.getStudent().getId())
                     .studentName(s.getStudent().getNickname())
                     .build());
@@ -70,33 +104,6 @@ public class ClassroomConverter {
                 .points(classroom.getPoints())
                 .createdAt(classroom.getCreatedAt().toLocalDate())
                 .students(items)
-                .build();
-    }
-
-    public ClassroomResponseDto.StudentClassroomListResponse toStudentListResponse(User student, List<Classroom> classrooms, List<Student> myStudentRecords) {
-        List<ClassroomResponseDto.StudentClassroomItem> items = classrooms.stream()
-                .map(c -> {
-                    Student.JoinStatus status = myStudentRecords.stream()
-                            .filter(s -> s.getClassroom().getId().equals(c.getId()))
-                            .findFirst()
-                            .map(Student::getStatus)
-                            .orElse(Student.JoinStatus.PENDING);
-
-                    return ClassroomResponseDto.StudentClassroomItem.builder()
-                            .classroomId(c.getId())
-                            .name(c.getName())
-                            .studentCount((int) c.getStudents().stream()
-                                    .filter(s -> s.getStatus() == Student.JoinStatus.APPROVED)
-                                    .count())
-                            .code(c.getCode())
-                            .joinStatus(status)
-                            .build();
-                })
-                .toList();
-
-        return ClassroomResponseDto.StudentClassroomListResponse.builder()
-                .nickname(student.getNickname())
-                .classrooms(items)
                 .build();
     }
 

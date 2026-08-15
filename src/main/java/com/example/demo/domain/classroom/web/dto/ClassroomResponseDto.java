@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ClassroomResponseDto {
 
-    // API 1: 학급 생성 응답
+    // 학급 생성 응답
     @Getter
     @Builder
     @NoArgsConstructor
@@ -21,7 +21,11 @@ public class ClassroomResponseDto {
         private String code;
     }
 
-    // API 2: 선생님 학급 목록
+    // ─────────────────────────────────────────────────────
+    // 학급 목록 조회 응답
+    // ─────────────────────────────────────────────────────
+
+    // 선생님용 학급 목록 응답
     @Getter
     @Builder
     @NoArgsConstructor
@@ -42,52 +46,7 @@ public class ClassroomResponseDto {
         private String code;
     }
 
-    // API 8: 학급 상세 - 선생님 (PENDING 학생 포함)
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TeacherClassroomDetailResponse {
-        private String name;
-        private int points;
-        private LocalDate createdAt;
-        private List<TeacherStudentItem> students;
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TeacherStudentItem {
-        private int number;
-        private Long studentId;
-        private String studentName;
-        private Student.JoinStatus joinStatus;
-    }
-
-    // API 8: 학급 상세 - 학생 (APPROVED만)
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class StudentClassroomDetailResponse {
-        private String name;
-        private int points;
-        private LocalDate createdAt;
-        private List<StudentItem> students;
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class StudentItem {
-        private int number;
-        private Long studentId;
-        private String studentName;
-    }
-
-    // API 9: 학생 학급 목록 (가입/대기 포함)
+    // 학생용 학급 목록 응답 (PENDING 포함)
     @Getter
     @Builder
     @NoArgsConstructor
@@ -108,6 +67,56 @@ public class ClassroomResponseDto {
         private String code;
         private Student.JoinStatus joinStatus;
     }
+
+    // ─────────────────────────────────────────────────────
+    // 학급 상세 조회 응답
+    // ─────────────────────────────────────────────────────
+
+    // 선생님용 학급 상세 응답 (PENDING 학생 포함)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TeacherClassroomDetailResponse {
+        private String name;
+        private int points;
+        private LocalDate createdAt;
+        private List<TeacherStudentItem> students;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TeacherStudentItem {
+        private int studentNo;
+        private Long studentId;
+        private String studentName;
+        private Student.JoinStatus joinStatus;
+    }
+
+    // 학생용 학급 상세 응답 (APPROVED 학생만)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StudentClassroomDetailResponse {
+        private String name;
+        private int points;
+        private LocalDate createdAt;
+        private List<StudentItem> students;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StudentItem {
+        private int studentNo;
+        private Long studentId;
+        private String studentName;
+    }
+
 
     // API 5: 선생님 전체 과제 목록
     @Getter

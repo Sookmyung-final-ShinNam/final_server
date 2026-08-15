@@ -16,10 +16,34 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     Optional<Student> findByClassroomAndStudent(Classroom classroom, User student);
 
+
     Optional<Student> findByClassroomIdAndStudentId(Long classroomId, Long studentId);
 
-    List<Student> findAllByClassroom(Classroom classroom);
+    @Query("""
+        SELECT s FROM Student s
+        JOIN FETCH s.classroom
+        WHERE s.student = :student
+        ORDER BY s.classroom.createdAt DESC
+    """)
+    List<Student> findAllByStudentWithClassroom(@Param("student") User student);
 
+    /**
+     * 모든 학생 조회
+     *
+     * 1. PENDING (이름순)
+     * 2. APPROVED (이름순)
+     * */
+    @Query("""
+        SELECT s FROM Student s
+        WHERE s.classroom = :classroom
+        ORDER BY CASE WHEN s.status = 'PENDING' THEN 0 ELSE 1 END ASC,
+             s.student.nickname ASC
+    """)
+    List<Student> findAllByClassroomOrderByStatusAndName(@Param("classroom") Classroom classroom);
+
+    /**
+     * 가입 승인된 모든 학생 조회 (이름순)
+     * */
     @Query("""
         SELECT s FROM Student s
         WHERE s.classroom = :classroom
@@ -27,13 +51,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         ORDER BY s.student.nickname ASC
     """)
     List<Student> findApprovedByClassroomOrderByName(@Param("classroom") Classroom classroom);
-
-    @Query("""
-        SELECT s FROM Student s
-        WHERE s.classroom = :classroom
-        ORDER BY s.student.nickname ASC
-    """)
-    List<Student> findAllByClassroomOrderByName(@Param("classroom") Classroom classroom);
 
     long countByClassroomAndStatus(Classroom classroom, Student.JoinStatus status);
 }

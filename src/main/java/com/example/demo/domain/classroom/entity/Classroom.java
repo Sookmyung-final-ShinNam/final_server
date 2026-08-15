@@ -55,4 +55,11 @@ public class Classroom extends BaseEntity {
         if (this.points + 5 > 20) throw new CustomException(ErrorStatus.CLASSROOM_ACORN_LIMIT_EXCEEDED);
         this.points += 5;
     }
+
+    // 가입 승인된 학생 수 세기
+    public int countApprovedStudents() {
+        return (int) this.students.stream()
+                .filter(s -> s.getStatus() == Student.JoinStatus.APPROVED)
+                .count();
+    }
 }

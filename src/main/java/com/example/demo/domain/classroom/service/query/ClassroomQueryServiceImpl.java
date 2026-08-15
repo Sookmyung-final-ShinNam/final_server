@@ -3,7 +3,6 @@ package com.example.demo.domain.classroom.service.query;
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.entity.StoryCharacter;
-import com.example.demo.domain.character.entity.UserCharacterFavorite;
 import com.example.demo.domain.character.repository.StoryCharacterRepository;
 import com.example.demo.domain.character.repository.UserCharacterFavoriteRepository;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
@@ -14,7 +13,6 @@ import com.example.demo.domain.classroom.entity.Student;
 import com.example.demo.domain.classroom.repository.AssignmentRepository;
 import com.example.demo.domain.classroom.repository.ClassroomRepository;
 import com.example.demo.domain.classroom.repository.StudentRepository;
-import com.example.demo.domain.classroom.web.dto.ClassroomResponseDto;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
 import com.example.demo.domain.user.entity.User;
@@ -39,48 +37,44 @@ public class ClassroomQueryServiceImpl implements ClassroomQueryService {
     private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
     private final ClassroomConverter classroomConverter;
 
+    // 학급 목록 조회
     @Override
-    public ClassroomResponseDto.TeacherClassroomListResponse getTeacherClassrooms(User teacher) {
-        List<Classroom> classrooms = classroomRepository.findAllByTeacher(teacher);
-        return classroomConverter.toTeacherListResponse(teacher, classrooms);
+    public Object getClassrooms(User user) {
+
+        // 선생님 소유의 모든 학급 조회
+       if (user.getGrade().isTeacher()) {
+           List<Classroom> classrooms = classroomRepository.findAllByTeacher(user);
+           return classroomConverter.toTeacherListResponse(user, classrooms);
+       }
+
+        // 학생 소유의 모든 학급 조회
+        List<Student> myEnrollments = studentRepository.findAllByStudentWithClassroom(user);
+        return classroomConverter.toStudentListResponse(user, myEnrollments);
     }
 
-    @Override
-    public ClassroomResponseDto.StudentClassroomListResponse getStudentClassrooms(User student) {
-        // 학생이 가입 요청한 모든 학급 조회
-        List<Classroom> classrooms = classroomRepository.findAllByStudent(student);
-
-        // 내 Student 레코드 목록 (joinStatus 포함)
-        List<Student> studentRecords = classrooms.stream()
-                .map(c -> studentRepository.findByClassroomAndStudent(c, student).orElse(null))
-                .filter(s -> s != null)
-                .toList();
-
-        return classroomConverter.toStudentListResponse(student, classrooms, studentRecords);
-    }
-
+    // 학급 상세 조회
     @Override
     public Object getClassroomDetail(User user, Long classroomId) {
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.CLASSROOM_NOT_FOUND));
 
-        boolean isTeacher = classroom.getTeacher().getId().equals(user.getId());
+        boolean isTeacher = user.getGrade().isTeacher() && classroom.getTeacher().getId().equals(user.getId());
 
         if (isTeacher) {
-            // 선생님: 전체 학생 (PENDING 포함), 이름순
-            List<Student> allStudents = studentRepository.findAllByClassroomOrderByName(classroom);
+            // 선생님: 전체 학생 (PENDING > APPROVED 순, 각 상태 내 이름순)
+            List<Student> allStudents = studentRepository.findAllByClassroomOrderByStatusAndName(classroom);
             return classroomConverter.toTeacherDetailResponse(classroom, allStudents);
         }
 
         // 학생: 본인이 승인된 학급인지 확인
-        Student myRecord = studentRepository.findByClassroomAndStudent(classroom, user)
+        Student myEnrollment = studentRepository.findByClassroomAndStudent(classroom, user)
                 .orElseThrow(() -> new CustomException(ErrorStatus.CLASSROOM_ACCESS_DENIED));
 
-        if (myRecord.getStatus() == Student.JoinStatus.PENDING) {
+        if (myEnrollment.getStatus() == Student.JoinStatus.PENDING) {
             throw new CustomException(ErrorStatus.CLASSROOM_NOT_APPROVED);
         }
 
-        // 학생: APPROVED만, 이름순
+        // 학생: APPROVED만 (이름순)
         List<Student> approvedStudents = studentRepository.findApprovedByClassroomOrderByName(classroom);
         return classroomConverter.toStudentDetailResponse(classroom, approvedStudents);
     }

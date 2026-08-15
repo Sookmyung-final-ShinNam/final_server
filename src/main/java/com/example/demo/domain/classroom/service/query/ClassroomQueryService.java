@@ -6,9 +6,7 @@ import com.example.demo.domain.user.entity.User;
 
 public interface ClassroomQueryService {
 
-    ClassroomResponseDto.TeacherClassroomListResponse getTeacherClassrooms(User teacher);
-
-    ClassroomResponseDto.StudentClassroomListResponse getStudentClassrooms(User student);
+    Object getClassrooms(User user);
 
     Object getClassroomDetail(User user, Long classroomId);
 

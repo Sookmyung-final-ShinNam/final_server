@@ -2,7 +2,6 @@ package com.example.demo.domain.classroom.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
-import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
 import com.example.demo.domain.classroom.service.command.ClassroomCommandService;
 import com.example.demo.domain.classroom.service.query.ClassroomQueryService;
 import com.example.demo.domain.classroom.web.dto.ClassroomRequestDto;
@@ -78,44 +77,42 @@ public class ClassroomController extends AuthController {
     // 공통 조회 기능 (역할에 따라 응답 다름)
     // ─────────────────────────────────────────────────────
 
-    @Operation(summary = "나의 학급 목록 조회 (선생님)", description = "선생님이 개설한 모든 학급 목록을 조회합니다.")
+    @Operation(summary = "학급 목록 조회",
+            description = """
+                    모든 학급 목록을 조회합니다. **역할**에 따라 응답이 다릅니다.
+                    
+                    1. role=TEACHER (선생님)
+                        - 사용자 닉네임, 학급 이름, 학급 코드, 학급 인원 수
+                    
+                    2. role=BASIC (학생)
+                        - 위 필드 + 학급 가입 상태 (승인/대기) 필드가 추가됨
+                    """
+    )
     @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))
-    @GetMapping("/teacher")
-    public ApiResponse<ClassroomResponseDto.TeacherClassroomListResponse> getTeacherClassrooms() {
+    @GetMapping
+    public ApiResponse<?> getTeacherClassrooms() {
         User user = getCurrentUser();
-        return ApiResponse.of(SuccessStatus._OK, classroomQueryService.getTeacherClassrooms(user));
-    }
-
-    @Operation(summary = "나의 학급 목록 조회 (학생)", description = "가입/가입 대기 중인 모든 학급을 조회합니다.")
-    @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))
-    @GetMapping("/student")
-    public ApiResponse<ClassroomResponseDto.StudentClassroomListResponse> getStudentClassrooms() {
-        User user = getCurrentUser();
-        return ApiResponse.of(SuccessStatus._OK, classroomQueryService.getStudentClassrooms(user));
+        return ApiResponse.of(SuccessStatus._OK, classroomQueryService.getClassrooms(user));
     }
 
     @Operation(
             summary = "학급 상세 조회",
             description = """
-            선생님: 가입 요청 중인 학생 포함 전체 목록 조회 (가입 상태 구분)
-            학생: 승인된 학생 목록만 조회, 미승인 학급은 접근 불가
+            특정 학급의 상세 내용 및 가입된 학생을 조회합니다. **역할**에 따라 응답이 다릅니다.
+            
+            1. role=TEACHER (선생님)
+                - 학생 리스트 조회 시, 가입 요청 중인 학생도 함께 조회 가능
+                - 가입 승인 처리는 별도 API(PATCH /api/classrooms/{classroomId}/students/{studentId}/approve) 사용
+            
+            2. role=BASIC (학생)
+                - 가입 요청 중인 학급은 조회 불가
+                - 학생 리스트 조회 시, 가입 요청 중인 학생은 조회 불가
             """
     )
     @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))
     @GetMapping("/{classroomId}")
-    public ApiResponse<Object> getClassroomDetail(@PathVariable Long classroomId) {
+    public ApiResponse<?> getClassroomDetail(@PathVariable Long classroomId) {
         User user = getCurrentUser();
         return ApiResponse.of(SuccessStatus._OK, classroomQueryService.getClassroomDetail(user, classroomId));
-    }
-
-    @Operation(summary = "학급 동화 조회", description = "N번째 과제(week)로 만든 학급 전체 동화를 조회합니다. 보관함과 동일한 구조로 반환됩니다.")
-    @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))
-    @GetMapping("/{classroomId}/stories")
-    public ApiResponse<CompletedCharacterResponse.CharacterListResponse> getClassroomStories(
-            @PathVariable Long classroomId,
-            @RequestParam Integer week) {
-        User user = getCurrentUser();
-        return ApiResponse.of(SuccessStatus._OK,
-                classroomQueryService.getClassroomStories(user, classroomId, week));
     }
 }
