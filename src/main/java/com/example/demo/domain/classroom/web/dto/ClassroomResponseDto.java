@@ -1,10 +1,7 @@
 package com.example.demo.domain.classroom.web.dto;
 
 import com.example.demo.domain.classroom.entity.Student;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -117,8 +114,11 @@ public class ClassroomResponseDto {
         private String studentName;
     }
 
+    // ─────────────────────────────────────────────────────
+    // 과제 목록 조회 응답
+    // ─────────────────────────────────────────────────────
 
-    // API 5: 선생님 전체 과제 목록
+    // 선생님용 과제 목록 응답
     @Getter
     @Builder
     @NoArgsConstructor
@@ -128,20 +128,21 @@ public class ClassroomResponseDto {
         private String title;
         private long dDay;
         private LocalDateTime dueAt;
-        private long submittedCount;
-        private long notSubmittedCount;
+        private int submittedCount;
+        private int notSubmittedCount;
     }
 
-    // API 11: 학급 과제 목록 (공통)
+    // 학생용 과제 목록 응답
     @Getter
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class AssignmentResponse {
+    public static class StudentAssignmentResponse {
         private Long assignmentId;
         private String title;
         private String description;
         private long dDay;
         private LocalDateTime dueAt;
+        private boolean submitted;
     }
 }

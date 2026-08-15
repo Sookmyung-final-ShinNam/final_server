@@ -63,8 +63,19 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final ConversationConverter conversationConverter;
 
+    // ─────────────────────────────────────────────────────
+    // 선생님 기능
+    // ─────────────────────────────────────────────────────
+
+    // 과제 생성
     @Override
     public void createAssignment(User teacher, Long classroomId, ClassroomRequestDto.CreateAssignmentRequest request) {
+
+        // 유저 역할 체크
+        if (!teacher.getGrade().isTeacher()) {
+            throw new CustomException(ErrorStatus.USER_ROLE_NOT_ALLOWED);
+        }
+
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.CLASSROOM_NOT_FOUND));
 
@@ -76,12 +87,17 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .commonPrompt(request.getCommonPrompt())
-                .dueAt(request.getDueAt())
+                .dueAt(request.getDueAt().withSecond(59).withNano(0)) // 59초 설정
                 .classroom(classroom)
                 .build();
         assignmentRepository.save(assignment);
     }
 
+    // ─────────────────────────────────────────────────────
+    // 학생 기능
+    // ─────────────────────────────────────────────────────
+
+    // 과제 진행
     @Override
     public ConversationResponseDto.ConversationStartResponseDto startAssignment(
             User student, Long classroomId, Long assignmentId,

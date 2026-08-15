@@ -1,14 +1,11 @@
 package com.example.demo.domain.classroom.converter;
 
-import com.example.demo.domain.classroom.entity.Assignment;
 import com.example.demo.domain.classroom.entity.Classroom;
 import com.example.demo.domain.classroom.entity.Student;
 import com.example.demo.domain.classroom.web.dto.ClassroomResponseDto;
 import com.example.demo.domain.user.entity.User;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,30 +101,6 @@ public class ClassroomConverter {
                 .points(classroom.getPoints())
                 .createdAt(classroom.getCreatedAt().toLocalDate())
                 .students(items)
-                .build();
-    }
-
-    public ClassroomResponseDto.AssignmentResponse toAssignmentResponse(Assignment assignment) {
-        long dDay = ChronoUnit.DAYS.between(LocalDate.now(), assignment.getDueAt().toLocalDate());
-        return ClassroomResponseDto.AssignmentResponse.builder()
-                .assignmentId(assignment.getId())
-                .title(assignment.getTitle())
-                .description(assignment.getDescription())
-                .dDay(dDay)
-                .dueAt(assignment.getDueAt())
-                .build();
-    }
-
-    public ClassroomResponseDto.TeacherAssignmentResponse toTeacherAssignmentResponse(
-            Assignment assignment, long submittedCount, long totalApproved) {
-        long dDay = ChronoUnit.DAYS.between(LocalDate.now(), assignment.getDueAt().toLocalDate());
-        return ClassroomResponseDto.TeacherAssignmentResponse.builder()
-                .assignmentId(assignment.getId())
-                .title(assignment.getTitle())
-                .dDay(dDay)
-                .dueAt(assignment.getDueAt())
-                .submittedCount(submittedCount)
-                .notSubmittedCount(totalApproved - submittedCount)
                 .build();
     }
 }

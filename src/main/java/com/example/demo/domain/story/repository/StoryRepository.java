@@ -1,6 +1,5 @@
 package com.example.demo.domain.story.repository;
 
-import com.example.demo.domain.classroom.entity.Assignment;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,5 +55,24 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
             @Param("complete") Story.StoryStatus completeStatus
     );
 
-    List<Story> findAllByAssignment(Assignment assignment);
+    // StoryRepository
+    @Query("""
+        SELECT s FROM Story s
+        JOIN FETCH s.character
+        WHERE s.assignment.id = :assignmentId
+        AND s.storyStatus = :status
+    """)
+    List<Story> findByAssignmentIdAndStoryStatus(
+            @Param("assignmentId") Long assignmentId,
+            @Param("status") Story.StoryStatus status);
+
+    @Query("""
+        SELECT s FROM Story s
+        JOIN FETCH s.character
+        WHERE s.assignment.classroom.id = :classroomId
+        AND s.storyStatus = :status
+    """)
+    List<Story> findByClassroomIdAndStoryStatus(
+            @Param("classroomId") Long classroomId,
+            @Param("status") Story.StoryStatus status);
 }
