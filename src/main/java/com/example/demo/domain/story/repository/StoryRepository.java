@@ -1,5 +1,6 @@
 package com.example.demo.domain.story.repository;
 
+import com.example.demo.domain.classroom.entity.Assignment;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -54,4 +55,6 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     List<Story> findFailedRetryStoriesForAdmin(
             @Param("complete") Story.StoryStatus completeStatus
     );
+
+    List<Story> findAllByAssignment(Assignment assignment);
 }

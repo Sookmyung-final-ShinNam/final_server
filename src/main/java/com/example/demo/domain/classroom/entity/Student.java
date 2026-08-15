@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "classroom_student_entity",
-        uniqueConstraints = { // 제약 조건: 가입 중복 방지
+        uniqueConstraints = {
                 @UniqueConstraint(columnNames = {"classroom_id", "student_id"})}
 )
 public class Student extends BaseEntity {
@@ -29,9 +29,23 @@ public class Student extends BaseEntity {
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private JoinStatus status = JoinStatus.PENDING;
+
+    public enum JoinStatus {
+        PENDING,   // 가입 요청 중
+        APPROVED   // 승인 완료
+    }
+
     @Builder
     private Student(Classroom classroom, User student) {
         this.classroom = classroom;
         this.student = student;
+        this.status = JoinStatus.PENDING;
+    }
+
+    public void approve() {
+        this.status = JoinStatus.APPROVED;
     }
 }

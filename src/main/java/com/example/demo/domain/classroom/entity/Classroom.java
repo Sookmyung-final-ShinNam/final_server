@@ -27,6 +27,9 @@ public class Classroom extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String code;
 
+    @Column(nullable = false)
+    private int points = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id", nullable = false)
     private User teacher;

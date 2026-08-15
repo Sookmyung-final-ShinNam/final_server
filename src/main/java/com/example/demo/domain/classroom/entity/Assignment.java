@@ -4,6 +4,7 @@ import com.example.demo.domain.story.entity.Story;
 import com.example.demo.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,19 +22,15 @@ public class Assignment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 과제 제목
     @Column(nullable = false, length = 30)
     private String title;
 
-    // 과제 설명
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // 공통 프롬프트
     @Column(name = "common_prompt", columnDefinition = "TEXT", nullable = false)
     private String commonPrompt;
 
-    // 마감기한
     @Column(nullable = false)
     private LocalDateTime dueAt;
 
@@ -41,8 +38,16 @@ public class Assignment extends BaseEntity {
     @JoinColumn(name = "classroom_id", nullable = false)
     private Classroom classroom;
 
-    // 학급(=과제) 사라지면 story는 assignments = id null 처리를 원함
     @OneToMany(mappedBy = "assignment")
     private Set<Story> stories = new HashSet<>();
+
+    @Builder
+    private Assignment(String title, String description, String commonPrompt, LocalDateTime dueAt, Classroom classroom) {
+        this.title = title;
+        this.description = description;
+        this.commonPrompt = commonPrompt;
+        this.dueAt = dueAt;
+        this.classroom = classroom;
+    }
 }
 
