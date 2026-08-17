@@ -32,7 +32,7 @@ public class EmailVerificationController {
             @RequestBody @Valid EmailVerificationRequest.Send request
     ) {
         emailVerificationCommandService.sendCode(request.getTempCode(), request.getEmail());
-        return ApiResponse.of(SuccessStatus._OK, null);
+        return ApiResponse.of(SuccessStatus._OK);
     }
 
     @Operation(summary = "이메일 인증코드 검증",
@@ -50,6 +50,6 @@ public class EmailVerificationController {
             @RequestBody @Valid EmailVerificationRequest.Verification request
     ) {
         emailVerificationCommandService.verifyCode(request.getTempCode(), request.getCode());
-        return ApiResponse.of(SuccessStatus._OK, null);
+        return ApiResponse.of(SuccessStatus._OK);
     }
 }
