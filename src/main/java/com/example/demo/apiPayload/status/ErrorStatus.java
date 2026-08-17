@@ -29,6 +29,7 @@ public enum ErrorStatus implements BaseErrorCode {
     TOKEN_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN_4011", "임시 토큰 생성에 실패했습니다. 서버 관리자에게 문의하세요."),
 
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "EMAIL_4001", "이메일을 찾을 수 없습니다. 올바른 이메일을 입력하세요."),
+    EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL_5001", "이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요."),
 
     EMAIL_VERIFICATION_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4001", "인증코드가 만료되었습니다. 인증을 다시 요청하세요."),
     EMAIL_VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4002", "인증코드가 일치하지 않습니다."),

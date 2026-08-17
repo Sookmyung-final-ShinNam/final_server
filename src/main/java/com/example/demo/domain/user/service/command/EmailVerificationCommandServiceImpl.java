@@ -7,8 +7,12 @@ import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.EmailVerificationRepository;
 import com.example.demo.domain.user.repository.TokenRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,7 +26,7 @@ public class EmailVerificationCommandServiceImpl implements EmailVerificationCom
 
     private final TokenRepository tokenRepository;
     private final EmailVerificationRepository emailVerificationRepository;
-    //private final MailSender mailSender;
+    private final JavaMailSender javaMailSender;
 
     // 이메일 인증코드 발송
     @Override
@@ -50,7 +54,7 @@ public class EmailVerificationCommandServiceImpl implements EmailVerificationCom
                 .build();
         emailVerificationRepository.save(emailVerification);
 
-        //mailSender.send(email, "[Storictor] 이메일 인증코드", "인증코드: " + code);
+        sendMail(email,code);
     }
 
     // 이메일 인증코드 검증
@@ -81,5 +85,35 @@ public class EmailVerificationCommandServiceImpl implements EmailVerificationCom
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
         return token.getUser();
+    }
+
+    // 메일 코드 발송
+    private void sendMail(String email, String code) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+
+            String html = """
+                <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+                    <h2 style="color: #F3A600;">Storictor 이메일 인증</h2>
+                    <p>아래 인증코드를 확인하신 후,<br>
+                    Storictor 앱으로 돌아가 이메일 인증을 완료해주세요.</p>
+                    <div style="font-size: 28px; font-weight: bold; letter-spacing: 6px;
+                                background: #FEF6E4; padding: 20px; text-align: center; border-radius: 8px;">
+                        %s
+                    </div>
+                    <p style="color: #888; font-size: 13px; margin-top: 16px;">
+                        해당 코드는 5분간 유효합니다.
+                    </p>
+                </div>
+                """.formatted(code);
+
+            helper.setTo(email);
+            helper.setSubject("[Storictor] 이메일 인증코드");
+            helper.setText(html, true);
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            throw new CustomException(ErrorStatus.EMAIL_SEND_FAILED);
+        }
     }
 }
