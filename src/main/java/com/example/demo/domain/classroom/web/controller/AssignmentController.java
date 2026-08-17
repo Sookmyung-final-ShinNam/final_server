@@ -2,6 +2,7 @@ package com.example.demo.domain.classroom.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
 import com.example.demo.domain.classroom.service.command.AssignmentCommandService;
 import com.example.demo.domain.classroom.service.query.AssignmentQueryService;
@@ -12,10 +13,12 @@ import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = SwaggerConfig.Tags.CLASS_ROOM)
 @RestController
 @RequestMapping("/api/classrooms")
 @RequiredArgsConstructor

@@ -2,15 +2,18 @@ package com.example.demo.domain.dashboard.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.dashboard.service.query.DashboardQueryService;
 import com.example.demo.domain.dashboard.web.dto.DashboardResponse;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = SwaggerConfig.Tags.DASHBOARD)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dashboard")
