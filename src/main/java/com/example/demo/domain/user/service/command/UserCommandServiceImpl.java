@@ -6,8 +6,10 @@ import com.example.demo.domain.character.repository.UserCharacterFavoriteReposit
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.story.entity.Story;
 import com.example.demo.domain.story.repository.StoryRepository;
+import com.example.demo.domain.user.entity.EmailVerification;
 import com.example.demo.domain.user.entity.Token;
 import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.repository.EmailVerificationRepository;
 import com.example.demo.domain.user.repository.TokenRepository;
 import com.example.demo.domain.user.repository.UserRepository;
 import com.example.demo.domain.user.service.query.UserQueryService;
@@ -34,6 +36,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final EmailVerificationRepository emailVerificationRepository;
     private final ConversationSessionRepository conversationSessionRepository;
     private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
     private final StoryRepository storyRepository;
@@ -101,18 +104,34 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
-    public LoginResponseDto.LoginResult loginUser(String tempCode) {
+    public LoginResponseDto.LoginResult loginUser(String tempCode, User.UserGrade role) {
 
-        // tempCode 로 토큰 조회 및 반환 정보 생성
+        // 1. tempCode 로 토큰 조회 및 반환 정보 생성
         LoginResponseDto.LoginResult loginResult = userQueryService.findTokenByTempCode(tempCode);
 
-        // accessToken 으로 사용자 조회
+        // 2. accessToken 으로 사용자 조회
         Token token = tokenRepository.findByAccessToken(loginResult.getAccessToken())
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
         User user = token.getUser();
 
-        // 사용자 활성화
+        // 3. 회원가입 여부 확인
+        boolean isSignup = !user.isAgreedToTerms();
+
+        if (isSignup) {
+            // role=TEACHER(선생님)인 경우, 이메일 인증 확인 및 역활 전환
+            if (role == User.UserGrade.TEACHER) {
+                emailVerificationRepository.findByUser(user)
+                        .filter(EmailVerification::isValid)
+                        .orElseThrow(() -> new CustomException(ErrorStatus.EMAIL_VERIFICATION_NOT_COMPLETED));
+
+                user.changeRole(User.UserGrade.TEACHER);
+            }
+
+            user.setAgreedToTerms(true); // 회원가입 시 약관 동의로 설정
+        }
+
+        // 4. 사용자 활성화
         user.activate();
         userRepository.save(user);
 
@@ -140,10 +159,11 @@ public class UserCommandServiceImpl implements UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.USER_NOT_FOUND));
 
-        // 관련 엔티티 삭제 (대화, 토큰, 즐겨찾기)
+        // 관련 엔티티 삭제 (대화, 토큰, 즐겨찾기, 이메일 인증 내역)
         tokenRepository.deleteAllByUser(user);
         conversationSessionRepository.deleteAllByUser(user);
         userCharacterFavoriteRepository.deleteAllByUser(user);
+        emailVerificationRepository.deleteAllByUser(user);
 
         // 스토리의 user를 null로 세팅
         List<Story> stories = storyRepository.findByUser(user);

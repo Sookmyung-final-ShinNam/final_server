@@ -29,15 +29,24 @@ public enum ErrorStatus implements BaseErrorCode {
     TOKEN_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "TOKEN_4011", "임시 토큰 생성에 실패했습니다. 서버 관리자에게 문의하세요."),
 
     EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "EMAIL_4001", "이메일을 찾을 수 없습니다. 올바른 이메일을 입력하세요."),
+    EMAIL_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "EMAIL_5001", "이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요."),
+
+    EMAIL_VERIFICATION_CODE_EXPIRED(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4001", "인증코드가 만료되었습니다. 인증을 다시 요청하세요."),
+    EMAIL_VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4002", "인증코드가 일치하지 않습니다."),
+    EMAIL_VERIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "EMAIL_VERIFICATION_4003", "이메일 인증 요청 내역을 찾을 수 없습니다."),
+    EMAIL_VERIFICATION_NOT_COMPLETED(HttpStatus.FORBIDDEN, "EMAIL_VERIFICATION_4004", "이메일 인증이 완료되지 않았거나 만료되었습니다. 인증을 다시 진행하세요."),
+    EMAIL_VERIFICATION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "EMAIL_VERIFICATION_4005", "이미 다른 계정에서 인증된 이메일입니다."),
 
     // 회원 관련 에러
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_4004", "사용자를 찾을 수 없습니다."),
     USER_ALREADY_LOGOUT(HttpStatus.BAD_REQUEST, "USER_4001", "이미 로그아웃된 사용자입니다."),
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_4002", "이미 삭제된 사용자입니다."),
     USER_INVALID_POINT(HttpStatus.BAD_REQUEST, "USER_4003", "사용자의 포인트가 부족합니다."),
+    USER_ROLE_CHANGE_FAILED(HttpStatus.FORBIDDEN, "USER_4005", "일반 유저는 관리자 역할로 바꿀 수 없습니다."),
+    USER_ROLE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "USER_4006", "해당 역할로는 이용할 수 없는 기능입니다."),
 
     // 관리자 관련 에러
-    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4003", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
+    ADMIN_UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ADMIN_4001", "관리자 권한이 필요한 접근입니다. 관리자 계정으로 로그인하세요."),
 
     // 대화 관련 에러
     CHAT_GPT_API_CALL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CHAT_GPT_5001", "ChatGPT API 호출에 실패했습니다. 관리자에게 문의하세요."),
@@ -87,6 +96,21 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 대시보드 관련 에러
     DASHBOARD_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "DASHBOARD_4005", "이미 대시보드에 반영된 스토리입니다."),
+
+    // 학급 관련 에러
+    CLASSROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASSROOM_4001", "해당 학급을 찾을 수 없습니다."),
+    CLASSROOM_INVALID_POINT(HttpStatus.BAD_REQUEST, "CLASSROOM_4002", "해당 학급의 포인트가 부족합니다."),
+    CLASSROOM_INVALID_CODE(HttpStatus.BAD_REQUEST, "CLASSROOM_4003", "유효하지 않은 학급 코드입니다."),
+    CLASSROOM_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "CLASSROOM_4004", "이미 가입하거나 가입 요청한 학급입니다."),
+    CLASSROOM_NOT_APPROVED(HttpStatus.FORBIDDEN, "CLASSROOM_4005", "아직 승인되지 않은 학급입니다."),
+    CLASSROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CLASSROOM_4006", "해당 학급에 접근 권한이 없습니다."),
+
+    // 과제 관련 에러
+    ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ASSIGNMENT_4004", "해당 과제를 찾을 수 없습니다."),
+    ASSIGNMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ASSIGNMENT_4013", "해당 과제에 접근 권한이 없습니다."),
+
+    // 학생 관련 에러
+    STUDENT_NOT_FOUND(HttpStatus.NOT_FOUND, "STUDENT_4004", "해당 학급에서 학생을 찾을 수 없습니다."),
 
     ;
 

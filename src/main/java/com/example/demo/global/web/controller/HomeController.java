@@ -2,16 +2,19 @@ package com.example.demo.global.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.security.AuthController;
 import com.example.demo.global.web.dto.HomeResponse;
 import com.example.demo.global.service.query.HomeQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = SwaggerConfig.Tags.HOME)
 @RestController
 @RequiredArgsConstructor
 public class HomeController extends AuthController {

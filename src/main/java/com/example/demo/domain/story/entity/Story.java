@@ -1,6 +1,7 @@
 package com.example.demo.domain.story.entity;
 
 import com.example.demo.domain.character.entity.StoryCharacter;
+import com.example.demo.domain.classroom.entity.Assignment;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.entity.BaseEntity;
@@ -90,6 +91,21 @@ public class Story extends BaseEntity {
     @Builder.Default
     @Column(name = "dashboard_applied", nullable = false)
     private boolean dashboardApplied = false;
+
+    // 스토리 타입
+    @Enumerated(EnumType.STRING)
+    @Column(name = "story_type", nullable = false)
+    private StoryType storyType;
+
+    public enum StoryType {
+        PERSONAL,   // 개인이 만든 동화
+        CLASSROOM,  // 학급(과제)로 만든 동화
+    }
+
+    // 나의 학급용 스토리인 경우 참조
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id", nullable = true)
+    private Assignment assignment;
 
     // 스토리를 생성한 사용자
     @ManyToOne(fetch = FetchType.LAZY)

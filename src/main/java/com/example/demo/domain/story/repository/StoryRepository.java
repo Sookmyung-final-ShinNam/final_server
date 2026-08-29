@@ -54,4 +54,25 @@ public interface StoryRepository extends JpaRepository<Story, Long> {
     List<Story> findFailedRetryStoriesForAdmin(
             @Param("complete") Story.StoryStatus completeStatus
     );
+
+    // StoryRepository
+    @Query("""
+        SELECT s FROM Story s
+        JOIN FETCH s.character
+        WHERE s.assignment.id = :assignmentId
+        AND s.storyStatus = :status
+    """)
+    List<Story> findByAssignmentIdAndStoryStatus(
+            @Param("assignmentId") Long assignmentId,
+            @Param("status") Story.StoryStatus status);
+
+    @Query("""
+        SELECT s FROM Story s
+        JOIN FETCH s.character
+        WHERE s.assignment.classroom.id = :classroomId
+        AND s.storyStatus = :status
+    """)
+    List<Story> findByClassroomIdAndStoryStatus(
+            @Param("classroomId") Long classroomId,
+            @Param("status") Story.StoryStatus status);
 }
