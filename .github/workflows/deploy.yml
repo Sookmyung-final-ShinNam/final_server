@@ -32,6 +32,8 @@ jobs:
           # application.yml
           sed -i "s|\${DOMAIN}|${{ secrets.DOMAIN }}|g" ./src/main/resources/application.yml
           sed -i "s|\${REDIRECT_URL}|${{ secrets.REDIRECT_URL }}|g" ./src/main/resources/application.yml
+          sed -i "s|\${MAIL_USERNAME}|${{ secrets.MAIL_USERNAME }}|g" ./src/main/resources/application.yml
+          sed -i "s|\${MAIL_PASSWORD}|${{ secrets.MAIL_PASSWORD }}|g" ./src/main/resources/application.yml
           sed -i "s|\${KEY_STORE}|${{ secrets.KEY_STORE }}|g" ./src/main/resources/application.yml
           sed -i "s|\${KEY_STORE_TYPE}|${{ secrets.KEY_STORE_TYPE }}|g" ./src/main/resources/application.yml
           sed -i "s|\${KEY_STORE_PASS}|${{ secrets.KEY_STORE_PASS }}|g" ./src/main/resources/application.yml
