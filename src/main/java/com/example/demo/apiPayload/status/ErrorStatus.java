@@ -98,12 +98,12 @@ public enum ErrorStatus implements BaseErrorCode {
     DASHBOARD_ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "DASHBOARD_4005", "이미 대시보드에 반영된 스토리입니다."),
 
     // 학급 관련 에러
-    CLASSROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASSROOM_4004", "해당 학급을 찾을 수 없습니다."),
-    CLASSROOM_INVALID_CODE(HttpStatus.BAD_REQUEST, "CLASSROOM_4001", "유효하지 않은 학급 코드입니다."),
-    CLASSROOM_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "CLASSROOM_4002", "이미 가입하거나 가입 요청한 학급입니다."),
-    CLASSROOM_NOT_APPROVED(HttpStatus.FORBIDDEN, "CLASSROOM_4003", "아직 승인되지 않은 학급입니다."),
-    CLASSROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CLASSROOM_4013", "해당 학급에 접근 권한이 없습니다."),
-    CLASSROOM_ACORN_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "CLASSROOM_4006", "학급당 도토리는 최대 20개까지 보유할 수 있습니다. 관리자 승인이 필요합니다."),
+    CLASSROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLASSROOM_4001", "해당 학급을 찾을 수 없습니다."),
+    CLASSROOM_INVALID_POINT(HttpStatus.BAD_REQUEST, "CLASSROOM_4002", "해당 학급의 포인트가 부족합니다."),
+    CLASSROOM_INVALID_CODE(HttpStatus.BAD_REQUEST, "CLASSROOM_4003", "유효하지 않은 학급 코드입니다."),
+    CLASSROOM_ALREADY_JOINED(HttpStatus.BAD_REQUEST, "CLASSROOM_4004", "이미 가입하거나 가입 요청한 학급입니다."),
+    CLASSROOM_NOT_APPROVED(HttpStatus.FORBIDDEN, "CLASSROOM_4005", "아직 승인되지 않은 학급입니다."),
+    CLASSROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CLASSROOM_4006", "해당 학급에 접근 권한이 없습니다."),
 
     // 과제 관련 에러
     ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ASSIGNMENT_4004", "해당 과제를 찾을 수 없습니다."),

@@ -124,7 +124,7 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
             throw new CustomException(ErrorStatus.CLASSROOM_NOT_APPROVED);
         }
 
-        currentUser.usePoints(1);
+        classroom.usePoints(1);
 
         // 과제 스토리 생성 (CLASSROOM 타입, assignment 연결)
         Story story = storyRepository.save(

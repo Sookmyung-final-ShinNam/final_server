@@ -50,10 +50,15 @@ public class Classroom extends BaseEntity {
         this.teacher = teacher;
     }
 
-    // 학급 포인트 충전 (5개씩, 최대 20개)
+    // 학급 포인트 충전 (5개씩, 최대 20개 고정)
     public void chargePoints() {
-        if (this.points + 5 > 20) throw new CustomException(ErrorStatus.CLASSROOM_ACORN_LIMIT_EXCEEDED);
-        this.points += 5;
+        this.points = Math.min(this.points + 5, 20);
+    }
+
+    // 학급 포인트 사용 (과제 진행 - 1)
+    public void usePoints(int value) {
+        if (this.points < value) throw new CustomException(ErrorStatus.CLASSROOM_INVALID_POINT);
+        this.points -= value;
     }
 
     // 가입 승인된 학생 수 세기
