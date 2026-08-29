@@ -42,4 +42,12 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
             @Param("stale") List<Story.StoryStatus> staleStatus,
             @Param("threshold") LocalDateTime threshold
     );
+
+    /**
+     * 학급 기능 - 과제 제출한 학생 수 카운트 (선생님), 과제 제출 여부 반환 (학생)
+     *
+     * 과제 제출 여부: 세션 완료 여부
+     */
+    int countByStory_AssignmentIdAndState(Long assignmentId, ConversationSession.SessionState state);
+    boolean existsByStory_AssignmentIdAndUserIdAndState(Long assignmentId, Long userId, ConversationSession.SessionState state);
 }

@@ -83,7 +83,9 @@ public class User extends BaseEntity {
     public enum UserGrade {
         BASIC,    // 기본 사용자 (= 학생)
         TEACHER,  // 선생님
-        ADMIN     // 관리자
+        ADMIN;    // 관리자
+
+        public boolean isTeacher() { return this == TEACHER; }
     }
 
     public enum UserStatus {

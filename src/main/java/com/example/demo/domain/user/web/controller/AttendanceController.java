@@ -2,6 +2,7 @@ package com.example.demo.domain.user.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.command.AttendanceCommandService;
 import com.example.demo.domain.user.service.query.AttendanceQueryService;
@@ -9,9 +10,11 @@ import com.example.demo.domain.user.web.dto.AttendanceResponse;
 import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = SwaggerConfig.Tags.ATTENDANCE)
 @RestController
 @RequestMapping("/api/attendance")
 @RequiredArgsConstructor

@@ -1,6 +1,7 @@
 package com.example.demo.domain.user.web.controller;
 
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.command.UserCommandService;
 import com.example.demo.domain.user.web.dto.LoginResponseDto;
@@ -8,9 +9,11 @@ import com.example.demo.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = SwaggerConfig.Tags.USER_PERMIT)
 @RestController
 @RequestMapping("/api/permit")
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class UserLoginController {
                     1. 회원가입 - role 파라미터로 학생/선생님 역할을 확정합니다.
                         - role=BASIC (학생, 기본값) : 별도 인증 절차 없이 바로 가입 완료
                         - role=TEACHER (선생님) : 가입 완료 전 이메일 인증이 반드시 선행되어야 합니다.
+                        - role=ADMIN (관리자) : 관리자 역할은 무시되며, BASIC(학생)으로 고정됩니다.
                     
                     2. 로그인 - role 파라미터는 무시되며, 기존에 확정된 역할 그대로 로그인이 진행됩니다.
                     """)

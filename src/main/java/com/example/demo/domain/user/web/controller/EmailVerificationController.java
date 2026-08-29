@@ -2,14 +2,17 @@ package com.example.demo.domain.user.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.user.service.command.EmailVerificationCommandService;
 import com.example.demo.domain.user.web.dto.EmailVerificationRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = SwaggerConfig.Tags.USER_PERMIT)
 @RestController
 @RequestMapping("/api/permit/email")
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class EmailVerificationController {
             @RequestBody @Valid EmailVerificationRequest.Send request
     ) {
         emailVerificationCommandService.sendCode(request.getTempCode(), request.getEmail());
-        return ApiResponse.of(SuccessStatus._OK, null);
+        return ApiResponse.of(SuccessStatus._OK);
     }
 
     @Operation(summary = "이메일 인증코드 검증",
@@ -45,11 +48,11 @@ public class EmailVerificationController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
-    @PostMapping("/verify")
+    @PatchMapping("/verify")
     public ApiResponse<Void> verifyEmailCode(
             @RequestBody @Valid EmailVerificationRequest.Verification request
     ) {
         emailVerificationCommandService.verifyCode(request.getTempCode(), request.getCode());
-        return ApiResponse.of(SuccessStatus._OK, null);
+        return ApiResponse.of(SuccessStatus._OK);
     }
 }

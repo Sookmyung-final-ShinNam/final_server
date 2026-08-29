@@ -2,6 +2,7 @@ package com.example.demo.domain.conversation.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
 import com.example.demo.domain.conversation.service.command.feedback.ConversationFeedbackCommandService;
@@ -15,6 +16,7 @@ import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import java.time.LocalDateTime;
 /**
  * 대화 컨트롤러
  */
+@Tag(name = SwaggerConfig.Tags.CONVERSATION)
 @Slf4j
 @RestController
 @RequestMapping("/api/conversations")
