@@ -48,7 +48,7 @@ public class EmailVerificationController {
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
-    @PostMapping("/verify")
+    @PatchMapping("/verify")
     public ApiResponse<Void> verifyEmailCode(
             @RequestBody @Valid EmailVerificationRequest.Verification request
     ) {
