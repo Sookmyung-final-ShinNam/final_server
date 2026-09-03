@@ -54,4 +54,17 @@ public class UserController extends AuthController {
         User user = getCurrentUser();
         return ApiResponse.of(SuccessStatus._OK, user.getGrade() == role);
     }
+
+    // TODO: 안드 게시 후 삭제
+    @Operation(summary = "Admin 여부 확인",
+            description = "현재 로그인한 사용자가 관리자 권한을 가지고 있는지 확인합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @GetMapping("/is-admin")
+    public ApiResponse<Boolean> isAdmin() {
+        User user = getCurrentUser();
+        boolean isAdmin = user.getGrade() == User.UserGrade.ADMIN;
+        return ApiResponse.of(SuccessStatus._OK, isAdmin);
+    }
 }
