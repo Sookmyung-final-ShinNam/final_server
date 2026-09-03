@@ -95,7 +95,7 @@ public class Story extends BaseEntity {
     // 스토리 타입
     @Enumerated(EnumType.STRING)
     @Column(name = "story_type", nullable = false)
-    private StoryType storyType;
+    private StoryType storyType = StoryType.PERSONAL;
 
     public enum StoryType {
         PERSONAL,   // 개인이 만든 동화

@@ -61,7 +61,7 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
 
     private final LlmClient llmClient;
     private final ApplicationEventPublisher eventPublisher;
-    private final ConversationConverter conversationConverter;
+    private final ConversationConverter converter;
 
     // ─────────────────────────────────────────────────────
     // 선생님 기능
@@ -127,14 +127,7 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
         classroom.usePoints(1);
 
         // 과제 스토리 생성 (CLASSROOM 타입, assignment 연결)
-        Story story = storyRepository.save(
-                Story.builder()
-                        .user(currentUser)
-                        .storyType(Story.StoryType.CLASSROOM)
-                        .assignment(assignment)
-                        .storyStatus(Story.StoryStatus.IN_PROGRESS)
-                        .build()
-        );
+        Story story = storyRepository.save(converter.toClassroomStory(currentUser, assignment));
 
         List<Theme> themes = resolveThemes(request);
         applyThemes(story, themes);
@@ -143,14 +136,14 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
         applyBackground(story, background);
 
         StoryCharacter character = storyCharacterRepository.save(
-                conversationConverter.toStoryCharacter(story, request));
+                converter.toStoryCharacter(story, request));
         CharacterAppearance appearance = characterAppearanceRepository.save(
-                conversationConverter.toCharacterAppearance(character, request));
+                converter.toCharacterAppearance(character, request));
         character.setAppearance(appearance);
         story.setCharacter(character);
 
         ConversationSession session = conversationSessionRepository.save(
-                conversationConverter.toConversationSession(story, currentUser));
+                converter.toConversationSession(story, currentUser));
 
         // 과제 commonPrompt를 포함해 LLM 호출
         String startText = generateStartText(background, character, appearance, request, assignment.getCommonPrompt());
@@ -182,7 +175,7 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
 
     private void applyThemes(Story story, List<Theme> themes) {
         for (Theme theme : themes) {
-            StoryTheme storyTheme = conversationConverter.toStoryTheme(story, theme);
+            StoryTheme storyTheme = converter.toStoryTheme(story, theme);
             storyThemeRepository.save(storyTheme);
             story.getStoryThemes().add(storyTheme);
         }
@@ -195,7 +188,7 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
     }
 
     private void applyBackground(Story story, Background background) {
-        StoryBackground storyBackground = conversationConverter.toStoryBackground(story, background);
+        StoryBackground storyBackground = converter.toStoryBackground(story, background);
         storyBackgroundRepository.save(storyBackground);
         story.getStoryBackgrounds().add(storyBackground);
     }

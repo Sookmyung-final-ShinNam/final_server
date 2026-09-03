@@ -2,6 +2,8 @@ package com.example.demo.domain.conversation.converter;
 
 import com.example.demo.domain.character.entity.CharacterAppearance;
 import com.example.demo.domain.character.entity.StoryCharacter;
+import com.example.demo.domain.classroom.entity.Assignment;
+import com.example.demo.domain.classroom.entity.Classroom;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.story.entity.*;
@@ -11,9 +13,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConversationConverter {
 
-    public Story toStory(User user) {
+    public Story toPersonalStory(User user) {
         return Story.builder()
                 .user(user)
+                .storyType(Story.StoryType.PERSONAL)
+                .storyStatus(Story.StoryStatus.IN_PROGRESS)
+                .videoStatus(Story.VideoStatus.NONE)
+                .dashboardApplied(false)
+                .build();
+    }
+
+    public Story toClassroomStory(User user, Assignment assignment) {
+        return Story.builder()
+                .user(user)
+                .storyType(Story.StoryType.CLASSROOM)
+                .assignment(assignment)
                 .storyStatus(Story.StoryStatus.IN_PROGRESS)
                 .videoStatus(Story.VideoStatus.NONE)
                 .dashboardApplied(false)
