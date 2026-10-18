@@ -12,7 +12,9 @@ import com.example.demo.domain.classroom.entity.Student;
 import com.example.demo.domain.classroom.repository.AssignmentRepository;
 import com.example.demo.domain.classroom.repository.ClassroomRepository;
 import com.example.demo.domain.classroom.repository.StudentRepository;
+import com.example.demo.domain.classroom.service.mail.AssignmentReminderMailer;
 import com.example.demo.domain.classroom.web.dto.ClassroomRequestDto;
+import com.example.demo.domain.classroom.web.dto.ClassroomResponseDto;
 import com.example.demo.domain.conversation.converter.ConversationConverter;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.entity.SessionStep;
@@ -35,8 +37,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationAdapter;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,6 +67,10 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
     private final LlmClient llmClient;
     private final ApplicationEventPublisher eventPublisher;
     private final ConversationConverter converter;
+    private final AssignmentReminderMailer assignmentReminderMailer;
+
+    // 같은 과제에 미제출 알림 메일을 다시 보낼 수 있기까지의 시간
+    private static final long REMINDER_COOLDOWN_HOURS = 24;
 
     // ─────────────────────────────────────────────────────
     // 선생님 기능
@@ -91,6 +100,65 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
                 .classroom(classroom)
                 .build();
         assignmentRepository.save(assignment);
+    }
+
+    // 미제출 학생 알림 메일 발송
+    // : 마감 전 과제만 가능, 같은 과제에는 24시간에 한 번만 가능 (스팸 방지)
+    @Override
+    public ClassroomResponseDto.AssignmentReminderResponse remindAssignment(
+            User teacher, Long classroomId, Long assignmentId) {
+
+        // 유저 역할 체크
+        if (!teacher.getGrade().isTeacher()) {
+            throw new CustomException(ErrorStatus.USER_ROLE_NOT_ALLOWED);
+        }
+
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.CLASSROOM_NOT_FOUND));
+
+        if (!classroom.getTeacher().getId().equals(teacher.getId())) {
+            throw new CustomException(ErrorStatus.CLASSROOM_ACCESS_DENIED);
+        }
+
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.ASSIGNMENT_NOT_FOUND));
+
+        if (!assignment.getClassroom().getId().equals(classroomId)) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_ACCESS_DENIED);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (assignment.isClosed(now)) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_CLOSED);
+        }
+
+        if (!assignment.canRemind(now, REMINDER_COOLDOWN_HOURS)) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_REMINDER_TOO_SOON);
+        }
+
+        // 가입 승인된 학생 중 아직 제출(세션 완료)하지 않은 학생
+        Set<Long> submittedUserIds = new HashSet<>(conversationSessionRepository.findSubmittedUserIdsByAssignmentId(
+                assignmentId, ConversationSession.SessionState.COMPLETED));
+
+        List<String> emails = studentRepository.findApprovedByClassroomOrderByName(classroom).stream()
+                .map(Student::getStudent)
+                .filter(student -> !submittedUserIds.contains(student.getId()))
+                .map(User::getEmail)
+                .toList();
+
+        if (emails.isEmpty()) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_NO_REMINDER_TARGET);
+        }
+
+        // 발송 시각 기록 후 비동기 발송 (메일 발송 실패는 응답에 영향을 주지 않음)
+        assignment.markReminded(now);
+        assignmentReminderMailer.sendReminders(
+                emails, teacher.getNickname(), classroom.getName(), assignment.getTitle(), assignment.getDueAt());
+
+        return ClassroomResponseDto.AssignmentReminderResponse.builder()
+                .recipientCount(emails.size())
+                .build();
     }
 
     // ─────────────────────────────────────────────────────

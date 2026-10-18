@@ -38,6 +38,10 @@ public class Assignment extends BaseEntity {
     @JoinColumn(name = "classroom_id", nullable = false)
     private Classroom classroom;
 
+    // 미제출 학생 알림 메일을 마지막으로 보낸 시각 (스팸 방지용, 보낸 적 없으면 null)
+    @Column(name = "last_reminded_at")
+    private LocalDateTime lastRemindedAt;
+
     @OneToMany(mappedBy = "assignment")
     private Set<Story> stories = new HashSet<>();
 
@@ -48,6 +52,21 @@ public class Assignment extends BaseEntity {
         this.commonPrompt = commonPrompt;
         this.dueAt = dueAt;
         this.classroom = classroom;
+    }
+
+    // 마감 시각이 지났는지
+    public boolean isClosed(LocalDateTime now) {
+        return dueAt.isBefore(now);
+    }
+
+    // 알림 메일을 보낼 수 있는지 (마지막 발송 후 cooldownHours 시간이 지났거나 보낸 적이 없는 경우)
+    public boolean canRemind(LocalDateTime now, long cooldownHours) {
+        return lastRemindedAt == null || lastRemindedAt.plusHours(cooldownHours).isBefore(now);
+    }
+
+    // 알림 메일 발송 시각 기록
+    public void markReminded(LocalDateTime now) {
+        this.lastRemindedAt = now;
     }
 }
 

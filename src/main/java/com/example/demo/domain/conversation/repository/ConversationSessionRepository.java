@@ -50,4 +50,20 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
      */
     int countByStory_AssignmentIdAndState(Long assignmentId, ConversationSession.SessionState state);
     boolean existsByStory_AssignmentIdAndUserIdAndState(Long assignmentId, Long userId, ConversationSession.SessionState state);
+
+    /**
+     * 학급 기능 - 과제를 제출한 학생 id 목록 (선생님 제출 현황 조회)
+     *
+     * 한 학생이 여러 번 제출해도 한 번만 조회
+     */
+    @Query("""
+        SELECT DISTINCT cs.user.id
+        FROM ConversationSession cs
+        WHERE cs.story.assignment.id = :assignmentId
+            AND cs.state = :state
+    """)
+    List<Long> findSubmittedUserIdsByAssignmentId(
+            @Param("assignmentId") Long assignmentId,
+            @Param("state") ConversationSession.SessionState state
+    );
 }

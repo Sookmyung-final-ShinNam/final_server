@@ -7,6 +7,7 @@ import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
 import com.example.demo.domain.classroom.service.command.AssignmentCommandService;
 import com.example.demo.domain.classroom.service.query.AssignmentQueryService;
 import com.example.demo.domain.classroom.web.dto.ClassroomRequestDto;
+import com.example.demo.domain.classroom.web.dto.ClassroomResponseDto;
 import com.example.demo.domain.conversation.web.dto.ConversationRequestDto;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
 import com.example.demo.domain.user.entity.User;
@@ -40,6 +41,47 @@ public class AssignmentController extends AuthController {
         User user = getCurrentUser();
         assignmentCommandService.createAssignment(user, classroomId, request);
         return ApiResponse.of(SuccessStatus._OK);
+    }
+
+    @Operation(
+            summary = "과제 제출 현황 조회 (선생님)",
+            description = """
+                    특정 과제의 학생별 제출 여부를 조회합니다.
+
+                    - 가입 승인된 학생만 조회됩니다. (학생 번호는 학급 상세 조회와 동일, 이름순)
+                    - 제출 여부는 **대화 세션 완료(COMPLETED) 여부**로 판단합니다.
+                    - 선생님만 조회할 수 있고, 본인 학급의 과제여야 합니다.
+                    """
+    )
+    @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))
+    @GetMapping("/{classroomId}/assignments/{assignmentId}/submissions")
+    public ApiResponse<ClassroomResponseDto.AssignmentSubmissionResponse> getAssignmentSubmissions(
+            @PathVariable Long classroomId,
+            @PathVariable Long assignmentId) {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK,
+                assignmentQueryService.getAssignmentSubmissions(user, classroomId, assignmentId));
+    }
+
+    @Operation(
+            summary = "미제출 학생 알림 메일 발송 (선생님)",
+            description = """
+                    특정 과제를 아직 제출하지 않은 학생들에게 알림 메일을 보냅니다.
+
+                    - 가입 승인된 학생 중 제출(대화 세션 완료)하지 않은 학생에게 **각각** 발송됩니다. (다른 학생의 이메일은 노출되지 않음)
+                    - 마감된 과제에는 보낼 수 없습니다.
+                    - 같은 과제에는 24시간에 한 번만 보낼 수 있습니다. (스팸 방지)
+                    - 메일은 비동기로 발송되므로, 응답의 recipientCount는 발송 요청한 학생 수입니다.
+                    """
+    )
+    @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))
+    @PostMapping("/{classroomId}/assignments/{assignmentId}/reminders")
+    public ApiResponse<ClassroomResponseDto.AssignmentReminderResponse> remindAssignment(
+            @PathVariable Long classroomId,
+            @PathVariable Long assignmentId) {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK,
+                assignmentCommandService.remindAssignment(user, classroomId, assignmentId));
     }
 
     // ─────────────────────────────────────────────────────

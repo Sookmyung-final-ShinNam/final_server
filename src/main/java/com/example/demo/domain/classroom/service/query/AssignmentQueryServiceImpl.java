@@ -12,6 +12,7 @@ import com.example.demo.domain.classroom.entity.Student;
 import com.example.demo.domain.classroom.repository.AssignmentRepository;
 import com.example.demo.domain.classroom.repository.ClassroomRepository;
 import com.example.demo.domain.classroom.repository.StudentRepository;
+import com.example.demo.domain.classroom.web.dto.ClassroomResponseDto;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.story.entity.Story;
@@ -23,7 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -76,6 +79,40 @@ public class AssignmentQueryServiceImpl implements AssignmentQueryService {
                     return assignmentConverter.toAssignmentResponse(a, isSubmitted);
                 })
                 .toList();
+    }
+
+    // 과제 제출 현황 조회 (선생님): 가입 승인된 학생별 제출 여부
+    @Override
+    public ClassroomResponseDto.AssignmentSubmissionResponse getAssignmentSubmissions(
+            User user, Long classroomId, Long assignmentId) {
+
+        // 유저 역할 체크
+        if (!user.getGrade().isTeacher()) {
+            throw new CustomException(ErrorStatus.USER_ROLE_NOT_ALLOWED);
+        }
+
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.CLASSROOM_NOT_FOUND));
+
+        // 본인 학급인지 확인
+        if (!classroom.getTeacher().getId().equals(user.getId())) {
+            throw new CustomException(ErrorStatus.CLASSROOM_ACCESS_DENIED);
+        }
+
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.ASSIGNMENT_NOT_FOUND));
+
+        // 해당 학급의 과제인지 확인
+        if (!assignment.getClassroom().getId().equals(classroomId)) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_ACCESS_DENIED);
+        }
+
+        // 가입 승인된 학생 (이름순) + 과제 제출(세션 완료)한 학생 id
+        List<Student> approvedStudents = studentRepository.findApprovedByClassroomOrderByName(classroom);
+        Set<Long> submittedUserIds = new HashSet<>(sessionRepository.findSubmittedUserIdsByAssignmentId(
+                assignmentId, ConversationSession.SessionState.COMPLETED));
+
+        return assignmentConverter.toSubmissionResponse(assignment, approvedStudents, submittedUserIds);
     }
 
     @Override

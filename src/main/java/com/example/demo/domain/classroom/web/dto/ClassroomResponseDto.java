@@ -145,4 +145,41 @@ public class ClassroomResponseDto {
         private LocalDateTime dueAt;
         private boolean submitted;
     }
+
+    // ─────────────────────────────────────────────────────
+    // 과제 제출 현황 조회 응답 (선생님)
+    // ─────────────────────────────────────────────────────
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AssignmentSubmissionResponse {
+        private Long assignmentId;
+        private String title;
+        private int submittedCount;
+        private int notSubmittedCount;
+        private List<SubmissionStudentItem> students;
+    }
+
+    // 미제출 학생 알림 메일 발송 응답
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AssignmentReminderResponse {
+        private int recipientCount; // 알림 메일을 보내는 학생 수
+    }
+
+    // 가입 승인된 학생별 제출 여부 (학생 번호는 학급 상세 조회와 동일)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SubmissionStudentItem {
+        private int studentNo;
+        private Long studentId;
+        private String studentName;
+        private boolean submitted;
+    }
 }
