@@ -13,6 +13,11 @@ public class CharacterConverter {
 
     // 목록용 변환
     public CompletedCharacterResponse toCompletedCharacterResponse(StoryCharacter ch, boolean important) {
+        return toCompletedCharacterResponse(ch, important, false);
+    }
+
+    // 목록용 변환 (withCreator: 만든 사용자 닉네임 포함 - 학급 동화 조회에서 사용)
+    public CompletedCharacterResponse toCompletedCharacterResponse(StoryCharacter ch, boolean important, boolean withCreator) {
         return CompletedCharacterResponse.builder()
                 .characterId(ch.getId())
                 .name(ch.getName())
@@ -20,7 +25,15 @@ public class CharacterConverter {
                 .imageUrl(ch.getImageUrl())
                 .important(important)
                 .createTime(ch.getCreatedAt())
+                .creatorNickname(withCreator ? creatorNickname(ch) : null)
                 .build();
+    }
+
+    // 캐릭터(동화)를 만든 사용자 닉네임 (스토리의 사용자가 없으면 null)
+    private String creatorNickname(StoryCharacter ch) {
+        return ch.getStory() != null && ch.getStory().getUser() != null
+                ? ch.getStory().getUser().getNickname()
+                : null;
     }
 
     // 상세용 변환
@@ -41,6 +54,7 @@ public class CharacterConverter {
                 .personality(ch.getPersonality())
                 .important(important)
                 .createTime(ch.getCreatedAt())
+                .creatorNickname(creatorNickname(ch))
                 .storyId(ch.getStory().getId())
                 .storyTitle(ch.getStory().getTitle())
                 .imageStoryUrl(lastPage != null ? lastPage.getImageUrl() : null) // 4p 이미지 URL
@@ -56,8 +70,17 @@ public class CharacterConverter {
             List<StoryCharacter> characters,
             Set<Long> favoriteIds
     ) {
+        return toCharacterListResponse(characters, favoriteIds, false);
+    }
+
+    // withCreator: 만든 사용자 닉네임 포함 (학급 동화 조회에서 사용)
+    public CompletedCharacterResponse.CharacterListResponse toCharacterListResponse(
+            List<StoryCharacter> characters,
+            Set<Long> favoriteIds,
+            boolean withCreator
+    ) {
         List<CompletedCharacterResponse> dtoList = characters.stream()
-                .map(ch -> toCompletedCharacterResponse(ch, favoriteIds.contains(ch.getId())))
+                .map(ch -> toCompletedCharacterResponse(ch, favoriteIds.contains(ch.getId()), withCreator))
                 .toList();
 
         return CompletedCharacterResponse.CharacterListResponse.builder()

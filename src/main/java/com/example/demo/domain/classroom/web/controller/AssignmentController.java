@@ -137,7 +137,8 @@ public class AssignmentController extends AuthController {
                     assignmentId로 특정 과제의 동화 조회가 가능합니다. (assignmentId 값 없으면 전체 조회)
                     
                     동화 조회는 기존 보관함(캐릭터 전체 조회 API)과 동일한 구조를 따릅니다.
-                        - important(관심 캐릭터 여부)는 모두 false로 고정
+                        - important(관심 캐릭터 여부)는 요청한 사용자의 관심 캐릭터 여부 (일반 보관함의 관심 캐릭터와 같은 목록, 친구가 만든 캐릭터도 등록 가능)
+                        - creatorNickname: 동화를 만든 사용자의 닉네임
                     """
     )
     @ApiResponses(@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"))

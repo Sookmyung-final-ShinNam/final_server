@@ -22,6 +22,7 @@ public class CompletedCharacterResponse {
     private String imageUrl;
     private boolean important;   // 관심 캐릭터 여부
     private LocalDateTime createTime;
+    private String creatorNickname; // 캐릭터(동화)를 만든 사용자 닉네임 (학급 동화 조회에서만 값이 있음, 그 외 null)
 
     // 전체 조회용 DTO
     @Data
@@ -47,6 +48,7 @@ public class CompletedCharacterResponse {
         private String personality;
         private boolean important;
         private LocalDateTime createTime;
+        private String creatorNickname;     // 캐릭터(동화)를 만든 사용자 닉네임
 
         private Long storyId;               // 연관 스토리 ID
         private String storyTitle;          // 연관 스토리 제목

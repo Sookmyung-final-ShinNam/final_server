@@ -4,6 +4,7 @@ import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.character.converter.CharacterConverter;
 import com.example.demo.domain.character.entity.StoryCharacter;
+import com.example.demo.domain.character.repository.UserCharacterFavoriteRepository;
 import com.example.demo.domain.character.web.dto.CompletedCharacterResponse;
 import com.example.demo.domain.classroom.converter.AssignmentConverter;
 import com.example.demo.domain.classroom.entity.Assignment;
@@ -22,11 +23,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,7 @@ public class AssignmentQueryServiceImpl implements AssignmentQueryService {
     private final StudentRepository studentRepository;
     private final ConversationSessionRepository sessionRepository;
     private final StoryRepository storyRepository;
+    private final UserCharacterFavoriteRepository userCharacterFavoriteRepository;
 
     private final AssignmentConverter assignmentConverter;
     private final CharacterConverter characterConverter;
@@ -150,7 +152,12 @@ public class AssignmentQueryServiceImpl implements AssignmentQueryService {
                 .sorted(Comparator.comparing(StoryCharacter::getCreatedAt, Comparator.reverseOrder()))
                 .toList();
 
-        // 4. DTO 변환 (관심 캐릭터는 항상 빈 Set → isFavorite 항상 false)
-        return characterConverter.toCharacterListResponse(sorted, Collections.emptySet());
+        // 4. 내 관심 캐릭터 id (일반 보관함과 같은 관심 캐릭터 목록. 친구가 만든 캐릭터도 포함될 수 있음)
+        Set<Long> favoriteIds = userCharacterFavoriteRepository.findByUser(user).stream()
+                .map(fav -> fav.getCharacter().getId())
+                .collect(Collectors.toSet());
+
+        // 5. DTO 변환 (만든 사용자 닉네임 포함)
+        return characterConverter.toCharacterListResponse(sorted, favoriteIds, true);
     }
 }
