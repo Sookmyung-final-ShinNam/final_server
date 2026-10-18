@@ -6,10 +6,15 @@ import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.entity.SessionStep;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.conversation.repository.SessionStepRepository;
+import com.example.demo.domain.classroom.entity.Assignment;
 import com.example.demo.domain.conversation.web.dto.ConversationResponseDto;
+import com.example.demo.domain.story.entity.Story;
+import com.example.demo.domain.user.entity.User;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +22,26 @@ public class ConversationQueryServiceImpl implements ConversationQueryService {
 
     private final ConversationSessionRepository sessionRepo;
     private final SessionStepRepository stepRepository;
+
+    @Override
+    @Transactional
+    public List<ConversationResponseDto.InProgressSessionDto> getInProgressSessions(User user) {
+        return sessionRepo.findByUserIdAndStateWithStory(user.getId(), ConversationSession.SessionState.ACTIVE)
+                .stream()
+                .map(session -> {
+                    Story story = session.getStory();
+                    Assignment assignment = story.getAssignment(); // 일반 동화는 null
+
+                    return ConversationResponseDto.InProgressSessionDto.builder()
+                            .sessionId(session.getId())
+                            .currentStep(session.getCurrentStep())
+                            .characterName(story.getCharacter() != null ? story.getCharacter().getName() : null)
+                            .assignmentId(assignment != null ? assignment.getId() : null)
+                            .classroomId(assignment != null ? assignment.getClassroom().getId() : null)
+                            .build();
+                })
+                .toList();
+    }
 
     @Override
     @Transactional

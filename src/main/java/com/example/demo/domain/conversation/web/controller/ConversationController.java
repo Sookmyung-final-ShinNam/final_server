@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 대화 컨트롤러
@@ -82,6 +83,26 @@ public class ConversationController extends AuthController {
    ) {
        return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getNextStepMessage(sessionId, currentStep));
    }
+
+    @Operation(
+            summary = "진행 중인 대화 세션 조회 (이어하기)",
+            description = """
+                    사용자가 끝내지 않은(진행 중) 대화 세션 목록을 최신순으로 조회합니다.
+
+                    - 일반 동화와 학급 과제 동화가 함께 조회됩니다.
+                    - 학급 과제로 만든 세션은 assignmentId / classroomId 값이 있고, 일반 동화는 null 입니다.
+                    - 이어서 진행하려면 응답의 sessionId, currentStep 으로 next-step API(GET /api/conversations/next-step)를 호출합니다.
+                    - 이어하기는 포인트(학급 도토리)를 차감하지 않습니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @GetMapping("/in-progress")
+    public ApiResponse<List<ConversationResponseDto.InProgressSessionDto>> getInProgressSessions() {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getInProgressSessions(user));
+    }
 
     @Operation(
             summary = "사용자 답변 피드백",

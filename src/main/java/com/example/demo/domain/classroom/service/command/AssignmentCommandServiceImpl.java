@@ -198,6 +198,12 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
             throw new CustomException(ErrorStatus.ASSIGNMENT_ALREADY_SUBMITTED);
         }
 
+        // 이미 진행 중인(끝내지 않은) 세션이 있다면 새로 시작하지 않고 이어하기로 진행 (도토리 중복 차감 방지)
+        if (conversationSessionRepository.existsByStory_AssignmentIdAndUserIdAndState(
+                assignmentId, currentUser.getId(), ConversationSession.SessionState.ACTIVE)) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_IN_PROGRESS);
+        }
+
         classroom.usePoints(1);
 
         // 과제 스토리 생성 (CLASSROOM 타입, assignment 연결)

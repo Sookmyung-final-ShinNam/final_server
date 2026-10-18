@@ -52,6 +52,22 @@ public interface ConversationSessionRepository extends JpaRepository<Conversatio
     boolean existsByStory_AssignmentIdAndUserIdAndState(Long assignmentId, Long userId, ConversationSession.SessionState state);
 
     /**
+     * 이어하기 - 사용자의 진행 중(ACTIVE) 세션 목록 (최신순)
+     */
+    @Query("""
+        SELECT cs
+        FROM ConversationSession cs
+        JOIN FETCH cs.story
+        WHERE cs.user.id = :userId
+            AND cs.state = :state
+        ORDER BY cs.createdAt DESC
+    """)
+    List<ConversationSession> findByUserIdAndStateWithStory(
+            @Param("userId") Long userId,
+            @Param("state") ConversationSession.SessionState state
+    );
+
+    /**
      * 학급 기능 - 과제를 제출한 학생 id 목록 (선생님 제출 현황 조회)
      *
      * 한 학생이 여러 번 제출해도 한 번만 조회
