@@ -192,6 +192,12 @@ public class AssignmentCommandServiceImpl implements AssignmentCommandService {
             throw new CustomException(ErrorStatus.CLASSROOM_NOT_APPROVED);
         }
 
+        // 한 학생은 과제당 한 번만 제출 가능 (이미 제출(세션 완료)했다면 학급 도토리 차감 전에 거절)
+        if (conversationSessionRepository.existsByStory_AssignmentIdAndUserIdAndState(
+                assignmentId, currentUser.getId(), ConversationSession.SessionState.COMPLETED)) {
+            throw new CustomException(ErrorStatus.ASSIGNMENT_ALREADY_SUBMITTED);
+        }
+
         classroom.usePoints(1);
 
         // 과제 스토리 생성 (CLASSROOM 타입, assignment 연결)

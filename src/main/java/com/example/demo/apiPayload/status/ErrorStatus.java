@@ -109,6 +109,7 @@ public enum ErrorStatus implements BaseErrorCode {
     ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ASSIGNMENT_4004", "해당 과제를 찾을 수 없습니다."),
     ASSIGNMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ASSIGNMENT_4013", "해당 과제에 접근 권한이 없습니다."),
     ASSIGNMENT_CLOSED(HttpStatus.BAD_REQUEST, "ASSIGNMENT_4005", "마감된 과제에는 알림을 보낼 수 없습니다."),
+    ASSIGNMENT_ALREADY_SUBMITTED(HttpStatus.BAD_REQUEST, "ASSIGNMENT_4007", "이미 제출한 과제입니다. 과제는 한 번만 제출할 수 있습니다."),
     ASSIGNMENT_NO_REMINDER_TARGET(HttpStatus.BAD_REQUEST, "ASSIGNMENT_4006", "알림을 보낼 미제출 학생이 없습니다."),
     ASSIGNMENT_REMINDER_TOO_SOON(HttpStatus.TOO_MANY_REQUESTS, "ASSIGNMENT_4290", "알림 메일은 같은 과제에 24시간에 한 번만 보낼 수 있습니다."),
 
