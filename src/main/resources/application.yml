@@ -1,5 +1,4 @@
 spring:
-
   time-zone: Asia/Seoul
 
   base-url: "https://${DOMAIN}"
@@ -9,6 +8,21 @@ spring:
     include:
       - db
       - security
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "${MAIL_USERNAME}"
+    password: "${MAIL_PASSWORD}"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+          starttls:
+            enable: true
 
 server:
   ssl:

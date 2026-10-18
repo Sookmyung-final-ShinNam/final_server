@@ -6,6 +6,8 @@ import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.conversation.event.*;
 import com.example.demo.domain.conversation.repository.ConversationSessionRepository;
 import com.example.demo.domain.story.entity.Story;
+import com.example.demo.domain.story.entity.StoryPage;
+import com.example.demo.domain.story.repository.StoryPageRepository;
 import com.example.demo.domain.story.repository.StoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,6 +23,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RequiredArgsConstructor
 public class ConversationCompleteCommandServiceImpl implements ConversationCompleteCommandService {
 
+    private final StoryPageRepository storyPageRepo;
     private final StoryRepository storyRepo;
     private final ConversationSessionRepository sessionRepo;
 
@@ -67,7 +70,7 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
     public void updateFailedStory(Long storyId, Story.StoryStatus failedStatus) {
 
         // 1. 실패 상테 해당하는 enum 값 검증
-        if (!failedStatus.isFailedStatus()) {
+        if (!failedStatus.isFailedStory()) {
             throw new CustomException(ErrorStatus.STORY_INVALID_STATUS);
         }
 
@@ -75,6 +78,23 @@ public class ConversationCompleteCommandServiceImpl implements ConversationCompl
         Story story = storyRepo.findById(storyId)
                 .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
         story.setStoryStatus(failedStatus);
+    }
+
+    @Override
+    @Transactional
+    public void updateFailedVideo(Long pageId, Long storyId) {
+
+        // 1. 엔티티 조회
+        StoryPage page = storyPageRepo.findById(pageId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_PAGE_NOT_FOUND));
+
+        Story story = storyRepo.findById(storyId)
+                .orElseThrow(() -> new CustomException(ErrorStatus.STORY_NOT_FOUND));
+
+
+        // 2. 동영상 페이지 실패 시,바로 스토리 실패 상태 업데이트
+        page.setVideoStatus(StoryPage.VideoStatus.FAILED);
+        story.setVideoStatus(Story.VideoStatus.VIDEO_FAILED);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.example.demo.domain.character.web.dto;
 
-import com.example.demo.domain.story.entity.StoryPage;
+import com.example.demo.domain.story.entity.Story;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +22,7 @@ public class CompletedCharacterResponse {
     private String imageUrl;
     private boolean important;   // 관심 캐릭터 여부
     private LocalDateTime createTime;
+    private String creatorNickname; // 캐릭터(동화)를 만든 사용자 닉네임 (학급 동화 조회에서만 값이 있음, 그 외 null)
 
     // 전체 조회용 DTO
     @Data
@@ -47,13 +48,14 @@ public class CompletedCharacterResponse {
         private String personality;
         private boolean important;
         private LocalDateTime createTime;
+        private String creatorNickname;     // 캐릭터(동화)를 만든 사용자 닉네임
 
         private Long storyId;               // 연관 스토리 ID
         private String storyTitle;          // 연관 스토리 제목
 
         private String imageStoryUrl;     // 이미지 스토리 URL
 
-        private StoryPage.VideoStatus videoStatus; // 비디오 스토리 상태
+        private Story.VideoStatus videoStatus; // 비디오 스토리 상태
         private String videoStoryUrl;     // 비디오 스토리 URL
 
         private String imageYoutubeLink;   // 이미지 유튜브 링크

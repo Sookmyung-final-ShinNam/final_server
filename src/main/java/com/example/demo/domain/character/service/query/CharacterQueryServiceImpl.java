@@ -37,10 +37,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
         // 1. 유저의 모든 캐릭터 가져오기 (스토리 완료된 캐릭터만)
         List<StoryCharacter> characters = storyCharacterRepository.findByUserAndStoryStatus(
                 user,
-                Arrays.asList(
-                        Story.StoryStatus.IMAGE_COMPLETED,
-                        Story.StoryStatus.VIDEO_COMPLETED
-                )
+                Story.StoryStatus.IMAGE_COMPLETED
         );
 
         // 2. 성별 필터링 (null 이면 전체)
@@ -80,10 +77,7 @@ public class CharacterQueryServiceImpl implements CharacterQueryService {
         // 2. 캐릭터 조회 (스토리 완료된 캐릭터만)
         StoryCharacter character = storyCharacterRepository.findByIdAndStoryStatus(
                 characterId,
-                Arrays.asList(
-                        Story.StoryStatus.IMAGE_COMPLETED,
-                        Story.StoryStatus.VIDEO_COMPLETED
-                )
+                Story.StoryStatus.IMAGE_COMPLETED
         ).orElseThrow(() -> new CustomException(ErrorStatus.CHARACTER_NOT_FOUND));
 
         // 3. 관심 캐릭터 여부 확인

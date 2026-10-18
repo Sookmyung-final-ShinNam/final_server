@@ -1,8 +1,9 @@
-package com.example.demo.domain.conversation.event;
+package com.example.demo.domain.conversation.event.handler;
 
 import com.example.demo.apiPayload.code.exception.CustomException;
 import com.example.demo.apiPayload.status.ErrorStatus;
 import com.example.demo.domain.conversation.entity.SessionStep;
+import com.example.demo.domain.conversation.event.ConversationNextStoryEvent;
 import com.example.demo.domain.conversation.repository.SessionStepRepository;
 import com.example.demo.domain.conversation.service.model.llm.LlmClient;
 import lombok.RequiredArgsConstructor;

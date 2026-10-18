@@ -12,4 +12,7 @@ public interface StoryPageRepository extends JpaRepository<StoryPage, Long> {
 
     // 페이지 이미지 생성 완료 개수 조회
     int countByStoryIdAndPageStatus(Long storyId, StoryPage.PageStatus pageStatus);
+
+    // 페이지 동영상 생성 완료 개수 조회
+    int countByStoryIdAndVideoStatus(Long storyId, StoryPage.VideoStatus pageStatus);
 }

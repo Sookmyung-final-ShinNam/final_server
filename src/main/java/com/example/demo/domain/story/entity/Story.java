@@ -1,6 +1,7 @@
 package com.example.demo.domain.story.entity;
 
 import com.example.demo.domain.character.entity.StoryCharacter;
+import com.example.demo.domain.classroom.entity.Assignment;
 import com.example.demo.domain.conversation.entity.ConversationSession;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.global.entity.BaseEntity;
@@ -43,21 +44,17 @@ public class Story extends BaseEntity {
         TEXT_COMPLETED,  // 텍스트 생성 완료 - 스토리 정제
         TEXT_FAILED,     // 텍스트 생성 실패
         IMAGE_COMPLETED, // 이미지 생성 완료 - 캐릭터 + 페이지 (사용자 조회 가능 시점)
-        IMAGE_FAILED,    // 이미지 생성 실패
-        VIDEO_COMPLETED, // 동영상 생성 완료
-        VIDEO_FAILED;    // 동영상 생성 실패
+        IMAGE_FAILED;    // 이미지 생성 실패
 
         // 스토리 생성 상태 여부
-        public boolean isCompletedStatus() {
-            return this == IMAGE_COMPLETED ||
-                    this == VIDEO_COMPLETED;
+        public boolean isCompletedStory() {
+            return this == IMAGE_COMPLETED;
         }
 
         // 스토리 생성 실패 상태 여부
-        public boolean isFailedStatus() {
+        public boolean isFailedStory() {
             return this == TEXT_FAILED ||
-                    this == IMAGE_FAILED ||
-                    this == VIDEO_FAILED;
+                    this == IMAGE_FAILED;
         }
     }
 
@@ -65,10 +62,22 @@ public class Story extends BaseEntity {
     @Column(name = "retry_count", nullable = false)
     private int retryCount = 0;
 
-    // 스토리 비디오 상태
+    // 스토리 동영상 상태 (기본값 NONE)
     @Enumerated(EnumType.STRING)
     @Column(name = "video_status", nullable = false)
-    private StoryPage.VideoStatus videoStatus = StoryPage.VideoStatus.NONE;
+    private VideoStatus videoStatus = VideoStatus.NONE;
+
+    public enum VideoStatus {
+        NONE,            // 동영상 생성 요청 전
+        VIDEO_MAKING,    // 동영상 생성 요청
+        VIDEO_COMPLETED, // 동영상 생성 완료
+        VIDEO_FAILED;    // 동영상 생성 실패
+
+        // 스토리 생성 상태 여부
+        public boolean isCompletedVideo() {
+            return this == VIDEO_COMPLETED;
+        }
+    }
 
     // 이미지용 유튜브 링크
     @Column(name = "image_youtube_link", length = 500)
@@ -82,6 +91,21 @@ public class Story extends BaseEntity {
     @Builder.Default
     @Column(name = "dashboard_applied", nullable = false)
     private boolean dashboardApplied = false;
+
+    // 스토리 타입
+    @Enumerated(EnumType.STRING)
+    @Column(name = "story_type", nullable = false)
+    private StoryType storyType = StoryType.PERSONAL;
+
+    public enum StoryType {
+        PERSONAL,   // 개인이 만든 동화
+        CLASSROOM,  // 학급(과제)로 만든 동화
+    }
+
+    // 나의 학급용 스토리인 경우 참조
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id", nullable = true)
+    private Assignment assignment;
 
     // 스토리를 생성한 사용자
     @ManyToOne(fetch = FetchType.LAZY)
@@ -112,11 +136,4 @@ public class Story extends BaseEntity {
     // 스토리 삭제 시 캐릭터도 삭제
     @OneToOne(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     private StoryCharacter character;
-
-    // 상태 변경 메서드
-    public void markVideoAsMaking() {
-        if (this.videoStatus == StoryPage.VideoStatus.NONE) {
-            this.videoStatus = StoryPage.VideoStatus.MAKING;
-        }
-    }
 }

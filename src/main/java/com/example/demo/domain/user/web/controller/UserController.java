@@ -2,14 +2,17 @@ package com.example.demo.domain.user.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.service.command.UserCommandService;
 import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = SwaggerConfig.Tags.USER_AUTH)
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -39,6 +42,20 @@ public class UserController extends AuthController {
         return ApiResponse.of(SuccessStatus._OK, userCommandService.withdrawUser(user));
     }
 
+    @Operation(summary = "사용자 권한 확인",
+            description = "현재 로그인한 사용자가 지정한 권한을 가지고 있는지 확인합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @GetMapping("/check-role")
+    public ApiResponse<Boolean> checkRole(
+            @RequestParam("role") User.UserGrade role
+    ) {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, user.getGrade() == role);
+    }
+
+    // TODO: 안드 게시 후 삭제
     @Operation(summary = "Admin 여부 확인",
             description = "현재 로그인한 사용자가 관리자 권한을 가지고 있는지 확인합니다.")
     @ApiResponses({

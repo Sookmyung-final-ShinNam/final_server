@@ -34,7 +34,7 @@ public class ConversationCompleteOrchestrator {
         Story.StoryStatus currentStatus = story.getStoryStatus();
 
         // 1. 이미 완료된 스토리 작업 생략
-        if (currentStatus.isCompletedStatus()) {
+        if (currentStatus.isCompletedStory()) {
             log.info("이미 이미지까지 생성된 스토리: storyId={}", storyId);
             return;
         }
@@ -68,6 +68,5 @@ public class ConversationCompleteOrchestrator {
                 return;
             }
         }
-
     }
 }

@@ -34,8 +34,7 @@ public class StoryRetryScheduler {
                 ConversationSession.ConversationStep.END,
                 Arrays.asList(
                         Story.StoryStatus.TEXT_FAILED,
-                        Story.StoryStatus.IMAGE_FAILED,
-                        Story.StoryStatus.VIDEO_FAILED
+                        Story.StoryStatus.IMAGE_FAILED
                 ),
                 Arrays.asList(
                         Story.StoryStatus.MAKING,

@@ -1,5 +1,6 @@
-package com.example.demo.domain.conversation.event;
+package com.example.demo.domain.conversation.event.handler;
 
+import com.example.demo.domain.conversation.event.StartConversationEvent;
 import com.example.demo.domain.conversation.service.command.next.ConversationNextStoryCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

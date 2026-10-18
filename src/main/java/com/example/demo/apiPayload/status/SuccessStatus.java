@@ -12,7 +12,7 @@ public enum SuccessStatus implements BaseCode {
 
     // 공통 성공
     _OK(HttpStatus.OK, "COMMON_200", "성공입니다."),
-
+    _ACCEPTED(HttpStatus.ACCEPTED, "COMMON_202", "요청이 접수되었으며 비동기 처리 중입니다")
     ;
 
     private final HttpStatus httpStatus;

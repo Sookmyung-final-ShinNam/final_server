@@ -2,16 +2,19 @@ package com.example.demo.domain.story.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.story.service.command.StoryAdminCommandService;
 import com.example.demo.domain.story.service.query.StoryAdminQueryService;
 import com.example.demo.domain.story.web.dto.StoryAdminResponseDto;
 import com.example.demo.domain.story.web.dto.StoryFailedAdminResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = SwaggerConfig.Tags.ADMIN)
 @RestController
 @RequestMapping("/api/admin/stories")
 @RequiredArgsConstructor

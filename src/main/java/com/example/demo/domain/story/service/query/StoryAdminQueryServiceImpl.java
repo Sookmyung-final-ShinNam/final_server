@@ -7,7 +7,6 @@ import com.example.demo.domain.story.web.dto.StoryFailedAdminResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -28,10 +27,7 @@ public class StoryAdminQueryServiceImpl implements StoryAdminQueryService {
     @Override
     public List<StoryFailedAdminResponseDto> getFailedRetryStories() {
         return storyRepository.findFailedRetryStoriesForAdmin(
-                    Arrays.asList(
-                        Story.StoryStatus.IMAGE_COMPLETED,
-                        Story.StoryStatus.VIDEO_COMPLETED
-                    )
+                    Story.StoryStatus.IMAGE_COMPLETED
                 )
                 .stream()
                 .map(StoryFailedAdminResponseDto::from)

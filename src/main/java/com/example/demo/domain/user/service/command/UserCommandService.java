@@ -24,9 +24,10 @@ public interface UserCommandService {
      * tempCode로 토큰 조회 후 사용자 활성화 및 토큰 반환
      *
      * @param tempCode 임시 코드
+     * @param role 사용자 역할(학생/선생님)
      * @return 로그인 결과가 담긴 LoginResult
      */
-    LoginResponseDto.LoginResult loginUser(String tempCode);
+    LoginResponseDto.LoginResult loginUser(String tempCode, User.UserGrade role);
 
     /**
      * 사용자 비활성화 (로그아웃)

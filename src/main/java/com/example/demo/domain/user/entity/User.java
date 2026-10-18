@@ -72,13 +72,20 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserCharacterFavorite> favorites = new HashSet<>();
 
+    // 사용자 삭제 시 이메일 인증 내역도 삭제
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EmailVerification> emailVerifications = new HashSet<>();
+
     // 약관 1 : 스토리와 캐릭터는 운영자만 삭제 가능합니다. 삭제를 원할 시 별도 신청/문의가 필요합니다.
     //         추후 공유 기능 개발 예정이고 다른 사용자들이 캐릭터와 유대감을 쌓을 수 있으므로 중대한 이유가 아닌 이상 삭제 불가합니다.
     // 약관 2 : 사용자 대화 기록과 즐겨찾기는 탈퇴시 자동으로 삭제됩니다.
 
     public enum UserGrade {
-        BASIC,    // 기본 사용자
-        ADMIN     // 관리자
+        BASIC,    // 기본 사용자 (= 학생)
+        TEACHER,  // 선생님
+        ADMIN;    // 관리자
+
+        public boolean isTeacher() { return this == TEACHER; }
     }
 
     public enum UserStatus {
@@ -87,10 +94,15 @@ public class User extends BaseEntity {
         DELETED   // 회원 탈퇴
     }
 
+    // 사용자 역할 전환 (관리자 전환 불가)
+    public void changeRole(UserGrade newGrade) {
+        if (newGrade == UserGrade.ADMIN) throw new CustomException(ErrorStatus.USER_ROLE_CHANGE_FAILED);
+        this.grade = newGrade;
+    }
+
     // 사용자 상태를 활성화로 변경
     public void activate() {
         this.status = UserStatus.ACTIVE;
-        this.setAgreedToTerms(true); // 활성화 시 약관 동의로 설정
         this.deletedAt = null; // 활성화 시 삭제 일시 초기화
     }
 

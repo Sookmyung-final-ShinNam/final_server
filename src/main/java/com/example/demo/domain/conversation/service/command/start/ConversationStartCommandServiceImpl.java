@@ -63,7 +63,7 @@ public class ConversationStartCommandServiceImpl implements ConversationStartCom
         User currentUser = validateAndChargeUser(user);
 
         // 2. Story 생성
-        Story story = storyRepository.save(converter.toStory(currentUser));
+        Story story = storyRepository.save(converter.toPersonalStory(currentUser));
 
         // 3. Theme 처리 및 적용
         List<Theme> themes = resolveThemes(request);

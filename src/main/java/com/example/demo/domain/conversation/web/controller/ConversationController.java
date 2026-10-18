@@ -2,8 +2,8 @@ package com.example.demo.domain.conversation.web.controller;
 
 import com.example.demo.apiPayload.ApiResponse;
 import com.example.demo.apiPayload.status.SuccessStatus;
+import com.example.demo.config.SwaggerConfig;
 import com.example.demo.domain.conversation.entity.ConversationSession;
-import com.example.demo.domain.conversation.service.async.ConversationAsyncService;
 import com.example.demo.domain.conversation.service.command.complete.ConversationCompleteCommandService;
 import com.example.demo.domain.conversation.service.command.feedback.ConversationFeedbackCommandService;
 import com.example.demo.domain.conversation.service.command.start.ConversationStartCommandService;
@@ -16,14 +16,19 @@ import com.example.demo.global.security.AuthController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * 대화 컨트롤러
  */
+@Tag(name = SwaggerConfig.Tags.CONVERSATION)
 @Slf4j
 @RestController
 @RequestMapping("/api/conversations")
@@ -34,7 +39,6 @@ public class ConversationController extends AuthController {
     private final ConversationStartCommandService conversationStartCommandService;
     private final ConversationFeedbackCommandService conversationFeedbackCommandService;
     private final ConversationCompleteCommandService conversationCompleteCommandService;
-    private final ConversationAsyncService conversationAsyncService;
     private final StoryCommandService storyCommandService;
 
     @Operation(
@@ -81,6 +85,26 @@ public class ConversationController extends AuthController {
    }
 
     @Operation(
+            summary = "진행 중인 대화 세션 조회 (이어하기)",
+            description = """
+                    사용자가 끝내지 않은(진행 중) 대화 세션 목록을 최신순으로 조회합니다.
+
+                    - 일반 동화와 학급 과제 동화가 함께 조회됩니다.
+                    - 학급 과제로 만든 세션은 assignmentId / classroomId 값이 있고, 일반 동화는 null 입니다.
+                    - 이어서 진행하려면 응답의 sessionId, currentStep 으로 next-step API(GET /api/conversations/next-step)를 호출합니다.
+                    - 이어하기는 포인트(학급 도토리)를 차감하지 않습니다.
+                    """
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
+    })
+    @GetMapping("/in-progress")
+    public ApiResponse<List<ConversationResponseDto.InProgressSessionDto>> getInProgressSessions() {
+        User user = getCurrentUser();
+        return ApiResponse.of(SuccessStatus._OK, conversationQueryService.getInProgressSessions(user));
+    }
+
+    @Operation(
             summary = "사용자 답변 피드백",
             description = """
                     사용자 답변에서 slot을 추출/추론하고 피드백을 제공합니다. 
@@ -99,14 +123,16 @@ public class ConversationController extends AuthController {
 
 
     @Operation(
-            summary = "동화 생성 완성 (마지막 Feedback 이후 호출)",
+            summary = "대화 세션 완료 및 동화 생성",
             description = """
-                    동기  -  정합성 확인 후 바로 응답을 줍니다.
+                    마지막 Feedback 이후 호출 가능하며, 비동기로 동화 생성을 시작합니다.
                     
-                    비동기 - 내용 기반으로 아래 정보들을 업데이트/생성합니다.
-                            - 동화 정보 업데이트(제목, 3줄 요약)
-                            - 캐릭터 정보 업데이트(성격, 기본 이미지)
-                            - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지)
+                    1. 동기 - 정합성 확인 후 바로 클라이언트에 응답을 줍니다.
+                 
+                    2. 비동기 - 대화 내용을 기반으로, 동화 관련 정보를 업데이트하며 동화를 생성합니다.
+                        - 동화 정보 업데이트(제목, 3줄 요약)
+                        - 캐릭터 정보 업데이트(성격, 기본 이미지)
+                        - 동화 페이지 생성(정리된 내용, 각 페이지별 이미지)
                     """
     )
     @ApiResponses({
@@ -120,7 +146,7 @@ public class ConversationController extends AuthController {
         try {
             // 대화 완료 확인 후 동화 생성
             conversationCompleteCommandService.completeStory(sessionId);
-            return ApiResponse.of(SuccessStatus._OK);
+            return ApiResponse.of(SuccessStatus._ACCEPTED);
 
         } finally {
             long durationMs = (System.nanoTime() - start) / 1_000_000;
@@ -132,23 +158,23 @@ public class ConversationController extends AuthController {
     @Operation(
             summary = "페이지별 동영상 생성",
             description = """
-                    각 페이지에 맞는 동영상을 생성합니다.
+                    1 포인트를 소비하여, 비동기로 동영상 동화 생성을 시작합니다.
                     
-                    - points 부족 시 진행 불가 (사용 포인트 1)
+                    1. 동기 - 정합성 확인 후 바로 클라이언트에 응답을 줍니다.
+                        - 포인트 부족 시 진행 불가
+                    
+                    2. 비동기 - 이미 생성된 동화(storyId)를 기반으로 각 페이지의 동영상을 생성합니다.
                     """
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공"),
     })
     @PostMapping("/video")
-    public ApiResponse<Void> storyToVideo(
+    public ApiResponse<Void> generateVideo(
             @RequestParam Long storyId
     ) {
         // 상태 변경
-        storyCommandService.markStoryVideoAsMaking(storyId);
-        // 비동기 호출
-        conversationAsyncService.generateStoryVideo(storyId);
-        return ApiResponse.of(SuccessStatus._OK);
+        storyCommandService.generateVideo(storyId);
+        return ApiResponse.of(SuccessStatus._ACCEPTED);
     }
-
 }

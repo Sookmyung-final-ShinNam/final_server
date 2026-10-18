@@ -18,11 +18,11 @@ public interface StoryCharacterRepository extends JpaRepository<StoryCharacter, 
         FROM StoryCharacter c
         JOIN FETCH c.story s
             WHERE s.user = :user
-                AND s.storyStatus IN :success
+                AND s.storyStatus = :success
     """)
     List<StoryCharacter> findByUserAndStoryStatus(
             @Param("user") User user,
-            @Param("success") List<Story.StoryStatus> successStatus
+            @Param("success") Story.StoryStatus successStatus
     );
 
     // 완료된 특정 캐릭터 상세 조회
@@ -32,10 +32,10 @@ public interface StoryCharacterRepository extends JpaRepository<StoryCharacter, 
             JOIN FETCH c.story s
             LEFT JOIN FETCH s.storyPages
                 WHERE c.id = :id
-                     AND s.storyStatus IN :success
+                     AND s.storyStatus = :success
     """)
     Optional<StoryCharacter> findByIdAndStoryStatus(
             @Param("id") Long characterId,
-            @Param("success") List<Story.StoryStatus> successStatus
+            @Param("success") Story.StoryStatus successStatus
     );
 }
